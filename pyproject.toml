@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "pypika"
+version = "0.1.0"
+description = "Forked from pypika and streamline just for tortoise-orm"
+authors = ["long2ice <long2ice@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/tortoise/pypika-tortoise"
+repository = "https://github.com/long2ice/pypika-tortoise.git"
+documentation = "https://github.com/long2ice/pypika-tortoise"
+keywords = ["postgresql", "Tortoise-ORM", "mysql", "sqlite", "sql"]
+packages = [
+    { include = "pypika" }
+]
+include = ["CHANGELOG.md", "LICENSE", "README.md"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+flake8 = "*"
+isort = "*"
+black = "^20.8b1"
+pytest = "*"
+pylint = "*"
+bandit = "*"
+pytest-xdist = "*"
+pytest-cov = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
