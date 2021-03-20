@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pypika"
+name = "pypika-tortoise"
 version = "0.1.0"
 description = "Forked from pypika and streamline just for tortoise-orm"
 authors = ["long2ice <long2ice@gmail.com>"]

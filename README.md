@@ -10,7 +10,7 @@ Forked from [pypika](https://github.com/kayak/pypika) and streamline just for to
 ## Why forked?
 
 The original repo include many databases that tortoise-orm don't need, and which aims to be a perfect sql builder and
-consider more compatibilities.
+should consider more compatibilities, but tortoise-orm is not, and we need add new features and update it ourselves.
 
 ## What change?
 
