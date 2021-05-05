@@ -70,7 +70,7 @@ class MySQLQueryBuilder(QueryBuilder):
                 querystring += self._on_duplicate_key_update_sql(**kwargs)
             elif self._ignore_duplicates:
                 querystring += self._on_duplicate_key_ignore_sql()
-            if self._update_table or self._delete_from:
+            if self._update_table:
                 if self.orderby:
                     querystring += self._orderby_sql(**kwargs)
                 if self.limit:
@@ -434,7 +434,7 @@ class SQLLiteQueryBuilder(QueryBuilder):
         self._set_kwargs_defaults(kwargs)
         querystring = super(SQLLiteQueryBuilder, self).get_sql(**kwargs)
         if querystring:
-            if self._update_table or self._delete_from:
+            if self._update_table:
                 if self._orderbys:
                     querystring += self._orderby_sql(**kwargs)
                 if self._limit:
