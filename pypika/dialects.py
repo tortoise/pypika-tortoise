@@ -71,9 +71,9 @@ class MySQLQueryBuilder(QueryBuilder):
             elif self._ignore_duplicates:
                 querystring += self._on_duplicate_key_ignore_sql()
             if self._update_table:
-                if self.orderby:
+                if self._orderbys:
                     querystring += self._orderby_sql(**kwargs)
-                if self.limit:
+                if self._limit:
                     querystring += self._limit_sql()
         return querystring
 
