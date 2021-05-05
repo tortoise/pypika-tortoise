@@ -195,7 +195,7 @@ class SQLLiteUpdateTests(unittest.TestCase):
             .limit(1)
             .orderby(self.table_abc.id)
         )
-        self.assertEqual('UPDATE "abc" SET "lname"=\'test\' ORDER BY id LIMIT 1', str(q))
+        self.assertEqual('UPDATE "abc" SET "lname"=\'test\' ORDER BY "id" LIMIT 1', str(q))
 
 
 class MySQLUpdateTests(unittest.TestCase):

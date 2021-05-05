@@ -431,6 +431,7 @@ class SQLLiteQueryBuilder(QueryBuilder):
     QUERY_CLS = SQLLiteQuery
 
     def get_sql(self, **kwargs: Any) -> str:
+        self._set_kwargs_defaults(kwargs)
         querystring = super(SQLLiteQueryBuilder, self).get_sql(**kwargs)
         if querystring:
             if self._update_table or self._delete_from:
