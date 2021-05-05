@@ -1,6 +1,14 @@
 import unittest
 
-from pypika import SYSTEM_TIME, AliasedQuery, PostgreSQLQuery, Query, SQLLiteQuery, Table
+from pypika import (
+    SYSTEM_TIME,
+    AliasedQuery,
+    MySQLQuery,
+    PostgreSQLQuery,
+    Query,
+    SQLLiteQuery,
+    Table,
+)
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"
@@ -48,10 +56,6 @@ class UpdateTests(unittest.TestCase):
             'UPDATE "abc" JOIN "def" ON "def"."abc_id"="abc"."id" SET "lname"="def"."lname"',
             str(q),
         )
-
-    def test_update_with_limit(self):
-        q = Query.update(self.table_abc).set(self.table_abc.lname, "test").limit(1)
-        self.assertEqual('UPDATE "abc" SET "lname"=\'test\' LIMIT 1', str(q))
 
     def test_update_from(self):
         from_table = Table("from_table")
@@ -183,3 +187,25 @@ class SQLLiteUpdateTests(unittest.TestCase):
         q = SQLLiteQuery.update(self.table_abc).set(self.table_abc.foo, True)
 
         self.assertEqual('UPDATE "abc" SET "foo"=1', str(q))
+
+    def test_update_with_limit_order(self):
+        q = (
+            SQLLiteQuery.update(self.table_abc)
+            .set(self.table_abc.lname, "test")
+            .limit(1)
+            .orderby(self.table_abc.id)
+        )
+        self.assertEqual('UPDATE "abc" SET "lname"=\'test\' ORDER BY id LIMIT 1', str(q))
+
+
+class MySQLUpdateTests(unittest.TestCase):
+    table_abc = Table("abc")
+
+    def test_update_with_limit_order(self):
+        q = (
+            MySQLQuery.update(self.table_abc)
+            .set(self.table_abc.lname, "test")
+            .limit(1)
+            .orderby(self.table_abc.id)
+        )
+        self.assertEqual("UPDATE `abc` SET `lname`='test' ORDER BY `id` LIMIT 1", str(q))
