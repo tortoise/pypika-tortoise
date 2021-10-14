@@ -60,7 +60,11 @@ class Selectable(Node):
 
 
 class AliasedQuery(Selectable):
-    def __init__(self, name: str, query: Optional[Selectable] = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        query: Optional[Selectable] = None,
+    ) -> None:
         super().__init__(alias=name)
         self.name = name
         self.query = query
@@ -75,6 +79,14 @@ class AliasedQuery(Selectable):
 
     def __hash__(self) -> int:
         return hash(str(self.name))
+
+
+class Cte(AliasedQuery):
+    def __init__(self, name: str, query: Optional[Selectable] = None, *terms: Term) -> None:
+        super().__init__(name, query)
+        self.name = name
+        self.query = query
+        self.terms = terms
 
 
 class Schema:
@@ -430,8 +442,10 @@ class Query:
         return cls._builder(**kwargs).into(table)
 
     @classmethod
-    def with_(cls, table: Union[str, Selectable], name: str, **kwargs: Any) -> "QueryBuilder":
-        return cls._builder(**kwargs).with_(table, name)
+    def with_(
+        cls, table: Union[str, Selectable], name: str, *terms: Term, **kwargs: Any
+    ) -> "QueryBuilder":
+        return cls._builder(**kwargs).with_(table, name, *terms)
 
     @classmethod
     def select(cls, *terms: Union[int, float, str, bool, Term], **kwargs: Any) -> "QueryBuilder":
@@ -690,6 +704,7 @@ class QueryBuilder(Selectable, Term):
         self._values = []
         self._distinct = False
         self._ignore = False
+        self._recursive = False
 
         self._for_update = False
         self._for_update_nowait = False
@@ -825,9 +840,13 @@ class QueryBuilder(Selectable, Term):
             self._select_star_tables.add(new_table)
 
     @builder
-    def with_(self, selectable: Selectable, name: str) -> "QueryBuilder":
-        t = AliasedQuery(name, selectable)
+    def with_(self, selectable: Selectable, name: str, *terms: Term) -> "QueryBuilder":
+        t = Cte(name, selectable, *terms)
         self._with.append(t)
+
+    @builder
+    def recursive(self) -> "QueryBuilder":
+        self._recursive = True
 
     @builder
     def into(self, table: Union[str, Table]) -> "QueryBuilder":
@@ -1380,8 +1399,13 @@ class QueryBuilder(Selectable, Term):
         return querystring
 
     def _with_sql(self, **kwargs: Any) -> str:
-        return "WITH " + ",".join(
+        return f"WITH {'RECURSIVE ' if self._recursive else ''}" + ",".join(
             clause.name
+            + (
+                "(" + ",".join([term.get_sql(**kwargs) for term in clause.terms]) + ")"
+                if clause.terms
+                else ""
+            )
             + " AS ("
             + clause.get_sql(subquery=False, with_alias=False, **kwargs)
             + ") "

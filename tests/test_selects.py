@@ -15,7 +15,7 @@ from pypika import (
     Tables,
 )
 from pypika import functions as fn
-from pypika.terms import ValueWrapper
+from pypika.terms import Field, ValueWrapper
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"
@@ -1127,6 +1127,34 @@ class SubqueryTests(unittest.TestCase):
 
         self.assertEqual(
             'WITH an_alias AS (SELECT "fizz" FROM "efg") SELECT * FROM an_alias',
+            str(test_query),
+        )
+
+    def test_with_recursive(self):
+        sub_query = Query.from_(self.table_efg).select("fizz")
+        test_query = (
+            Query.with_(sub_query, "an_alias")
+            .recursive()
+            .from_(AliasedQuery("an_alias"))
+            .select("*")
+        )
+
+        self.assertEqual(
+            'WITH RECURSIVE an_alias AS (SELECT "fizz" FROM "efg") SELECT * FROM an_alias',
+            str(test_query),
+        )
+
+    def test_with_column_recursive(self):
+        sub_query = Query.from_(self.table_efg).select("fizz")
+        test_query = (
+            Query.with_(sub_query, "an_alias", Field("fizz"))
+            .recursive()
+            .from_(AliasedQuery("an_alias"))
+            .select("*")
+        )
+
+        self.assertEqual(
+            'WITH RECURSIVE an_alias("fizz") AS (SELECT "fizz" FROM "efg") SELECT * FROM an_alias',
             str(test_query),
         )
 
