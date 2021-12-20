@@ -38,29 +38,17 @@ class MySQLQueryBuilder(QueryBuilder):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(dialect=Dialects.MYSQL, wrap_set_operation_queries=False, **kwargs)
         self._duplicate_updates = []
-        self._ignore_duplicates = False
         self._modifiers = []
 
     def __copy__(self) -> "MySQLQueryBuilder":
         newone = super().__copy__()
         newone._duplicate_updates = copy(self._duplicate_updates)
-        newone._ignore_duplicates = copy(self._ignore_duplicates)
         return newone
 
     @builder
     def on_duplicate_key_update(self, field: Union[Field, str], value: Any) -> "MySQLQueryBuilder":
-        if self._ignore_duplicates:
-            raise QueryException("Can not have two conflict handlers")
-
         field = Field(field) if not isinstance(field, Field) else field
         self._duplicate_updates.append((field, ValueWrapper(value)))
-
-    @builder
-    def on_duplicate_key_ignore(self) -> "MySQLQueryBuilder":
-        if self._duplicate_updates:
-            raise QueryException("Can not have two conflict handlers")
-
-        self._ignore_duplicates = True
 
     def get_sql(self, **kwargs: Any) -> str:
         self._set_kwargs_defaults(kwargs)
@@ -68,8 +56,6 @@ class MySQLQueryBuilder(QueryBuilder):
         if querystring:
             if self._duplicate_updates:
                 querystring += self._on_duplicate_key_update_sql(**kwargs)
-            elif self._ignore_duplicates:
-                querystring += self._on_duplicate_key_ignore_sql()
             if self._update_table:
                 if self._orderbys:
                     querystring += self._orderby_sql(**kwargs)
@@ -86,9 +72,6 @@ class MySQLQueryBuilder(QueryBuilder):
                 for field, value in self._duplicate_updates
             )
         )
-
-    def _on_duplicate_key_ignore_sql(self) -> str:
-        return " ON DUPLICATE KEY IGNORE"
 
     @builder
     def modifier(self, value: str) -> "MySQLQueryBuilder":
@@ -185,6 +168,10 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         newone._on_conflict_do_updates = copy(self._on_conflict_do_updates)
         return newone
 
+    @property
+    def on_conflict_do_nothing(self):
+        return self._on_conflict_do_nothing or self._ignore
+
     @builder
     def distinct_on(self, *fields: Union[str, Term]) -> "PostgreSQLQueryBuilder":
         for field in fields:
@@ -216,7 +203,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
     def do_update(
         self, update_field: Union[str, Field], update_value: Optional[Any] = None
     ) -> "PostgreSQLQueryBuilder":
-        if self._on_conflict_do_nothing:
+        if self.on_conflict_do_nothing:
             raise QueryException("Can not have two conflict handlers")
 
         if isinstance(update_field, str):
@@ -239,7 +226,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         if isinstance(criterion, EmptyCriterion):
             return
 
-        if self._on_conflict_do_nothing:
+        if self.on_conflict_do_nothing:
             raise QueryException("DO NOTHING doest not support WHERE")
 
         if self._on_conflict_fields and self._on_conflict_do_updates:
@@ -269,7 +256,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
             return Field(term, table=self._insert_table)
 
     def _on_conflict_sql(self, **kwargs: Any) -> str:
-        if not self._on_conflict_do_nothing and len(self._on_conflict_do_updates) == 0:
+        if not self.on_conflict_do_nothing and len(self._on_conflict_do_updates) == 0:
             if not self._on_conflict_fields:
                 return ""
             raise QueryException("No handler defined for on conflict")
@@ -290,7 +277,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         return conflict_query
 
     def _on_conflict_action_sql(self, **kwargs: Any) -> str:
-        if self._on_conflict_do_nothing:
+        if self.on_conflict_do_nothing:
             return " DO NOTHING"
         elif len(self._on_conflict_do_updates) > 0:
             updates = []
@@ -407,6 +394,11 @@ class PostgreSQLQueryBuilder(QueryBuilder):
             querystring += self._returning_sql(**kwargs)
         return querystring
 
+    def _insert_sql(self, **kwargs: Any) -> str:
+        return "INSERT INTO {table}".format(
+            table=self._insert_table.get_sql(**kwargs),
+        )
+
 
 class SQLLiteValueWrapper(ValueWrapper):
     def get_value_sql(self, *args: Any, **kwargs: Any) -> str:
@@ -440,3 +432,9 @@ class SQLLiteQueryBuilder(QueryBuilder):
                 if self._limit:
                     querystring += self._limit_sql()
         return querystring
+
+    def _insert_sql(self, **kwargs: Any) -> str:
+        return "INSERT {ignore}INTO {table}".format(
+            table=self._insert_table.get_sql(**kwargs),
+            ignore="OR IGNORE " if self._ignore else "",
+        )

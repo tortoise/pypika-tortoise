@@ -16,3 +16,9 @@ class SelectTests(unittest.TestCase):
         q = SQLLiteQuery.from_("abc").select(False)
 
         self.assertEqual('SELECT 0 FROM "abc"', str(q))
+
+
+class InsertTests(unittest.TestCase):
+    def test_insert_ignore(self):
+        q = SQLLiteQuery.into("abc").insert((1, "a", True)).ignore()
+        self.assertEqual("INSERT OR IGNORE INTO \"abc\" VALUES (1,'a',true)", str(q))

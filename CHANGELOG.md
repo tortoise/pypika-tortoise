@@ -5,6 +5,7 @@
 ### 0.1.2
 
 - Add support for `with recursive`.
+- Add `insert` ignore support.
 
 ### 0.1.1
 

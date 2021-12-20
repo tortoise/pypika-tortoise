@@ -1,6 +1,12 @@
 import unittest
 
-from pypika import MySQLQuery, QueryException, Table
+from pypika import MySQLQuery, Table
+
+
+class InsertTests(unittest.TestCase):
+    def test_insert_ignore(self):
+        q = MySQLQuery.into("abc").insert((1, "a", True)).ignore()
+        self.assertEqual("INSERT IGNORE INTO `abc` VALUES (1,'a',true)", str(q))
 
 
 class SelectTests(unittest.TestCase):
@@ -40,13 +46,6 @@ class UpdateTests(unittest.TestCase):
 
         self.assertEqual("INSERT INTO `abc` VALUES (1,[1,'a',true])", str(q))
 
-    def test_on_duplicate_key_ignore_update(self):
-        q = MySQLQuery.into("abc").insert(1, [1, "a", True]).on_duplicate_key_ignore()
-
-        self.assertEqual(
-            "INSERT INTO `abc` VALUES (1,[1,'a',true]) ON DUPLICATE KEY IGNORE", str(q)
-        )
-
     def test_on_duplicate_key_update_update(self):
         q = (
             MySQLQuery.into("abc")
@@ -57,15 +56,6 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(
             "INSERT INTO `abc` VALUES (1,[1,'a',true]) ON DUPLICATE KEY UPDATE `a`='b'", str(q)
         )
-
-    def test_conflict_handlers_update(self):
-        with self.assertRaises(QueryException):
-            (
-                MySQLQuery.into("abc")
-                .insert(1, [1, "a", True])
-                .on_duplicate_key_ignore()
-                .on_duplicate_key_update(self.table_abc.a, "b")
-            )
 
 
 class LoadCSVTests(unittest.TestCase):

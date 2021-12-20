@@ -13,6 +13,10 @@ class InsertTests(unittest.TestCase):
 
         self.assertEqual("INSERT INTO \"abc\" VALUES (1,ARRAY[1,'a',true])", str(q))
 
+    def test_insert_ignore(self):
+        q = PostgreSQLQuery.into("abc").insert((1, "a", True)).ignore()
+        self.assertEqual("INSERT INTO \"abc\" VALUES (1,'a',true) ON CONFLICT DO NOTHING", str(q))
+
 
 class JSONObjectTests(unittest.TestCase):
     def test_alias_set_correctly(self):
