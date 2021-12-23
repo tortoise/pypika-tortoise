@@ -2,6 +2,10 @@
 
 ## 0.1
 
+### 0.1.3
+
+- Change `postgres` and `sqlite` in `Dialects` enum.
+
 ### 0.1.2
 
 - Add support for `with recursive`.
