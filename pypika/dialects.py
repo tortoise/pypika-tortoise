@@ -1,20 +1,14 @@
 import itertools
+import json
 from copy import copy
-from typing import Any, Optional, Union
+from datetime import datetime
+from typing import Any, Union
+from uuid import UUID
 
 from pypika.enums import Dialects
 from pypika.queries import Query, QueryBuilder, Table
-from pypika.terms import (
-    ArithmeticExpression,
-    Criterion,
-    EmptyCriterion,
-    Field,
-    Function,
-    Star,
-    Term,
-    ValueWrapper,
-)
-from pypika.utils import QueryException, builder
+from pypika.terms import ArithmeticExpression, Field, Function, Star, Term, ValueWrapper
+from pypika.utils import QueryException, builder, format_quotes
 
 
 class MySQLQuery(Query):
@@ -31,31 +25,36 @@ class MySQLQuery(Query):
         return MySQLLoadQueryBuilder().load(fp)
 
 
+class MySQLValueWrapper(ValueWrapper):
+    def get_value_sql(self, **kwargs: Any) -> str:
+        quote_char = kwargs.get("secondary_quote_char") or ""
+        if isinstance(self.value, str):
+            value = self.value.replace(quote_char, quote_char * 2)
+            value = value.replace("\\", "\\\\")
+            return format_quotes(value, quote_char)
+        return super(MySQLValueWrapper, self).get_value_sql(**kwargs)
+
+
 class MySQLQueryBuilder(QueryBuilder):
     QUOTE_CHAR = "`"
     QUERY_CLS = MySQLQuery
 
     def __init__(self, **kwargs: Any) -> None:
-        super().__init__(dialect=Dialects.MYSQL, wrap_set_operation_queries=False, **kwargs)
-        self._duplicate_updates = []
+        super().__init__(
+            dialect=Dialects.MYSQL,
+            wrapper_cls=MySQLValueWrapper,
+            wrap_set_operation_queries=False,
+            **kwargs,
+        )
         self._modifiers = []
 
-    def __copy__(self) -> "MySQLQueryBuilder":
-        newone = super().__copy__()
-        newone._duplicate_updates = copy(self._duplicate_updates)
-        return newone
-
-    @builder
-    def on_duplicate_key_update(self, field: Union[Field, str], value: Any) -> "MySQLQueryBuilder":
-        field = Field(field) if not isinstance(field, Field) else field
-        self._duplicate_updates.append((field, ValueWrapper(value)))
+    def _on_conflict_sql(self, **kwargs: Any) -> str:
+        return ""
 
     def get_sql(self, **kwargs: Any) -> str:
         self._set_kwargs_defaults(kwargs)
         querystring = super(MySQLQueryBuilder, self).get_sql(**kwargs)
         if querystring:
-            if self._duplicate_updates:
-                querystring += self._on_duplicate_key_update_sql(**kwargs)
             if self._update_table:
                 if self._orderbys:
                     querystring += self._orderby_sql(**kwargs)
@@ -63,15 +62,17 @@ class MySQLQueryBuilder(QueryBuilder):
                     querystring += self._limit_sql()
         return querystring
 
-    def _on_duplicate_key_update_sql(self, **kwargs: Any) -> str:
-        return " ON DUPLICATE KEY UPDATE {updates}".format(
-            updates=",".join(
-                "{field}={value}".format(
-                    field=field.get_sql(**kwargs), value=value.get_sql(**kwargs)
+    def _on_conflict_action_sql(self, **kwargs: Any) -> str:
+        if len(self._on_conflict_do_updates) > 0:
+            return " ON DUPLICATE KEY UPDATE {updates}".format(
+                updates=",".join(
+                    "{field}={value}".format(
+                        field=field.get_sql(**kwargs), value=value.get_sql(**kwargs)
+                    )
+                    for field, value in self._on_conflict_do_updates
                 )
-                for field, value in self._duplicate_updates
             )
-        )
+        return ""
 
     @builder
     def modifier(self, value: str) -> "MySQLQueryBuilder":
@@ -94,6 +95,12 @@ class MySQLQueryBuilder(QueryBuilder):
             select=",".join(
                 term.get_sql(with_alias=True, subquery=True, **kwargs) for term in self._selects
             ),
+        )
+
+    def _insert_sql(self, **kwargs: Any) -> str:
+        return "INSERT {ignore}INTO {table}".format(
+            table=self._insert_table.get_sql(**kwargs),
+            ignore="IGNORE " if self._on_conflict_do_nothing else "",
         )
 
 
@@ -144,21 +151,29 @@ class PostgreSQLQuery(Query):
         return PostgreSQLQueryBuilder(**kwargs)
 
 
+class PostgresValueWrapper(ValueWrapper):
+    def get_value_sql(self, **kwargs: Any) -> str:
+        quote_char = kwargs.get("secondary_quote_char") or ""
+        if isinstance(self.value, datetime):
+            value = format_quotes(self.value, quote_char)
+            return f"{value}::timestamptz"
+        if isinstance(self.value, UUID):
+            value = format_quotes(str(self.value), quote_char)
+            return f"{value}::uuid"
+        if isinstance(self.value, (dict, list)):
+            value = format_quotes(json.dumps(self.value), quote_char)
+            return f"{value}::jsonb"
+        return super(PostgresValueWrapper, self).get_value_sql(**kwargs)
+
+
 class PostgreSQLQueryBuilder(QueryBuilder):
     ALIAS_QUOTE_CHAR = '"'
     QUERY_CLS = PostgreSQLQuery
 
     def __init__(self, **kwargs: Any) -> None:
-        super().__init__(dialect=Dialects.POSTGRESQL, **kwargs)
+        super().__init__(dialect=Dialects.POSTGRESQL, wrapper_cls=PostgresValueWrapper, **kwargs)
         self._returns = []
         self._return_star = False
-
-        self._on_conflict = False
-        self._on_conflict_fields = []
-        self._on_conflict_do_nothing = False
-        self._on_conflict_do_updates = []
-        self._on_conflict_wheres = None
-        self._on_conflict_do_update_wheres = None
 
         self._distinct_on = []
 
@@ -168,10 +183,6 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         newone._on_conflict_do_updates = copy(self._on_conflict_do_updates)
         return newone
 
-    @property
-    def on_conflict_do_nothing(self):
-        return self._on_conflict_do_nothing or self._ignore
-
     @builder
     def distinct_on(self, *fields: Union[str, Term]) -> "PostgreSQLQueryBuilder":
         for field in fields:
@@ -179,68 +190,6 @@ class PostgreSQLQueryBuilder(QueryBuilder):
                 self._distinct_on.append(Field(field))
             elif isinstance(field, Term):
                 self._distinct_on.append(field)
-
-    @builder
-    def on_conflict(self, *target_fields: Union[str, Term]) -> "PostgreSQLQueryBuilder":
-        if not self._insert_table:
-            raise QueryException("On conflict only applies to insert query")
-
-        self._on_conflict = True
-
-        for target_field in target_fields:
-            if isinstance(target_field, str):
-                self._on_conflict_fields.append(self._conflict_field_str(target_field))
-            elif isinstance(target_field, Term):
-                self._on_conflict_fields.append(target_field)
-
-    @builder
-    def do_nothing(self) -> "PostgreSQLQueryBuilder":
-        if len(self._on_conflict_do_updates) > 0:
-            raise QueryException("Can not have two conflict handlers")
-        self._on_conflict_do_nothing = True
-
-    @builder
-    def do_update(
-        self, update_field: Union[str, Field], update_value: Optional[Any] = None
-    ) -> "PostgreSQLQueryBuilder":
-        if self.on_conflict_do_nothing:
-            raise QueryException("Can not have two conflict handlers")
-
-        if isinstance(update_field, str):
-            field = self._conflict_field_str(update_field)
-        elif isinstance(update_field, Field):
-            field = update_field
-        else:
-            raise QueryException("Unsupported update_field")
-
-        if update_value is not None:
-            self._on_conflict_do_updates.append((field, ValueWrapper(update_value)))
-        else:
-            self._on_conflict_do_updates.append((field, None))
-
-    @builder
-    def where(self, criterion: Criterion) -> "PostgreSQLQueryBuilder":
-        if not self._on_conflict:
-            return super().where(criterion)
-
-        if isinstance(criterion, EmptyCriterion):
-            return
-
-        if self.on_conflict_do_nothing:
-            raise QueryException("DO NOTHING doest not support WHERE")
-
-        if self._on_conflict_fields and self._on_conflict_do_updates:
-            if self._on_conflict_do_update_wheres:
-                self._on_conflict_do_update_wheres &= criterion
-            else:
-                self._on_conflict_do_update_wheres = criterion
-        elif self._on_conflict_fields:
-            if self._on_conflict_wheres:
-                self._on_conflict_wheres &= criterion
-            else:
-                self._on_conflict_wheres = criterion
-        else:
-            raise QueryException("Can not have fieldless ON CONFLICT WHERE")
 
     def _distinct_sql(self, **kwargs: Any) -> str:
         if self._distinct_on:
@@ -250,63 +199,6 @@ class PostgreSQLQueryBuilder(QueryBuilder):
                 )
             )
         return super()._distinct_sql(**kwargs)
-
-    def _conflict_field_str(self, term: str) -> Optional[Field]:
-        if self._insert_table:
-            return Field(term, table=self._insert_table)
-
-    def _on_conflict_sql(self, **kwargs: Any) -> str:
-        if not self.on_conflict_do_nothing and len(self._on_conflict_do_updates) == 0:
-            if not self._on_conflict_fields:
-                return ""
-            raise QueryException("No handler defined for on conflict")
-
-        if self._on_conflict_do_updates and not self._on_conflict_fields:
-            raise QueryException("Can not have fieldless on conflict do update")
-
-        conflict_query = " ON CONFLICT"
-        if self._on_conflict_fields:
-            fields = [f.get_sql(with_alias=True, **kwargs) for f in self._on_conflict_fields]
-            conflict_query += " (" + ", ".join(fields) + ")"
-
-        if self._on_conflict_wheres:
-            conflict_query += " WHERE {where}".format(
-                where=self._on_conflict_wheres.get_sql(subquery=True, **kwargs)
-            )
-
-        return conflict_query
-
-    def _on_conflict_action_sql(self, **kwargs: Any) -> str:
-        if self.on_conflict_do_nothing:
-            return " DO NOTHING"
-        elif len(self._on_conflict_do_updates) > 0:
-            updates = []
-            for field, value in self._on_conflict_do_updates:
-                if value:
-                    updates.append(
-                        "{field}={value}".format(
-                            field=field.get_sql(**kwargs),
-                            value=value.get_sql(with_namespace=True, **kwargs),
-                        )
-                    )
-                else:
-                    updates.append(
-                        "{field}=EXCLUDED.{value}".format(
-                            field=field.get_sql(**kwargs),
-                            value=field.get_sql(**kwargs),
-                        )
-                    )
-            action_sql = " DO UPDATE SET {updates}".format(updates=",".join(updates))
-
-            if self._on_conflict_do_update_wheres:
-                action_sql += " WHERE {where}".format(
-                    where=self._on_conflict_do_update_wheres.get_sql(
-                        subquery=True, with_namespace=True, **kwargs
-                    )
-                )
-            return action_sql
-
-        return ""
 
     @builder
     def returning(self, *terms: Any) -> "PostgreSQLQueryBuilder":
@@ -383,28 +275,18 @@ class PostgreSQLQueryBuilder(QueryBuilder):
 
     def get_sql(self, with_alias: bool = False, subquery: bool = False, **kwargs: Any) -> str:
         self._set_kwargs_defaults(kwargs)
-
         querystring = super(PostgreSQLQueryBuilder, self).get_sql(with_alias, subquery, **kwargs)
-
-        querystring += self._on_conflict_sql(**kwargs)
-        querystring += self._on_conflict_action_sql(**kwargs)
-
         if self._returns:
             kwargs["with_namespace"] = self._update_table and self.from_
             querystring += self._returning_sql(**kwargs)
         return querystring
 
-    def _insert_sql(self, **kwargs: Any) -> str:
-        return "INSERT INTO {table}".format(
-            table=self._insert_table.get_sql(**kwargs),
-        )
-
 
 class SQLLiteValueWrapper(ValueWrapper):
-    def get_value_sql(self, *args: Any, **kwargs: Any) -> str:
+    def get_value_sql(self, **kwargs: Any) -> str:
         if isinstance(self.value, bool):
             return "1" if self.value else "0"
-        return super().get_value_sql(*args, **kwargs)
+        return super().get_value_sql(**kwargs)
 
 
 class SQLLiteQuery(Query):
@@ -414,13 +296,16 @@ class SQLLiteQuery(Query):
 
     @classmethod
     def _builder(cls, **kwargs: Any) -> "SQLLiteQueryBuilder":
-        return SQLLiteQueryBuilder(
-            dialect=Dialects.SQLLITE, wrapper_cls=SQLLiteValueWrapper, **kwargs
-        )
+        return SQLLiteQueryBuilder(**kwargs)
 
 
 class SQLLiteQueryBuilder(QueryBuilder):
     QUERY_CLS = SQLLiteQuery
+
+    def __init__(self, **kwargs):
+        super(SQLLiteQueryBuilder, self).__init__(
+            dialect=Dialects.SQLITE, wrapper_cls=SQLLiteValueWrapper, **kwargs
+        )
 
     def get_sql(self, **kwargs: Any) -> str:
         self._set_kwargs_defaults(kwargs)
@@ -432,9 +317,3 @@ class SQLLiteQueryBuilder(QueryBuilder):
                 if self._limit:
                     querystring += self._limit_sql()
         return querystring
-
-    def _insert_sql(self, **kwargs: Any) -> str:
-        return "INSERT {ignore}INTO {table}".format(
-            table=self._insert_table.get_sql(**kwargs),
-            ignore="OR IGNORE " if self._ignore else "",
-        )

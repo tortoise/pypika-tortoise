@@ -135,11 +135,6 @@ class InsertIntoTests(unittest.TestCase):
 
         self.assertEqual("", str(query))
 
-    def test_insert_ignore(self):
-        query = Query.into(self.table_abc).insert(1).ignore()
-
-        self.assertEqual('INSERT IGNORE INTO "abc" VALUES (1)', str(query))
-
     def test_insert_null(self):
         query = Query.into(self.table_abc).insert(None)
 
@@ -624,7 +619,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert(1)
-            .on_duplicate_key_update(self.table_abc.foo, self.table_abc.foo)
+            .on_conflict()
+            .do_update(self.table_abc.foo, self.table_abc.foo)
         )
         self.assertEqual(
             "INSERT INTO `abc` VALUES (1) ON DUPLICATE KEY UPDATE `foo`=`foo`",
@@ -635,7 +631,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert(1)
-            .on_duplicate_key_update(self.table_abc.foo, Values(self.table_abc.foo))
+            .on_conflict()
+            .do_update(self.table_abc.foo, Values(self.table_abc.foo))
         )
         self.assertEqual(
             "INSERT INTO `abc` VALUES (1) ON DUPLICATE KEY UPDATE `foo`=VALUES(`foo`)",
@@ -646,7 +643,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert((1,))
-            .on_duplicate_key_update(self.table_abc.foo, self.table_abc.foo)
+            .on_conflict()
+            .do_update(self.table_abc.foo, self.table_abc.foo)
         )
 
         self.assertEqual(
@@ -658,7 +656,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert((1,), (2,))
-            .on_duplicate_key_update(self.table_abc.foo, self.table_abc.foo)
+            .on_conflict()
+            .do_update(self.table_abc.foo, self.table_abc.foo)
         )
 
         self.assertEqual(
@@ -670,7 +669,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert(1, "a")
-            .on_duplicate_key_update(self.table_abc.bar, Values(self.table_abc.bar))
+            .on_conflict()
+            .do_update(self.table_abc.bar, Values(self.table_abc.bar))
         )
 
         self.assertEqual(
@@ -682,7 +682,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert(1, "a")
-            .on_duplicate_key_update(self.table_abc.bar, "b")
+            .on_conflict()
+            .do_update(self.table_abc.bar, "b")
         )
 
         self.assertEqual(
@@ -694,7 +695,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert(1, 2)
-            .on_duplicate_key_update(self.table_abc.bar, 4 + F("bar"))
+            .on_conflict()
+            .do_update(self.table_abc.bar, 4 + F("bar"))
         )  # todo sql expression? not python
 
         self.assertEqual(
@@ -708,7 +710,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert(1, "a")
-            .on_duplicate_key_update(self.table_abc.bar, fn.Concat(self.table_abc.bar, "update"))
+            .on_conflict()
+            .do_update(self.table_abc.bar, fn.Concat(self.table_abc.bar, "update"))
         )
 
         self.assertEqual(
@@ -722,9 +725,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert(1, "a")
-            .on_duplicate_key_update(
-                self.table_abc.bar, fn.Concat(Values(self.table_abc.bar), "update")
-            )
+            .on_conflict()
+            .do_update(self.table_abc.bar, fn.Concat(Values(self.table_abc.bar), "update"))
         )
 
         self.assertEqual(
@@ -736,8 +738,9 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert(1, "a", "b")
-            .on_duplicate_key_update(self.table_abc.bar, "b")
-            .on_duplicate_key_update(self.table_abc.baz, "c")
+            .on_conflict()
+            .do_update(self.table_abc.bar, "b")
+            .do_update(self.table_abc.baz, "c")
         )
 
         self.assertEqual(
@@ -750,8 +753,9 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
             MySQLQuery.into(self.table_abc)
             .insert((1, "a", True), (2, "b", False))
             .insert(3, "c", True)
-            .on_duplicate_key_update(self.table_abc.foo, self.table_abc.foo)
-            .on_duplicate_key_update(self.table_abc.bar, Values(self.table_abc.bar))
+            .on_conflict()
+            .do_update(self.table_abc.foo, self.table_abc.foo)
+            .do_update(self.table_abc.bar, Values(self.table_abc.bar))
         )
 
         self.assertEqual(
@@ -765,7 +769,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
             MySQLQuery.into(self.table_abc)
             .columns(self.table_abc.foo, self.table_abc.bar, self.table_abc.baz)
             .insert(1, "a", True)
-            .on_duplicate_key_update(self.table_abc.baz, False)
+            .on_conflict()
+            .do_update(self.table_abc.baz, False)
         )
 
         self.assertEqual(
@@ -778,8 +783,9 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
             MySQLQuery.into(self.table_abc)
             .columns(self.table_abc.foo, self.table_abc.bar, self.table_abc.baz)
             .insert(1, "a", True)
-            .on_duplicate_key_update(self.table_abc.baz, False)
-            .on_duplicate_key_update(self.table_abc.bar, Values(self.table_abc.bar))
+            .on_conflict()
+            .do_update(self.table_abc.baz, False)
+            .do_update(self.table_abc.bar, Values(self.table_abc.bar))
         )
 
         self.assertEqual(
@@ -792,7 +798,8 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert()
-            .on_duplicate_key_update(self.table_abc.baz, False)
+            .on_conflict()
+            .do_update(self.table_abc.baz, False)
         )
 
         self.assertEqual("", str(query))
@@ -801,12 +808,12 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
         query = (
             MySQLQuery.into(self.table_abc)
             .insert(1)
-            .ignore()
-            .on_duplicate_key_update(self.table_abc.baz, False)
+            .on_conflict()
+            .do_update(self.table_abc.baz, False)
         )
 
         self.assertEqual(
-            "INSERT IGNORE INTO `abc` VALUES (1) ON DUPLICATE KEY UPDATE `baz`=false",
+            "INSERT INTO `abc` VALUES (1) ON DUPLICATE KEY UPDATE `baz`=false",
             str(query),
         )
 
@@ -820,9 +827,11 @@ class InsertSelectFromTests(unittest.TestCase):
         self.assertEqual('INSERT INTO "abc" SELECT * FROM "efg"', str(query))
 
     def test_insert_ignore_star(self):
-        query = Query.into(self.table_abc).from_(self.table_efg).select("*").ignore()
+        query = (
+            Query.into(self.table_abc).from_(self.table_efg).select("*").on_conflict().do_nothing()
+        )
 
-        self.assertEqual('INSERT IGNORE INTO "abc" SELECT * FROM "efg"', str(query))
+        self.assertEqual('INSERT INTO "abc" SELECT * FROM "efg" ON CONFLICT DO NOTHING', str(query))
 
     def test_insert_from_columns(self):
         query = (

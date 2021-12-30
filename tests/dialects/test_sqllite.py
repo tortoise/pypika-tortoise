@@ -20,5 +20,5 @@ class SelectTests(unittest.TestCase):
 
 class InsertTests(unittest.TestCase):
     def test_insert_ignore(self):
-        q = SQLLiteQuery.into("abc").insert((1, "a", True)).ignore()
-        self.assertEqual("INSERT OR IGNORE INTO \"abc\" VALUES (1,'a',true)", str(q))
+        q = SQLLiteQuery.into("abc").insert((1, "a", True)).on_conflict().do_nothing()
+        self.assertEqual("INSERT INTO \"abc\" VALUES (1,'a',true) ON CONFLICT DO NOTHING", str(q))

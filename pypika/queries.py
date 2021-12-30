@@ -703,7 +703,6 @@ class QueryBuilder(Selectable, Term):
         self._columns = []
         self._values = []
         self._distinct = False
-        self._ignore = False
         self._recursive = False
 
         self._for_update = False
@@ -741,6 +740,13 @@ class QueryBuilder(Selectable, Term):
 
         self.immutable = immutable
 
+        self._on_conflict = False
+        self._on_conflict_fields = []
+        self._on_conflict_do_nothing = False
+        self._on_conflict_do_updates = []
+        self._on_conflict_wheres = None
+        self._on_conflict_do_update_wheres = None
+
     def __copy__(self) -> "QueryBuilder":
         newone = type(self).__new__(type(self))
         newone.__dict__.update(self.__dict__)
@@ -756,6 +762,96 @@ class QueryBuilder(Selectable, Term):
         newone._unions = copy(self._unions)
         newone._updates = copy(self._updates)
         return newone
+
+    @builder
+    def on_conflict(self, *target_fields: Union[str, Term]) -> "QueryBuilder":
+        if not self._insert_table:
+            raise QueryException("On conflict only applies to insert query")
+
+        self._on_conflict = True
+
+        for target_field in target_fields:
+            if isinstance(target_field, str):
+                self._on_conflict_fields.append(self._conflict_field_str(target_field))
+            elif isinstance(target_field, Term):
+                self._on_conflict_fields.append(target_field)
+
+    @builder
+    def do_update(
+        self, update_field: Union[str, Field], update_value: Optional[Any] = None
+    ) -> "QueryBuilder":
+        if self._on_conflict_do_nothing:
+            raise QueryException("Can not have two conflict handlers")
+
+        if isinstance(update_field, str):
+            field = self._conflict_field_str(update_field)
+        elif isinstance(update_field, Field):
+            field = update_field
+        else:
+            raise QueryException("Unsupported update_field")
+
+        if update_value is not None:
+            self._on_conflict_do_updates.append((field, ValueWrapper(update_value)))
+        else:
+            self._on_conflict_do_updates.append((field, None))
+
+    def _conflict_field_str(self, term: str) -> Optional[Field]:
+        if self._insert_table:
+            return Field(term, table=self._insert_table)
+
+    def _on_conflict_sql(self, **kwargs: Any) -> str:
+        if not self._on_conflict_do_nothing and len(self._on_conflict_do_updates) == 0:
+            if not self._on_conflict_fields:
+                return ""
+            raise QueryException("No handler defined for on conflict")
+
+        if self._on_conflict_do_updates and not self._on_conflict_fields:
+            raise QueryException("Can not have fieldless on conflict do update")
+
+        conflict_query = " ON CONFLICT"
+        if self._on_conflict_fields:
+            fields = [f.get_sql(with_alias=True, **kwargs) for f in self._on_conflict_fields]
+            conflict_query += " (" + ", ".join(fields) + ")"
+
+        if self._on_conflict_wheres:
+            conflict_query += " WHERE {where}".format(
+                where=self._on_conflict_wheres.get_sql(subquery=True, **kwargs)
+            )
+
+        return conflict_query
+
+    def _on_conflict_action_sql(self, **kwargs: Any) -> str:
+        kwargs.pop("with_namespace", None)
+        if self._on_conflict_do_nothing:
+            return " DO NOTHING"
+        elif len(self._on_conflict_do_updates) > 0:
+            updates = []
+            for field, value in self._on_conflict_do_updates:
+                if value:
+                    updates.append(
+                        "{field}={value}".format(
+                            field=field.get_sql(**kwargs),
+                            value=value.get_sql(with_namespace=True, **kwargs),
+                        )
+                    )
+                else:
+                    updates.append(
+                        "{field}=EXCLUDED.{value}".format(
+                            field=field.get_sql(**kwargs),
+                            value=field.get_sql(**kwargs),
+                        )
+                    )
+            action_sql = " DO UPDATE SET {updates}".format(updates=",".join(updates))
+
+            if self._on_conflict_do_update_wheres:
+                action_sql += " WHERE {where}".format(
+                    where=self._on_conflict_do_update_wheres.get_sql(
+                        subquery=True, with_namespace=True, **kwargs
+                    )
+                )
+            return action_sql
+
+        return ""
 
     @builder
     def from_(self, selectable: Union[Selectable, Query, str]) -> "QueryBuilder":
@@ -949,8 +1045,10 @@ class QueryBuilder(Selectable, Term):
         self._for_update_of = set(of)
 
     @builder
-    def ignore(self) -> "QueryBuilder":
-        self._ignore = True
+    def do_nothing(self) -> "QueryBuilder":
+        if len(self._on_conflict_do_updates) > 0:
+            raise QueryException("Can not have two conflict handlers")
+        self._on_conflict_do_nothing = True
 
     @builder
     def prewhere(self, criterion: Criterion) -> "QueryBuilder":
@@ -966,14 +1064,28 @@ class QueryBuilder(Selectable, Term):
     def where(self, criterion: Union[Term, EmptyCriterion]) -> "QueryBuilder":
         if isinstance(criterion, EmptyCriterion):
             return
-
-        if not self._validate_table(criterion):
-            self._foreign_table = True
-
-        if self._wheres:
-            self._wheres &= criterion
+        if not self._on_conflict:
+            if not self._validate_table(criterion):
+                self._foreign_table = True
+            if self._wheres:
+                self._wheres &= criterion
+            else:
+                self._wheres = criterion
         else:
-            self._wheres = criterion
+            if self._on_conflict_do_nothing:
+                raise QueryException("DO NOTHING doest not support WHERE")
+            if self._on_conflict_fields and self._on_conflict_do_updates:
+                if self._on_conflict_do_update_wheres:
+                    self._on_conflict_do_update_wheres &= criterion
+                else:
+                    self._on_conflict_do_update_wheres = criterion
+            elif self._on_conflict_fields:
+                if self._on_conflict_wheres:
+                    self._on_conflict_wheres &= criterion
+                else:
+                    self._on_conflict_wheres = criterion
+            else:
+                raise QueryException("Can not have fieldless ON CONFLICT WHERE")
 
     @builder
     def having(self, criterion: Term) -> "QueryBuilder":
@@ -1327,6 +1439,9 @@ class QueryBuilder(Selectable, Term):
 
             if self._values:
                 querystring += self._values_sql(**kwargs)
+                if self._on_conflict:
+                    querystring += self._on_conflict_sql(**kwargs)
+                    querystring += self._on_conflict_action_sql(**kwargs)
                 return querystring
             else:
                 querystring += " " + self._select_sql(**kwargs)
@@ -1378,7 +1493,9 @@ class QueryBuilder(Selectable, Term):
 
         if subquery:
             querystring = "({query})".format(query=querystring)
-
+        if self._on_conflict:
+            querystring += self._on_conflict_sql(**kwargs)
+            querystring += self._on_conflict_action_sql(**kwargs)
         if with_alias:
             kwargs["alias_quote_char"] = (
                 self.ALIAS_QUOTE_CHAR
@@ -1443,9 +1560,8 @@ class QueryBuilder(Selectable, Term):
         )
 
     def _insert_sql(self, **kwargs: Any) -> str:
-        return "INSERT {ignore}INTO {table}".format(
+        return "INSERT INTO {table}".format(
             table=self._insert_table.get_sql(**kwargs),
-            ignore="IGNORE " if self._ignore else "",
         )
 
     def _replace_sql(self, **kwargs: Any) -> str:

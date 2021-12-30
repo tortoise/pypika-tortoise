@@ -164,7 +164,7 @@ class TableDialectTests(unittest.TestCase):
     def test_table_with_dialect_query_cls(self):
         table = Table("abc", query_cls=SQLLiteQuery)
         q = table.select("1")
-        self.assertIs(q.dialect, Dialects.SQLLITE)
+        self.assertIs(q.dialect, Dialects.SQLITE)
 
     def test_table_factory_with_default_query_cls(self):
         table = Query.Table("abc")
@@ -174,7 +174,7 @@ class TableDialectTests(unittest.TestCase):
     def test_table_factory_with_dialect_query_cls(self):
         table = SQLLiteQuery.Table("abc")
         q = table.select("1")
-        self.assertIs(q.dialect, Dialects.SQLLITE)
+        self.assertIs(q.dialect, Dialects.SQLITE)
 
     def test_make_tables_factory_with_default_query_cls(self):
         t1, t2 = Query.Tables("abc", "def")
@@ -187,8 +187,8 @@ class TableDialectTests(unittest.TestCase):
         t1, t2 = SQLLiteQuery.Tables("abc", "def")
         q1 = t1.select("1")
         q2 = t2.select("2")
-        self.assertIs(q1.dialect, Dialects.SQLLITE)
-        self.assertIs(q2.dialect, Dialects.SQLLITE)
+        self.assertIs(q1.dialect, Dialects.SQLITE)
+        self.assertIs(q2.dialect, Dialects.SQLITE)
 
     def test_table_with_bad_query_cls(self):
         with self.assertRaises(TypeError):

@@ -5,6 +5,7 @@
 ### 0.1.3
 
 - Change `postgres` and `sqlite` in `Dialects` enum.
+- Refactor `on conflict` statement.
 
 ### 0.1.2
 

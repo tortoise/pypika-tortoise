@@ -14,7 +14,7 @@ class InsertTests(unittest.TestCase):
         self.assertEqual("INSERT INTO \"abc\" VALUES (1,ARRAY[1,'a',true])", str(q))
 
     def test_insert_ignore(self):
-        q = PostgreSQLQuery.into("abc").insert((1, "a", True)).ignore()
+        q = PostgreSQLQuery.into("abc").insert((1, "a", True)).on_conflict().do_nothing()
         self.assertEqual("INSERT INTO \"abc\" VALUES (1,'a',true) ON CONFLICT DO NOTHING", str(q))
 
 

@@ -127,7 +127,7 @@ class Dialects(Enum):
     MYSQL = "mysql"
     POSTGRESQL = "postgresql"
     REDSHIFT = "redshift"
-    SQLLITE = "sqlite"
+    SQLITE = "sqlite"
     SNOWFLAKE = "snowflake"
 
 
