@@ -4,9 +4,24 @@ from pypika import MySQLQuery, Table
 
 
 class InsertTests(unittest.TestCase):
+    table_abc = Table("abc")
+
     def test_insert_ignore(self):
         q = MySQLQuery.into("abc").insert((1, "a", True)).on_conflict().do_nothing()
         self.assertEqual("INSERT IGNORE INTO `abc` VALUES (1,'a',true)", str(q))
+
+    def test_upsert(self):
+        q = (
+            MySQLQuery.into("abc")
+            .insert(1, "b", False)
+            .as_("aaa")
+            .on_conflict(self.table_abc.id)
+            .do_update("abc")
+        )
+        self.assertEqual(
+            "INSERT INTO `abc` VALUES (1,'b',false) AS `aaa` ON DUPLICATE KEY UPDATE `abc`=`aaa`.`abc`",
+            str(q),
+        )
 
 
 class SelectTests(unittest.TestCase):

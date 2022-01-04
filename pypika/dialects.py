@@ -8,7 +8,7 @@ from uuid import UUID
 from pypika.enums import Dialects
 from pypika.queries import Query, QueryBuilder, Table
 from pypika.terms import ArithmeticExpression, Field, Function, Star, Term, ValueWrapper
-from pypika.utils import QueryException, builder, format_quotes
+from pypika.utils import QueryException, builder, format_alias_sql, format_quotes
 
 
 class MySQLQuery(Query):
@@ -49,7 +49,14 @@ class MySQLQueryBuilder(QueryBuilder):
         self._modifiers = []
 
     def _on_conflict_sql(self, **kwargs: Any) -> str:
-        return ""
+        kwargs["alias_quote_char"] = (
+            self.ALIAS_QUOTE_CHAR
+            if self.QUERY_ALIAS_QUOTE_CHAR is None
+            else self.QUERY_ALIAS_QUOTE_CHAR
+        )
+        kwargs["as_keyword"] = True
+        querystring = format_alias_sql("", self.alias, **kwargs)
+        return querystring
 
     def get_sql(self, **kwargs: Any) -> str:
         self._set_kwargs_defaults(kwargs)
@@ -63,15 +70,28 @@ class MySQLQueryBuilder(QueryBuilder):
         return querystring
 
     def _on_conflict_action_sql(self, **kwargs: Any) -> str:
+        kwargs.pop("with_namespace", None)
         if len(self._on_conflict_do_updates) > 0:
-            return " ON DUPLICATE KEY UPDATE {updates}".format(
-                updates=",".join(
-                    "{field}={value}".format(
-                        field=field.get_sql(**kwargs), value=value.get_sql(**kwargs)
+            updates = []
+            for field, value in self._on_conflict_do_updates:
+                if value:
+                    updates.append(
+                        "{field}={value}".format(
+                            field=field.get_sql(**kwargs),
+                            value=value.get_sql(**kwargs),
+                        )
                     )
-                    for field, value in self._on_conflict_do_updates
-                )
-            )
+                else:
+                    updates.append(
+                        "{field}={alias_quote_char}{alias}{alias_quote_char}.{value}".format(
+                            alias_quote_char=self.QUOTE_CHAR,
+                            field=field.get_sql(**kwargs),
+                            alias=self.alias,
+                            value=field.get_sql(**kwargs),
+                        )
+                    )
+            action_sql = " ON DUPLICATE KEY UPDATE {updates}".format(updates=",".join(updates))
+            return action_sql
         return ""
 
     @builder

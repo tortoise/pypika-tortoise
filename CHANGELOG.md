@@ -6,6 +6,7 @@
 
 - Change `postgres` and `sqlite` in `Dialects` enum.
 - Refactor `on conflict` statement.
+- Support `upsert` statement.
 
 ### 0.1.2
 

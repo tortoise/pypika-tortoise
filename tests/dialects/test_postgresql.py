@@ -17,6 +17,19 @@ class InsertTests(unittest.TestCase):
         q = PostgreSQLQuery.into("abc").insert((1, "a", True)).on_conflict().do_nothing()
         self.assertEqual("INSERT INTO \"abc\" VALUES (1,'a',true) ON CONFLICT DO NOTHING", str(q))
 
+    def test_upsert(self):
+        q = (
+            PostgreSQLQuery.into("abc")
+            .insert(1, "b", False)
+            .as_("aaa")
+            .on_conflict(self.table_abc.id)
+            .do_update("abc")
+        )
+        self.assertEqual(
+            'INSERT INTO "abc" VALUES (1,\'b\',false) ON CONFLICT ("id") DO UPDATE SET "abc"=EXCLUDED."abc"',
+            str(q),
+        )
+
 
 class JSONObjectTests(unittest.TestCase):
     def test_alias_set_correctly(self):
