@@ -2,7 +2,7 @@ import inspect
 import json
 import re
 import uuid
-from datetime import date
+from datetime import date, time
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
@@ -364,6 +364,9 @@ class ValueWrapper(Term):
         if isinstance(self.value, Enum):
             return self.value.value
         if isinstance(self.value, date):
+            value = self.value.isoformat()
+            return format_quotes(value, quote_char)
+        if isinstance(self.value, time):
             value = self.value.isoformat()
             return format_quotes(value, quote_char)
         if isinstance(self.value, str):
