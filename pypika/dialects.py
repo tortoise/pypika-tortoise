@@ -32,6 +32,9 @@ class MySQLValueWrapper(ValueWrapper):
             value = self.value.replace(quote_char, quote_char * 2)
             value = value.replace("\\", "\\\\")
             return format_quotes(value, quote_char)
+        elif isinstance(self.value, time):
+            value = self.value.replace(tzinfo=None)
+            return format_quotes(value.isoformat(), quote_char)
         return super(MySQLValueWrapper, self).get_value_sql(**kwargs)
 
 
