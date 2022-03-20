@@ -1,7 +1,7 @@
 import itertools
 import json
 from copy import copy
-from datetime import datetime
+from datetime import datetime, time
 from typing import Any, Union
 from uuid import UUID
 
@@ -177,6 +177,9 @@ class PostgresValueWrapper(ValueWrapper):
         if isinstance(self.value, datetime):
             value = format_quotes(self.value, quote_char)
             return f"{value}::timestamptz"
+        if isinstance(self.value, time):
+            value = format_quotes(self.value, quote_char)
+            return f"{value}::timetz"
         if isinstance(self.value, UUID):
             value = format_quotes(str(self.value), quote_char)
             return f"{value}::uuid"

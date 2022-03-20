@@ -2,6 +2,10 @@
 
 ## 0.1
 
+### 0.1.4
+
+- Add postgres `timetz` support.
+
 ### 0.1.3
 
 - Change `postgres` and `sqlite` in `Dialects` enum.
