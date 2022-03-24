@@ -7,7 +7,7 @@ from uuid import UUID
 
 from pypika.enums import Dialects
 from pypika.queries import Query, QueryBuilder, Table
-from pypika.terms import ArithmeticExpression, Field, Function, Star, Term, ValueWrapper
+from pypika.terms import ArithmeticExpression, Array, Field, Function, Star, Term, ValueWrapper
 from pypika.utils import QueryException, builder, format_alias_sql, format_quotes
 
 
@@ -186,7 +186,9 @@ class PostgresValueWrapper(ValueWrapper):
         if isinstance(self.value, UUID):
             value = format_quotes(str(self.value), quote_char)
             return f"{value}::uuid"
-        if isinstance(self.value, (dict, list)):
+        if isinstance(self.value, list):
+            return Array(*self.value).get_sql(**kwargs)
+        if isinstance(self.value, dict):
             value = format_quotes(json.dumps(self.value), quote_char)
             return f"{value}::jsonb"
         return super(PostgresValueWrapper, self).get_value_sql(**kwargs)
