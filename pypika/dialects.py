@@ -1,13 +1,11 @@
 import itertools
-import json
 from copy import copy
-from datetime import datetime, time
+from datetime import time
 from typing import Any, Union
-from uuid import UUID
 
 from pypika.enums import Dialects
 from pypika.queries import Query, QueryBuilder, Table
-from pypika.terms import ArithmeticExpression, Array, Field, Function, Star, Term, ValueWrapper
+from pypika.terms import ArithmeticExpression, Field, Function, Star, Term, ValueWrapper
 from pypika.utils import QueryException, builder, format_alias_sql, format_quotes
 
 
@@ -174,32 +172,12 @@ class PostgreSQLQuery(Query):
         return PostgreSQLQueryBuilder(**kwargs)
 
 
-class PostgresValueWrapper(ValueWrapper):
-    def get_value_sql(self, **kwargs: Any) -> str:
-        quote_char = kwargs.get("secondary_quote_char") or ""
-        if isinstance(self.value, datetime):
-            value = format_quotes(self.value, quote_char)
-            return f"{value}::timestamptz"
-        if isinstance(self.value, time):
-            value = format_quotes(self.value, quote_char)
-            return f"{value}::timetz"
-        if isinstance(self.value, UUID):
-            value = format_quotes(str(self.value), quote_char)
-            return f"{value}::uuid"
-        if isinstance(self.value, list):
-            return Array(*self.value).get_sql(**kwargs)
-        if isinstance(self.value, dict):
-            value = format_quotes(json.dumps(self.value), quote_char)
-            return f"{value}::jsonb"
-        return super(PostgresValueWrapper, self).get_value_sql(**kwargs)
-
-
 class PostgreSQLQueryBuilder(QueryBuilder):
     ALIAS_QUOTE_CHAR = '"'
     QUERY_CLS = PostgreSQLQuery
 
     def __init__(self, **kwargs: Any) -> None:
-        super().__init__(dialect=Dialects.POSTGRESQL, wrapper_cls=PostgresValueWrapper, **kwargs)
+        super().__init__(dialect=Dialects.POSTGRESQL, **kwargs)
         self._returns = []
         self._return_star = False
 
