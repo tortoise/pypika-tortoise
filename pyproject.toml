@@ -19,6 +19,7 @@ python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 flake8 = "*"
+pyproject-flake8 = "*"
 isort = "*"
 black = "*"
 pytest = "*"
@@ -31,3 +32,16 @@ twine = "*"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py36', 'py37', 'py38', 'py39']
+
+[tool.mypy]
+pretty = true
+ignore_missing_imports = true
+
+[tool.flake8]
+ignore = 'E501,W503,E203'
+max-line-length = 150
+per-file-ignores = ['pypika/__init__.py:F401', 'pypika/dialects/__init__.py:F401']

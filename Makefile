@@ -12,7 +12,7 @@ check: deps build
 ifneq ($(shell which black),)
 	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
 endif
-	flake8 $(checkfiles)
+	pflake8 $(checkfiles)
 	pylint -d C,W,R $(checkfiles)
 	bandit -r $(checkfiles) -s B608
 	twine check dist/*
