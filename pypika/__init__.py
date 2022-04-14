@@ -1,5 +1,5 @@
 # noinspection PyUnresolvedReferences
-from pypika.dialects import MSSQLQuery, MySQLQuery, PostgreSQLQuery, SQLLiteQuery
+from pypika.dialects import MSSQLQuery, MySQLQuery, OracleQuery, PostgreSQLQuery, SQLLiteQuery
 
 # noinspection PyUnresolvedReferences
 from pypika.enums import DatePart, Dialects, JoinType, Order

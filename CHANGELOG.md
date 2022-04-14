@@ -2,6 +2,11 @@
 
 ## 0.1
 
+### 0.1.5
+
+- Add `MSSQL` dialect.
+- Add `Oracle` dialect.
+
 ### 0.1.4
 
 - Add postgres `timetz` support.
