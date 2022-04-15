@@ -350,7 +350,10 @@ def make_columns(*names: Union[TypedTuple[str, str], str]) -> List[Column]:
 
 class PeriodFor:
     def __init__(
-        self, name: str, start_column: Union[str, Column], end_column: Union[str, Column]
+        self,
+        name: str,
+        start_column: Union[str, Column],
+        end_column: Union[str, Column],
     ) -> None:
         self.name = name
         self.start_column = (
@@ -1037,7 +1040,10 @@ class QueryBuilder(Selectable, Term):
 
     @builder
     def for_update(
-        self, nowait: bool = False, skip_locked: bool = False, of: TypedTuple[str, ...] = ()
+        self,
+        nowait: bool = False,
+        skip_locked: bool = False,
+        of: TypedTuple[str, ...] = (),
     ) -> "QueryBuilder":
         self._for_update = True
         self._for_update_skip_locked = skip_locked
@@ -1647,10 +1653,23 @@ class QueryBuilder(Selectable, Term):
         for field in self._groupbys:
             if groupby_alias and field.alias and field.alias in selected_aliases:
                 clauses.append(format_quotes(field.alias, alias_quote_char or quote_char))
+            elif not groupby_alias and field.alias and field.alias in selected_aliases:
+                for select in self._selects:
+                    if select.alias == field.alias:
+                        clauses.append(
+                            select.get_sql(
+                                quote_char=quote_char,
+                                alias_quote_char=alias_quote_char,
+                                **kwargs,
+                            )
+                        )
+                        break
             else:
                 clauses.append(
                     field.get_sql(
-                        quote_char=quote_char, alias_quote_char=alias_quote_char, **kwargs
+                        quote_char=quote_char,
+                        alias_quote_char=alias_quote_char,
+                        **kwargs,
                     )
                 )
 
@@ -1813,7 +1832,11 @@ class Join:
 
 class JoinOn(Join):
     def __init__(
-        self, item: Term, how: JoinType, criteria: QueryBuilder, collate: Optional[str] = None
+        self,
+        item: Term,
+        how: JoinType,
+        criteria: QueryBuilder,
+        collate: Optional[str] = None,
     ) -> None:
         super().__init__(item, how)
         self.criterion = criteria
