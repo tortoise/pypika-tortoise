@@ -17,6 +17,12 @@ class SelectTests(unittest.TestCase):
 
         self.assertEqual('SELECT 0 FROM "abc"', str(q))
 
+
+class InsertTests(unittest.TestCase):
+    def test_insert_ignore(self):
+        q = SQLLiteQuery.into("abc").insert((1, "a", True)).on_conflict().do_nothing()
+        self.assertEqual("INSERT INTO \"abc\" VALUES (1,'a',true) ON CONFLICT DO NOTHING", str(q))
+
     def test_upsert(self):
         q = (
             SQLLiteQuery.into("abc")
@@ -29,9 +35,3 @@ class SelectTests(unittest.TestCase):
             'INSERT INTO "abc" VALUES (1,\'b\',false) ON CONFLICT ("id") DO UPDATE SET "abc"=EXCLUDED."abc"',
             str(q),
         )
-
-
-class InsertTests(unittest.TestCase):
-    def test_insert_ignore(self):
-        q = SQLLiteQuery.into("abc").insert((1, "a", True)).on_conflict().do_nothing()
-        self.assertEqual("INSERT INTO \"abc\" VALUES (1,'a',true) ON CONFLICT DO NOTHING", str(q))
