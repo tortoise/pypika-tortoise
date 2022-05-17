@@ -1143,7 +1143,10 @@ class SubqueryTests(unittest.TestCase):
         test_query = (
             Query.with_(s1, "a1").with_(s2, "a2").from_("a1").from_("a2").select(a1.fizz, a2.foo)
         )
-        print(str(test_query))
+        self.assertEqual(
+            'WITH a1 AS (SELECT "fizz" FROM "efg") ,a2 AS (SELECT "foo" FROM "a1") SELECT "a1"."fizz","a2"."foo" FROM "a1","a2"',
+            str(test_query),
+        )
 
     def test_with_recursive(self):
         sub_query = (
