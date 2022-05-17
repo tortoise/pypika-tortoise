@@ -937,7 +937,7 @@ class QueryBuilder(Selectable, Term):
             self._select_star_tables.add(new_table)
 
     @builder
-    def with_(self, selectable: Selectable, name: str, *terms: Term) -> "QueryBuilder":
+    def with_(self, selectable: "QueryBuilder", name: str, *terms: Term) -> "QueryBuilder":
         t = Cte(name, selectable, *terms)
         self._with.append(t)
 
@@ -1523,7 +1523,7 @@ class QueryBuilder(Selectable, Term):
                 recursive = True
                 break
         return f"WITH {'RECURSIVE ' if recursive else ''}" + ",".join(
-            clause.name
+            clause.alias
             + (
                 "(" + ",".join([term.get_sql(**kwargs) for term in clause.terms]) + ")"
                 if clause.terms
