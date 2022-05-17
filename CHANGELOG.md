@@ -6,6 +6,7 @@
 
 - Add `MSSQL` dialect.
 - Add `Oracle` dialect.
+- Fix `WITH RECURSIVE` support.
 
 ### 0.1.4
 

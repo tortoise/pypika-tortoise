@@ -303,7 +303,8 @@ class SelectTests(unittest.TestCase):
             q = Query.from_(t.for_(SYSTEM_TIME.from_to("2020-01-01", "2020-02-01"))).select("*")
 
             self.assertEqual(
-                "SELECT * FROM \"abc\" FOR SYSTEM_TIME FROM '2020-01-01' TO '2020-02-01'", str(q)
+                "SELECT * FROM \"abc\" FOR SYSTEM_TIME FROM '2020-01-01' TO '2020-02-01'",
+                str(q),
             )
 
         with self.subTest("with ALL"):
@@ -401,7 +402,8 @@ class WhereTests(unittest.TestCase):
             .for_update(nowait=False, skip_locked=True, of=("abc",))
         )
         self.assertEqual(
-            'SELECT * FROM "abc" WHERE "foo"="bar" FOR UPDATE OF "abc" SKIP LOCKED', str(q)
+            'SELECT * FROM "abc" WHERE "foo"="bar" FOR UPDATE OF "abc" SKIP LOCKED',
+            str(q),
         )
 
     def test_where_field_equals_where(self):
@@ -578,7 +580,10 @@ class GroupByTests(unittest.TestCase):
         q = (
             Query.from_(self.t)
             .groupby(self.t.foo)
-            .select(self.t.foo, fn.Sum(self.t.bar).filter(self.t.id.eq(1) & self.t.cid.gt(2)))
+            .select(
+                self.t.foo,
+                fn.Sum(self.t.bar).filter(self.t.id.eq(1) & self.t.cid.gt(2)),
+            )
         )
 
         self.assertEqual(
@@ -1130,31 +1135,39 @@ class SubqueryTests(unittest.TestCase):
             str(test_query),
         )
 
-    def test_with_recursive(self):
-        sub_query = Query.from_(self.table_efg).select("fizz")
+    def test_with_more_than_one(self):
+        s1 = Query.from_(self.table_efg).select("fizz")
+        s2 = Query.from_("a1").select("foo")
+        a1 = AliasedQuery("a1", s1)
+        a2 = AliasedQuery("a2", s2)
         test_query = (
-            Query.with_(sub_query, "an_alias")
-            .recursive()
-            .from_(AliasedQuery("an_alias"))
-            .select("*")
+            Query.with_(s1, "a1").with_(s2, "a2").from_("a1").from_("a2").select(a1.fizz, a2.foo)
         )
+        print(str(test_query))
+
+    def test_with_recursive(self):
+        sub_query = (
+            Query.from_(self.table_efg).select("fizz").union(Query.from_("an_alias").select("fizz"))
+        )
+        test_query = Query.with_(sub_query, "an_alias").from_(AliasedQuery("an_alias")).select("*")
 
         self.assertEqual(
-            'WITH RECURSIVE an_alias AS (SELECT "fizz" FROM "efg") SELECT * FROM an_alias',
+            'WITH RECURSIVE an_alias AS ((SELECT "fizz" FROM "efg") UNION (SELECT "fizz" FROM "an_alias")) SELECT * FROM an_alias',
             str(test_query),
         )
 
     def test_with_column_recursive(self):
-        sub_query = Query.from_(self.table_efg).select("fizz")
+        sub_query = (
+            Query.from_(self.table_efg).select("fizz").union(Query.from_("an_alias").select("fizz"))
+        )
         test_query = (
             Query.with_(sub_query, "an_alias", Field("fizz"))
-            .recursive()
             .from_(AliasedQuery("an_alias"))
             .select("*")
         )
 
         self.assertEqual(
-            'WITH RECURSIVE an_alias("fizz") AS (SELECT "fizz" FROM "efg") SELECT * FROM an_alias',
+            'WITH RECURSIVE an_alias("fizz") AS ((SELECT "fizz" FROM "efg") UNION (SELECT "fizz" FROM "an_alias")) SELECT * FROM an_alias',
             str(test_query),
         )
 

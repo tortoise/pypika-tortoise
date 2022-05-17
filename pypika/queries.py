@@ -82,9 +82,8 @@ class AliasedQuery(Selectable):
 
 
 class Cte(AliasedQuery):
-    def __init__(self, name: str, query: Optional[Selectable] = None, *terms: Term) -> None:
+    def __init__(self, name: str, query: Optional["QueryBuilder"] = None, *terms: Term) -> None:
         super().__init__(name, query)
-        self.name = name
         self.query = query
         self.terms = terms
 
@@ -699,14 +698,13 @@ class QueryBuilder(Selectable, Term):
         self._delete_from = False
         self._replace = False
 
-        self._with = []
+        self._with: List[Cte] = []
         self._selects = []
         self._force_indexes = []
         self._use_indexes = []
         self._columns = []
         self._values = []
         self._distinct = False
-        self._recursive = False
 
         self._for_update = False
         self._for_update_nowait = False
@@ -942,10 +940,6 @@ class QueryBuilder(Selectable, Term):
     def with_(self, selectable: Selectable, name: str, *terms: Term) -> "QueryBuilder":
         t = Cte(name, selectable, *terms)
         self._with.append(t)
-
-    @builder
-    def recursive(self) -> "QueryBuilder":
-        self._recursive = True
 
     @builder
     def into(self, table: Union[str, Table]) -> "QueryBuilder":
@@ -1522,7 +1516,13 @@ class QueryBuilder(Selectable, Term):
         return querystring
 
     def _with_sql(self, **kwargs: Any) -> str:
-        return f"WITH {'RECURSIVE ' if self._recursive else ''}" + ",".join(
+        all_alias = [with_.alias for with_ in self._with]
+        recursive = False
+        for with_ in self._with:
+            if with_.query.from_ in all_alias:
+                recursive = True
+                break
+        return f"WITH {'RECURSIVE ' if recursive else ''}" + ",".join(
             clause.name
             + (
                 "(" + ",".join([term.get_sql(**kwargs) for term in clause.terms]) + ")"
