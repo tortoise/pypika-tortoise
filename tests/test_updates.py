@@ -45,18 +45,6 @@ class UpdateTests(unittest.TestCase):
         q = Query.update("abc").set("foo", None)
         self.assertEqual('UPDATE "abc" SET "foo"=null', str(q))
 
-    def test_update_with_join(self):
-        q = (
-            Query.update(self.table_abc)
-            .join(self.table_def)
-            .on(self.table_def.abc_id == self.table_abc.id)
-            .set(self.table_abc.lname, self.table_def.lname)
-        )
-        self.assertEqual(
-            'UPDATE "abc" JOIN "def" ON "def"."abc_id"="abc"."id" SET "lname"="def"."lname"',
-            str(q),
-        )
-
     def test_update_from(self):
         from_table = Table("from_table")
 
@@ -130,6 +118,7 @@ class UpdateTests(unittest.TestCase):
 
 class PostgresUpdateTests(unittest.TestCase):
     table_abc = Table("abc")
+    table_def = Table("def")
 
     def test_update_returning_str(self):
         q = (
@@ -179,9 +168,22 @@ class PostgresUpdateTests(unittest.TestCase):
 
         self.assertEqual('UPDATE "abc" SET "foo"=\'bar\' WHERE "foo"=0 RETURNING *', str(q))
 
+    def test_update_with_join(self):
+        q = (
+            PostgreSQLQuery.update(self.table_abc)
+            .join(self.table_def)
+            .on(self.table_def.abc_id == self.table_abc.id)
+            .set(self.table_abc.lname, self.table_def.lname)
+        )
+        self.assertEqual(
+            'UPDATE "abc" SET "lname"="def"."lname" FROM "def" JOIN "def" ON "def"."abc_id"="abc"."id"',
+            str(q),
+        )
+
 
 class SQLLiteUpdateTests(unittest.TestCase):
     table_abc = Table("abc")
+    table_def = Table("def")
 
     def test_update_with_bool(self):
         q = SQLLiteQuery.update(self.table_abc).set(self.table_abc.foo, True)
@@ -197,9 +199,22 @@ class SQLLiteUpdateTests(unittest.TestCase):
         )
         self.assertEqual('UPDATE "abc" SET "lname"=\'test\' ORDER BY "id" LIMIT 1', str(q))
 
+    def test_update_with_join(self):
+        q = (
+            SQLLiteQuery.update(self.table_abc)
+            .join(self.table_def)
+            .on(self.table_def.abc_id == self.table_abc.id)
+            .set(self.table_abc.lname, self.table_def.lname)
+        )
+        self.assertEqual(
+            'UPDATE "abc" SET "lname"="def"."lname" FROM "def" JOIN "def" ON "def"."abc_id"="abc"."id"',
+            str(q),
+        )
+
 
 class MySQLUpdateTests(unittest.TestCase):
     table_abc = Table("abc")
+    table_def = Table("def")
 
     def test_update_with_limit_order(self):
         q = (
@@ -209,3 +224,15 @@ class MySQLUpdateTests(unittest.TestCase):
             .orderby(self.table_abc.id)
         )
         self.assertEqual("UPDATE `abc` SET `lname`='test' ORDER BY `id` LIMIT 1", str(q))
+
+    def test_update_with_join(self):
+        q = (
+            MySQLQuery.update(self.table_abc)
+            .join(self.table_def)
+            .on(self.table_def.abc_id == self.table_abc.id)
+            .set(self.table_abc.lname, self.table_def.lname)
+        )
+        self.assertEqual(
+            "UPDATE `abc` JOIN `def` ON `def`.`abc_id`=`abc`.`id` SET `lname`=`def`.`lname`",
+            str(q),
+        )

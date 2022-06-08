@@ -32,11 +32,53 @@ class SQLLiteQueryBuilder(QueryBuilder):
 
     def get_sql(self, **kwargs: Any) -> str:
         self._set_kwargs_defaults(kwargs)
-        querystring = super(SQLLiteQueryBuilder, self).get_sql(**kwargs)
-        if querystring:
-            if self._update_table:
-                if self._orderbys:
-                    querystring += self._orderby_sql(**kwargs)
-                if self._limit:
-                    querystring += self._limit_sql()
+        if not (self._selects or self._insert_table or self._delete_from or self._update_table):
+            return ""
+        if self._insert_table and not (self._selects or self._values):
+            return ""
+        if self._update_table and not self._updates:
+            return ""
+
+        has_joins = bool(self._joins)
+        has_multiple_from_clauses = 1 < len(self._from)
+        has_subquery_from_clause = 0 < len(self._from) and isinstance(self._from[0], QueryBuilder)
+        has_reference_to_foreign_table = self._foreign_table
+        has_update_from = self._update_table and self._from
+
+        kwargs["with_namespace"] = any(
+            [
+                has_joins,
+                has_multiple_from_clauses,
+                has_subquery_from_clause,
+                has_reference_to_foreign_table,
+                has_update_from,
+            ]
+        )
+        if self._update_table:
+            if self._with:
+                querystring = self._with_sql(**kwargs)
+            else:
+                querystring = ""
+
+            querystring += self._update_sql(**kwargs)
+
+            querystring += self._set_sql(**kwargs)
+
+            if self._joins:
+                self._from.extend([join.item for join in self._joins])
+
+            if self._from:
+                querystring += self._from_sql(**kwargs)
+            if self._joins:
+                querystring += " " + " ".join(join.get_sql(**kwargs) for join in self._joins)
+
+            if self._wheres:
+                querystring += self._where_sql(**kwargs)
+
+            if self._orderbys:
+                querystring += self._orderby_sql(**kwargs)
+            if self._limit:
+                querystring += self._limit_sql()
+        else:
+            querystring = super(SQLLiteQueryBuilder, self).get_sql(**kwargs)
         return querystring

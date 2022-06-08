@@ -297,10 +297,6 @@ class ReturningClauseTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            'UPDATE "abc" '
-            'JOIN "xyz" ON "xyz"."id"="abc"."xyz" '
-            "SET \"foo\"='bar' "
-            'WHERE "abc"."foo"=0 '
-            'RETURNING "xyz"."a"',
+            'UPDATE "abc" SET "foo"=\'bar\' FROM "xyz" JOIN "xyz" ON "xyz"."id"="abc"."xyz" WHERE "abc"."foo"=0 RETURNING "xyz"."a"',
             str(q),
         )
