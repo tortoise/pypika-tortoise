@@ -65,7 +65,7 @@ class SQLLiteQueryBuilder(QueryBuilder):
             querystring += self._set_sql(**kwargs)
 
             if self._joins:
-                self._from.extend([join.item for join in self._joins])
+                self._from.append(self._update_table)
 
             if self._from:
                 querystring += self._from_sql(**kwargs)
