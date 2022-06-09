@@ -176,7 +176,7 @@ class PostgresUpdateTests(unittest.TestCase):
             .set(self.table_abc.lname, self.table_def.lname)
         )
         self.assertEqual(
-            'UPDATE "abc" SET "lname"="def"."lname" FROM "abc" JOIN "def" ON "def"."abc_id"="abc"."id"',
+            'UPDATE "abc" SET "lname"="def"."lname" FROM "abc" "abc_" JOIN "def" ON "def"."abc_id"="abc"."id"',
             str(q),
         )
 
@@ -207,7 +207,7 @@ class SQLLiteUpdateTests(unittest.TestCase):
             .set(self.table_abc.lname, self.table_def.lname)
         )
         self.assertEqual(
-            'UPDATE "abc" SET "lname"="def"."lname" FROM "abc" JOIN "def" ON "def"."abc_id"="abc"."id"',
+            'UPDATE "abc" SET "lname"="def"."lname" FROM "abc" "abc_" JOIN "def" ON "def"."abc_id"="abc"."id"',
             str(q),
         )
 

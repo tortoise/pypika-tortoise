@@ -160,7 +160,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
             querystring += self._set_sql(**kwargs)
 
             if self._joins:
-                self._from.append(self._update_table)
+                self._from.append(self._update_table.as_(self._update_table.get_table_name() + "_"))
 
             if self._from:
                 querystring += self._from_sql(**kwargs)
