@@ -14,7 +14,7 @@ ifneq ($(shell which black),)
 endif
 	pflake8 $(checkfiles)
 	pylint -d C,W,R $(checkfiles)
-	bandit -r $(checkfiles) -s B608
+	#bandit -r $(checkfiles) -s B608
 	twine check dist/*
 
 test: deps
