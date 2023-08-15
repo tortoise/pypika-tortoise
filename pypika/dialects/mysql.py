@@ -1,3 +1,4 @@
+import json
 from datetime import time
 from typing import Any, Union
 
@@ -31,6 +32,9 @@ class MySQLValueWrapper(ValueWrapper):
         elif isinstance(self.value, time):
             value = self.value.replace(tzinfo=None)
             return format_quotes(value.isoformat(), quote_char)
+        elif isinstance(self.value, (dict, list)):
+            value = format_quotes(json.dumps(self.value), quote_char)
+            return value.replace("\\", "\\\\")
         return super(MySQLValueWrapper, self).get_value_sql(**kwargs)
 
 
