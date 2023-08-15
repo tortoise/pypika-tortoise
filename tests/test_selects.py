@@ -380,8 +380,10 @@ class WhereTests(unittest.TestCase):
         self.assertIn(
             str(q),
             [
-                'SELECT * FROM "abc" JOIN "cba" ON "abc"."id"="cba"."abc_id" WHERE "abc"."foo"="abc"."bar" FOR UPDATE OF "cba", "abc"',
-                'SELECT * FROM "abc" JOIN "cba" ON "abc"."id"="cba"."abc_id" WHERE "abc"."foo"="abc"."bar" FOR UPDATE OF "abc", "cba"',
+                'SELECT * FROM "abc" JOIN "cba" ON "abc"."id"="cba"."abc_id" WHERE '
+                '"abc"."foo"="abc"."bar" FOR UPDATE OF "cba", "abc"',
+                'SELECT * FROM "abc" JOIN "cba" ON "abc"."id"="cba"."abc_id" WHERE '
+                '"abc"."foo"="abc"."bar" FOR UPDATE OF "abc", "cba"',
             ],
         )
 
@@ -1144,7 +1146,8 @@ class SubqueryTests(unittest.TestCase):
             Query.with_(s1, "a1").with_(s2, "a2").from_("a1").from_("a2").select(a1.fizz, a2.foo)
         )
         self.assertEqual(
-            'WITH a1 AS (SELECT "fizz" FROM "efg") ,a2 AS (SELECT "foo" FROM "a1") SELECT "a1"."fizz","a2"."foo" FROM "a1","a2"',
+            'WITH a1 AS (SELECT "fizz" FROM "efg") ,a2 AS (SELECT "foo" FROM "a1")'
+            ' SELECT "a1"."fizz","a2"."foo" FROM "a1","a2"',
             str(test_query),
         )
 
@@ -1155,7 +1158,8 @@ class SubqueryTests(unittest.TestCase):
         test_query = Query.with_(sub_query, "an_alias").from_(AliasedQuery("an_alias")).select("*")
 
         self.assertEqual(
-            'WITH RECURSIVE an_alias AS ((SELECT "fizz" FROM "efg") UNION (SELECT "fizz" FROM "an_alias")) SELECT * FROM an_alias',
+            'WITH RECURSIVE an_alias AS ((SELECT "fizz" FROM "efg")'
+            ' UNION (SELECT "fizz" FROM "an_alias")) SELECT * FROM an_alias',
             str(test_query),
         )
 
@@ -1170,7 +1174,8 @@ class SubqueryTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            'WITH RECURSIVE an_alias("fizz") AS ((SELECT "fizz" FROM "efg") UNION (SELECT "fizz" FROM "an_alias")) SELECT * FROM an_alias',
+            'WITH RECURSIVE an_alias("fizz") AS ((SELECT "fizz" FROM "e'
+            'fg") UNION (SELECT "fizz" FROM "an_alias")) SELECT * FROM an_alias',
             str(test_query),
         )
 

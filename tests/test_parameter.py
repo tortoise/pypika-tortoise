@@ -36,7 +36,8 @@ class ParametrizedTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            'SELECT * FROM "abc" JOIN "efg" ON "abc"."id"="efg"."abc_id" WHERE "abc"."category"=%s AND "efg"."date">=%s LIMIT 10',
+            'SELECT * FROM "abc" JOIN "efg" ON "abc"."id"="efg"."abc_id" '
+            'WHERE "abc"."category"=%s AND "efg"."date">=%s LIMIT 10',
             q.get_sql(),
         )
 
@@ -56,7 +57,8 @@ class ParametrizedTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            'SELECT * FROM "abc" WHERE "category"=&1 AND "id" IN (SELECT "abc_id" FROM "efg" WHERE "date">=&2) LIMIT 10',
+            'SELECT * FROM "abc" WHERE "category"=&1 AND "id" IN '
+            '(SELECT "abc_id" FROM "efg" WHERE "date">=&2) LIMIT 10',
             q.get_sql(),
         )
 

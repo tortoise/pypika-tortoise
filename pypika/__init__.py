@@ -1,15 +1,8 @@
-# noinspection PyUnresolvedReferences
 from pypika.dialects import MSSQLQuery, MySQLQuery, OracleQuery, PostgreSQLQuery, SQLLiteQuery
-
-# noinspection PyUnresolvedReferences
 from pypika.enums import DatePart, Dialects, JoinType, Order
-
-# noinspection PyUnresolvedReferences
 from pypika.queries import AliasedQuery, Column, Database, Query, Schema, Table
 from pypika.queries import make_columns as Columns
 from pypika.queries import make_tables as Tables
-
-# noinspection PyUnresolvedReferences
 from pypika.terms import (
     JSON,
     Array,
@@ -33,8 +26,6 @@ from pypika.terms import (
     SystemTimeValue,
     Tuple,
 )
-
-# noinspection PyUnresolvedReferences
 from pypika.utils import (
     CaseException,
     FunctionException,
