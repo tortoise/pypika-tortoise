@@ -1,4 +1,5 @@
 import inspect
+import json
 import re
 import uuid
 from datetime import date, time
@@ -372,9 +373,11 @@ class ValueWrapper(Term):
             value = value.replace(quote_char, quote_char * 2)
             return format_quotes(value, quote_char)
         if isinstance(value, bool):
-            return str.lower(str(value))
+            return str(value).lower()
         if isinstance(value, uuid.UUID):
             return cls.get_formatted_value(str(value), **kwargs)
+        if isinstance(value, (dict, list)):
+            return format_quotes(json.dumps(value), quote_char)
         if value is None:
             return "null"
         return str(value)

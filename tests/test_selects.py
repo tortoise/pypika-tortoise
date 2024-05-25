@@ -1,5 +1,5 @@
 import unittest
-from datetime import date
+from datetime import date, time
 from enum import Enum
 
 from pypika import SYSTEM_TIME, AliasedQuery, Case, EmptyCriterion
@@ -341,6 +341,7 @@ class MyEnum(Enum):
     INT = 0
     BOOL = True
     DATE = date(2020, 2, 2)
+    TIME = time(23, 59, 59)
     NONE = None
 
 
@@ -353,13 +354,15 @@ class WhereTests(unittest.TestCase):
         q2 = Query.from_(self.t).select("*").where(self.t.foo == MyEnum.INT)
         q3 = Query.from_(self.t).select("*").where(self.t.foo == MyEnum.BOOL)
         q4 = Query.from_(self.t).select("*").where(self.t.foo == MyEnum.DATE)
-        q5 = Query.from_(self.t).select("*").where(self.t.foo == MyEnum.NONE)
+        q5 = Query.from_(self.t).select("*").where(self.t.foo == MyEnum.TIME)
+        q6 = Query.from_(self.t).select("*").where(self.t.foo == MyEnum.NONE)
 
         self.assertEqual('SELECT * FROM "abc" WHERE "foo"=\'foo\'', str(q1))
         self.assertEqual('SELECT * FROM "abc" WHERE "foo"=0', str(q2))
         self.assertEqual('SELECT * FROM "abc" WHERE "foo"=true', str(q3))
         self.assertEqual('SELECT * FROM "abc" WHERE "foo"=\'2020-02-02\'', str(q4))
-        self.assertEqual('SELECT * FROM "abc" WHERE "foo"=null', str(q5))
+        self.assertEqual('SELECT * FROM "abc" WHERE "foo"=\'23:59:59\'', str(q5))
+        self.assertEqual('SELECT * FROM "abc" WHERE "foo"=null', str(q6))
 
     def test_where_field_equals(self):
         q1 = Query.from_(self.t).select("*").where(self.t.foo == self.t.bar)
