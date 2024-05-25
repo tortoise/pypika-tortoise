@@ -12,7 +12,7 @@ check: deps build
 ifneq ($(shell which black),)
 	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
 endif
-	ruff $(checkfiles)
+	ruff check $(checkfiles)
 	twine check dist/*
 
 test: deps

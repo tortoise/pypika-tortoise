@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypika-tortoise"
-version = "0.1.6"
+version = "0.1.7"
 description = "Forked from pypika and streamline just for tortoise-orm"
 authors = ["long2ice <long2ice@gmail.com>"]
 license = "Apache-2.0"
@@ -42,6 +42,6 @@ ignore_missing_imports = true
 [tool.ruff]
 line-length = 150
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 'pypika/__init__.py' = ['F401']
 'pypika/dialects/__init__.py' = ['F401']
