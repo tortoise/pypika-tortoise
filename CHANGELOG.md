@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 0.2
+
+### 0.2.0
+- Improved parameterized queries support
+
 ## 0.1
 
 ### 0.1.6
