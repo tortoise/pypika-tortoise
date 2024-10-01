@@ -2,6 +2,10 @@
 
 ## 0.1
 
+### 0.1.7
+
+- Fix enums not quoted. (#6)
+
 ### 0.1.6
 
 - Fix `UPDATE JOIN` statement. (#3)

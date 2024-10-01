@@ -650,7 +650,7 @@ class DateFunctionsTests(unittest.TestCase):
     def _test_extract_datepart(self, date_part):
         q = Q.from_(self.t).select(fn.Extract(date_part, self.t.foo))
 
-        self.assertEqual('SELECT EXTRACT(%s FROM "foo") FROM "abc"' % date_part.value, str(q))
+        self.assertEqual('SELECT EXTRACT(\'%s\' FROM "foo") FROM "abc"' % date_part.value, str(q))
 
     def test_extract_microsecond(self):
         self._test_extract_datepart(DatePart.microsecond)
@@ -688,7 +688,7 @@ class DateFunctionsTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            'SELECT EXTRACT(YEAR FROM "abc"."foo") FROM "abc" '
+            'SELECT EXTRACT(\'YEAR\' FROM "abc"."foo") FROM "abc" '
             'JOIN "efg" ON "abc"."id"="efg"."t_id"',
             str(q),
         )
