@@ -2,6 +2,9 @@
 
 ## 0.2
 
+### 0.2.1
+- Fix stringification of datetime objects
+
 ### 0.2.0
 - Improved parameterized queries support
 
