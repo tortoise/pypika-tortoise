@@ -11,7 +11,8 @@ from pypika import (
     Query,
     Tables,
 )
-from pypika.terms import ListParameter, ParameterValueWrapper
+from pypika.functions import Upper
+from pypika.terms import ListParameter, ParameterValueWrapper, ValueWrapper
 
 
 class ParametrizedTests(unittest.TestCase):
@@ -212,3 +213,15 @@ class ParametrizedTestsWithValues(unittest.TestCase):
             'INSERT INTO "abc" ("a","b","c") VALUES (%(param1)s,%(param2)s,%(param3)s)', sql
         )
         self.assertEqual({"param1": 1, "param2": 2.2, "param3": "foo"}, parameter.get_parameters())
+
+    def test_function_parameter(self):
+        q = (
+            Query.from_(self.table_abc)
+            .select("*")
+            .where(self.table_abc.category == Upper(ValueWrapper("foobar")))
+        )
+        p = ListParameter("%s")
+        sql = q.get_sql(parameter=p)
+        self.assertEqual('SELECT * FROM "abc" WHERE "category"=UPPER(%s)', sql)
+
+        self.assertEqual(["foobar"], p.get_parameters())

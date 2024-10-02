@@ -2,7 +2,7 @@ import inspect
 import json
 import re
 import uuid
-from datetime import date, time, datetime
+from datetime import date, datetime, time
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
@@ -1429,7 +1429,7 @@ class Function(Criterion):
 
         # FIXME escape
         function_sql = self.get_function_sql(
-            with_namespace=with_namespace, quote_char=quote_char, dialect=dialect
+            with_namespace=with_namespace, quote_char=quote_char, dialect=dialect, **kwargs
         )
 
         if self.schema is not None:
