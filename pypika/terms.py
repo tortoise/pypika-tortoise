@@ -2,7 +2,7 @@ import inspect
 import json
 import re
 import uuid
-from datetime import date, time
+from datetime import date, time, datetime
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
@@ -461,8 +461,8 @@ class ValueWrapper(Term):
             )
             return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
 
-        # Don't stringify numbers when using a parameter
-        if isinstance(self.value, (int, float)):
+        # Don't stringify number or date values when using a parameter
+        if isinstance(self.value, (int, float, date, time, datetime)):
             value_sql = self.value
         else:
             value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
