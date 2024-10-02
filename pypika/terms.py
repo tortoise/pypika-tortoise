@@ -1510,7 +1510,7 @@ class Function(Criterion):
 
         # FIXME escape
         function_sql = self.get_function_sql(
-            with_namespace=with_namespace, quote_char=quote_char, dialect=dialect
+            with_namespace=with_namespace, quote_char=quote_char, dialect=dialect, **kwargs
         )
 
         if self.schema is not None:
