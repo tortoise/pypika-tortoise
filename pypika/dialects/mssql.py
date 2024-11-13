@@ -47,7 +47,7 @@ class MSSQLQueryBuilder(QueryBuilder):
     def _offset_sql(self) -> str:
         order_by = ""
         if not self._orderbys:
-            order_by = "ORDER BY (SELECT 0)"
+            order_by = " ORDER BY (SELECT 0)"
         return order_by + " OFFSET {offset} ROWS".format(offset=self._offset or 0)
 
     def _limit_sql(self) -> str:
