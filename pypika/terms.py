@@ -5,7 +5,7 @@ import json
 import re
 import sys
 import uuid
-from datetime import date, datetime, time
+from datetime import date, time
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, Sequence, Type, TypeVar, cast
 
@@ -316,114 +316,71 @@ class Term(Node):
         raise NotImplementedError()
 
 
-def idx_placeholder_gen(idx: int) -> str:
-    return str(idx + 1)
-
-
-def named_placeholder_gen(idx: int) -> str:
-    return f"param{idx + 1}"
-
-
 class Parameter(Term):
+    """
+    Represents a parameter in a query. The placeholder can be specified with the `placeholder` argument or
+    will be determined based on the dialect if not provided.
+    """
+
+    IDX_PLACEHOLDERS = {
+        Dialects.ORACLE: lambda _: "?",
+        Dialects.MSSQL: lambda _: "?",
+        Dialects.MYSQL: lambda _: "%s",
+        Dialects.POSTGRESQL: lambda idx: f"${idx}",
+        Dialects.SQLITE: lambda _: "?",
+    }
+    DEFAULT_PLACEHOLDER = "?"
     is_aggregate = None
 
-    def __init__(self, placeholder: str | int) -> None:
-        super().__init__()
+    def __init__(self, placeholder: str | None = None, idx: int | None = None) -> None:
+        if not placeholder and not idx:
+            raise ValueError("Must provide either a placeholder or an idx")
+
+        if placeholder and idx:
+            raise ValueError("Cannot provide both a placeholder and an idx")
+
         self._placeholder = placeholder
-
-    @property
-    def placeholder(self) -> str | int:
-        return self._placeholder
+        self._idx = idx
 
     def get_sql(self, **kwargs: Any) -> str:
-        return str(self.placeholder)
+        if self._placeholder:
+            return self._placeholder
 
-    def update_parameters(self, param_key: Any, param_value: Any, **kwargs) -> None:
-        pass
-
-    def get_param_key(self, placeholder: Any, **kwargs) -> str | int:
-        return placeholder
+        dialect = kwargs.get("dialect", None)
+        return self.IDX_PLACEHOLDERS.get(dialect, lambda _: self.DEFAULT_PLACEHOLDER)(self._idx)
 
 
-class ListParameter(Parameter):
-    def __init__(self, placeholder: str | int | Callable[[int], str] = idx_placeholder_gen) -> None:
-        super().__init__(placeholder=placeholder)  # type:ignore[arg-type]
-        self._parameters: list = []
+class Parameterizer:
+    """
+    Parameterizer can be used to replace values with parameters in a query:
+>>>>>>> 94fab2d (Replace ListParameter with Parameterizer)
 
-    @property
-    def placeholder(self) -> str:
-        if callable(self._placeholder):
-            return self._placeholder(len(self._parameters))
+        >>> parameterizer = Parameterizer()
+        >>> customers = Table("customers")
+        >>> sql = Query.from_(customers).select(customers.id)\
+        ...             .where(customers.lname == "Mustermann")\
+        ...             .get_sql(parameterizer=parameterizer, dialect=Dialects.SQLITE)
+        >>> sql, parameterizer.values
+        ('SELECT "id" FROM "customers" WHERE "lname"=?', ['Mustermann'])
 
-        return str(self._placeholder)
+    Parameterizer remembers the values it has seen and replaces them with parameters. The values can 
+    be accessed via the `values` attribute.
+    """
 
-    def get_parameters(self, **kwargs) -> list:
-        return self._parameters
+    def __init__(self) -> None:
+        self.values = []
 
-    def update_parameters(self, value: Any, **kwargs) -> None:  # type:ignore[override]
-        self._parameters.append(value)
+    def should_parameterize(self, value: Any) -> bool:
+        if isinstance(value, Enum):
+            return False
 
+        if isinstance(value, str) and value == "*":
+            return False
+        return True
 
-class DictParameter(Parameter):
-    def __init__(
-        self, placeholder: str | int | Callable[[int], str] = named_placeholder_gen
-    ) -> None:
-        super().__init__(placeholder=placeholder)  # type:ignore[arg-type]
-        self._parameters: dict = {}
-
-    @property
-    def placeholder(self) -> str:
-        if callable(self._placeholder):
-            return self._placeholder(len(self._parameters))
-
-        return str(self._placeholder)
-
-    def get_parameters(self, **kwargs) -> dict:
-        return self._parameters
-
-    def get_param_key(self, placeholder: Any, **kwargs) -> str:
-        return placeholder[1:]
-
-    def update_parameters(  # type:ignore[override]
-        self, param_key: Any, value: Any, **kwargs
-    ) -> None:
-        self._parameters[param_key] = value
-
-
-class QmarkParameter(ListParameter):
-    def get_sql(self, **kwargs) -> str:
-        return "?"
-
-
-class NumericParameter(ListParameter):
-    """Numeric, positional style, e.g. ...WHERE name=:1"""
-
-    def get_sql(self, **kwargs: Any) -> str:
-        return ":{placeholder}".format(placeholder=self.placeholder)
-
-
-class FormatParameter(ListParameter):
-    """ANSI C printf format codes, e.g. ...WHERE name=%s"""
-
-    def get_sql(self, **kwargs: Any) -> str:
-        return "%s"
-
-
-class NamedParameter(DictParameter):
-    """Named style, e.g. ...WHERE name=:name"""
-
-    def get_sql(self, **kwargs: Any) -> str:
-        return ":{placeholder}".format(placeholder=self.placeholder)
-
-
-class PyformatParameter(DictParameter):
-    """Python extended format codes, e.g. ...WHERE name=%(name)s"""
-
-    def get_sql(self, **kwargs: Any) -> str:
-        return "%({placeholder})s".format(placeholder=self.placeholder)
-
-    def get_param_key(self, placeholder: T, **kwargs) -> T:
-        return placeholder[2:-2]  # type:ignore[index]
+    def create_param(self, value: Any) -> Parameter:
+        self.values.append(value)
+        return Parameter(idx=len(self.values))
 
 
 class Negative(Term):
@@ -475,48 +432,23 @@ class ValueWrapper(Term):
             return "null"
         return str(value)
 
-    def _get_param_data(self, parameter: Parameter, **kwargs) -> tuple[str, str]:
-        param_sql = parameter.get_sql(**kwargs)
-        param_key = parameter.get_param_key(placeholder=param_sql)
-
-        return param_sql, param_key  # type:ignore[return-value]
-
     def get_sql(
         self,
         quote_char: str | None = None,
         secondary_quote_char: str = "'",
-        parameter: Parameter | None = None,
+        parameterizer: Parameterizer | None = None,
         **kwargs: Any,
     ) -> str:
-        if parameter is None:
+        if parameterizer is None or not parameterizer.should_parameterize(self.value):
             sql = self.get_value_sql(
                 quote_char=quote_char, secondary_quote_char=secondary_quote_char, **kwargs
             )
             return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
 
-        # Don't stringify number or date values when using a parameter
-        if isinstance(self.value, (int, float, date, time, datetime)):
-            value_sql = self.value
-        else:
-            value_sql = self.get_value_sql(
-                quote_char=quote_char, **kwargs
-            )  # type:ignore[assignment]
-        param_sql, param_key = self._get_param_data(parameter, **kwargs)
-        parameter.update_parameters(param_key=param_key, value=value_sql, **kwargs)
-
-        return format_alias_sql(param_sql, self.alias, quote_char=quote_char, **kwargs)
-
-
-class ParameterValueWrapper(ValueWrapper):
-    def __init__(self, parameter: Parameter, value: Any, alias: str | None = None) -> None:
-        super().__init__(value, alias)
-        self._parameter = parameter
-
-    def _get_param_data(self, parameter: Parameter, **kwargs) -> tuple[str, str]:
-        param_sql = self._parameter.get_sql(**kwargs)
-        param_key = self._parameter.get_param_key(placeholder=param_sql)
-
-        return param_sql, param_key  # type:ignore[return-value]
+        param = parameterizer.create_param(self.value)
+        return format_alias_sql(
+            param.get_sql(**kwargs), self.alias, quote_char=quote_char, **kwargs
+        )
 
 
 class JSON(Term):

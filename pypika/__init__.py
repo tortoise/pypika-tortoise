@@ -21,19 +21,16 @@ from pypika.terms import (
     CustomFunction,
     EmptyCriterion,
     Field,
-    FormatParameter,
     Index,
     Interval,
-    NamedParameter,
     Not,
     NullValue,
-    NumericParameter,
     Parameter,
-    PyformatParameter,
-    QmarkParameter,
+    Parameterizer,
     Rollup,
     SystemTimeValue,
     Tuple,
+    ValueWrapper,
 )
 
 NULL = NullValue()
