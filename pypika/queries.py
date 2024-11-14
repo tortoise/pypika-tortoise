@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import copy
 from functools import reduce
-from typing import Any, Optional, Sequence, Type
+from typing import Any, Sequence, Type
 
 from pypika.enums import Dialects, JoinType, SetOperation
 from pypika.exceptions import JoinException, QueryException, RollupException, SetOperationException
@@ -55,7 +55,7 @@ class AliasedQuery(Selectable):
     def __init__(
         self,
         name: str,
-        query: Optional[Selectable] = None,
+        query: Selectable | None = None,
     ) -> None:
         super().__init__(alias=name)
         self.name = name
@@ -74,32 +74,32 @@ class AliasedQuery(Selectable):
 
 
 class Cte(AliasedQuery):
-    def __init__(self, name: str, query: Optional["QueryBuilder"] = None, *terms: Term) -> None:
+    def __init__(self, name: str, query: "QueryBuilder" | None = None, *terms: Term) -> None:
         super().__init__(name, query)
         self.query = query
         self.terms = terms
 
 
 class Schema:
-    def __init__(self, name: str, parent: Optional["Schema"] = None) -> None:
+    def __init__(self, name: str, parent: Schema | None = None) -> None:
         self._name = name
         self._parent = parent
 
-    def __eq__(self, other: "Schema") -> bool:
+    def __eq__(self, other: Schema) -> bool:
         return (
             isinstance(other, Schema)
             and self._name == other._name
             and self._parent == other._parent
         )
 
-    def __ne__(self, other: "Schema") -> bool:
+    def __ne__(self, other: Schema) -> bool:
         return not self.__eq__(other)
 
     @ignore_copy
     def __getattr__(self, item: str) -> "Table":
         return Table(item, schema=self)
 
-    def get_sql(self, quote_char: Optional[str] = None, **kwargs: Any) -> str:
+    def get_sql(self, quote_char: str | None = None, **kwargs: Any) -> str:
         # FIXME escape
         schema_sql = format_quotes(self._name, quote_char)
 
@@ -122,7 +122,7 @@ class Table(Selectable):
     @staticmethod
     def _init_schema(
         schema: str | list | tuple | Schema | None,
-    ) -> str | list | tuple | Schema | None:
+    ) -> Schema | None:
         # This is a bit complicated in order to support backwards compatibility. It should probably be cleaned up for
         # the next major release. Schema is accepted as a string, list/tuple, Schema instance, or None
         if isinstance(schema, Schema):
@@ -520,7 +520,7 @@ class _SetOperation(Selectable, Term):
         base_query: "QueryBuilder",
         set_operation_query: "QueryBuilder",
         set_operation: SetOperation,
-        alias: Optional[str] = None,
+        alias: str | None = None,
         wrapper_cls: Type[ValueWrapper] = ValueWrapper,
     ):
         super().__init__(alias)
@@ -528,7 +528,7 @@ class _SetOperation(Selectable, Term):
         self._set_operation = [(set_operation, set_operation_query)]
         self._orderbys = []
 
-        self._limit: Optional[int] = None
+        self._limit: int | None = None
         self._offset = None
 
         self._wrapper_cls = wrapper_cls
@@ -631,7 +631,7 @@ class _SetOperation(Selectable, Term):
 
         return querystring
 
-    def _orderby_sql(self, quote_char: Optional[str] = None, **kwargs: Any) -> str:
+    def _orderby_sql(self, quote_char: str | None = None, **kwargs: Any) -> str:
         """
         Produces the ORDER BY part of the query.  This is a list of fields and possibly their directionality, ASC or
         DESC. The clauses are stored in the query under self._orderbys as a list of tuples containing the field and
@@ -678,7 +678,7 @@ class QueryBuilder(Selectable, Term):
 
     def __init__(
         self,
-        dialect: Optional[Dialects] = None,
+        dialect: Dialects | None = None,
         wrap_set_operation_queries: bool = True,
         wrapper_cls: Type[ValueWrapper] = ValueWrapper,
         immutable: bool = True,
@@ -714,7 +714,7 @@ class QueryBuilder(Selectable, Term):
         self._joins = []
         self._unions = []
 
-        self._limit: Optional[int] = None
+        self._limit: int | None = None
         self._offset = None
 
         self._updates = []
@@ -790,7 +790,7 @@ class QueryBuilder(Selectable, Term):
         else:
             self._on_conflict_do_updates.append((field, None))
 
-    def _conflict_field_str(self, term: str) -> Optional[Field]:
+    def _conflict_field_str(self, term: str) -> Field | None:
         if self._insert_table:
             return Field(term, table=self._insert_table)
 
@@ -876,9 +876,7 @@ class QueryBuilder(Selectable, Term):
             self._subquery_count = sub_query_count + 1
 
     @builder
-    def replace_table(
-        self, current_table: Optional[Table], new_table: Optional[Table]
-    ) -> "QueryBuilder":
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> "QueryBuilder":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across
         queries.
@@ -1242,7 +1240,7 @@ class QueryBuilder(Selectable, Term):
         return self.slice(item)
 
     @staticmethod
-    def _list_aliases(field_set: Sequence[Field], quote_char: Optional[str] = None) -> list[str]:
+    def _list_aliases(field_set: Sequence[Field], quote_char: str | None = None) -> list[str]:
         return [field.alias or field.get_sql(quote_char=quote_char) for field in field_set]
 
     def _select_field_str(self, term: str) -> None:
@@ -1616,20 +1614,20 @@ class QueryBuilder(Selectable, Term):
             indexes=",".join(index.get_sql(**kwargs) for index in self._use_indexes),
         )
 
-    def _prewhere_sql(self, quote_char: Optional[str] = None, **kwargs: Any) -> str:
+    def _prewhere_sql(self, quote_char: str | None = None, **kwargs: Any) -> str:
         return " PREWHERE {prewhere}".format(
             prewhere=self._prewheres.get_sql(quote_char=quote_char, subquery=True, **kwargs)
         )
 
-    def _where_sql(self, quote_char: Optional[str] = None, **kwargs: Any) -> str:
+    def _where_sql(self, quote_char: str | None = None, **kwargs: Any) -> str:
         return " WHERE {where}".format(
             where=self._wheres.get_sql(quote_char=quote_char, subquery=True, **kwargs)
         )
 
     def _group_sql(
         self,
-        quote_char: Optional[str] = None,
-        alias_quote_char: Optional[str] = None,
+        quote_char: str | None = None,
+        alias_quote_char: str | None = None,
         groupby_alias: bool = True,
         **kwargs: Any,
     ) -> str:
@@ -1676,8 +1674,8 @@ class QueryBuilder(Selectable, Term):
 
     def _orderby_sql(
         self,
-        quote_char: Optional[str] = None,
-        alias_quote_char: Optional[str] = None,
+        quote_char: str | None = None,
+        alias_quote_char: str | None = None,
         orderby_alias: bool = True,
         **kwargs: Any,
     ) -> str:
@@ -1713,7 +1711,7 @@ class QueryBuilder(Selectable, Term):
     def _rollup_sql(self) -> str:
         return " WITH ROLLUP"
 
-    def _having_sql(self, quote_char: Optional[str] = None, **kwargs: Any) -> str:
+    def _having_sql(self, quote_char: str | None = None, **kwargs: Any) -> str:
         return " HAVING {having}".format(
             having=self._havings.get_sql(quote_char=quote_char, **kwargs)
         )
@@ -1749,7 +1747,7 @@ class Joiner:
         self.how = how
         self.type_label = type_label
 
-    def on(self, criterion: Optional[Criterion], collate: Optional[str] = None) -> QueryBuilder:
+    def on(self, criterion: Criterion | None, collate: str | None = None) -> QueryBuilder:
         if criterion is None:
             raise JoinException(
                 "Parameter 'criterion' is required for a "
@@ -1809,7 +1807,7 @@ class Join:
         pass
 
     @builder
-    def replace_table(self, current_table: Optional[Table], new_table: Optional[Table]) -> "Join":
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> "Join":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing
         fields across queries.
@@ -1830,7 +1828,7 @@ class JoinOn(Join):
         item: Term,
         how: JoinType,
         criteria: QueryBuilder,
-        collate: Optional[str] = None,
+        collate: str | None = None,
     ) -> None:
         super().__init__(item, how)
         self.criterion = criteria
@@ -1857,7 +1855,7 @@ class JoinOn(Join):
             )
 
     @builder
-    def replace_table(self, current_table: Optional[Table], new_table: Optional[Table]) -> "JoinOn":
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> "JoinOn":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing
         fields across queries.
@@ -1889,9 +1887,7 @@ class JoinUsing(Join):
         pass
 
     @builder
-    def replace_table(
-        self, current_table: Optional[Table], new_table: Optional[Table]
-    ) -> "JoinUsing":
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> "JoinUsing":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing
         fields across queries.
@@ -1917,7 +1913,7 @@ class CreateQueryBuilder:
     ALIAS_QUOTE_CHAR = None
     QUERY_CLS = Query
 
-    def __init__(self, dialect: Optional[Dialects] = None) -> None:
+    def __init__(self, dialect: Dialects | None = None) -> None:
         self._create_table = None
         self._temporary = False
         self._unlogged = False
@@ -2200,7 +2196,7 @@ class DropQueryBuilder:
     ALIAS_QUOTE_CHAR = None
     QUERY_CLS = Query
 
-    def __init__(self, dialect: Optional[Dialects] = None) -> None:
+    def __init__(self, dialect: Dialects | None = None) -> None:
         self._drop_table = None
         self._if_exists = None
         self.dialect = dialect
