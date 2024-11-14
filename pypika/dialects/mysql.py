@@ -35,7 +35,7 @@ class MySQLValueWrapper(ValueWrapper):
         elif isinstance(self.value, (dict, list)):
             value = format_quotes(json.dumps(self.value), quote_char)
             return value.replace("\\", "\\\\")
-        return super(MySQLValueWrapper, self).get_value_sql(**kwargs)
+        return super().get_value_sql(**kwargs)
 
 
 class MySQLQueryBuilder(QueryBuilder):
@@ -63,7 +63,7 @@ class MySQLQueryBuilder(QueryBuilder):
 
     def get_sql(self, **kwargs: Any) -> str:
         self._set_kwargs_defaults(kwargs)
-        querystring = super(MySQLQueryBuilder, self).get_sql(**kwargs)
+        querystring = super().get_sql(**kwargs)
         if querystring:
             if self._update_table:
                 if self._orderbys:

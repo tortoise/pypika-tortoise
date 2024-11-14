@@ -1441,7 +1441,7 @@ class AggregateFunction(Function):
     is_aggregate = True
 
     def __init__(self, name, *args, **kwargs):
-        super(AggregateFunction, self).__init__(name, *args, **kwargs)
+        super().__init__(name, *args, **kwargs)
 
         self._filters = []
         self._include_filter = False
@@ -1458,7 +1458,7 @@ class AggregateFunction(Function):
             )
 
     def get_function_sql(self, **kwargs: Any):
-        sql = super(AggregateFunction, self).get_function_sql(**kwargs)
+        sql = super().get_function_sql(**kwargs)
         filter_sql = self.get_filter_sql(**kwargs)
 
         if self._include_filter:
@@ -1523,7 +1523,7 @@ class AnalyticFunction(AggregateFunction):
         return " ".join(terms)
 
     def get_function_sql(self, **kwargs: Any) -> str:
-        function_sql = super(AnalyticFunction, self).get_function_sql(**kwargs)
+        function_sql = super().get_function_sql(**kwargs)
         partition_sql = self.get_partition_sql(**kwargs)
 
         sql = function_sql
@@ -1584,7 +1584,7 @@ class WindowFrameAnalyticFunction(AnalyticFunction):
         )
 
     def get_partition_sql(self, **kwargs: Any) -> str:
-        partition_sql = super(WindowFrameAnalyticFunction, self).get_partition_sql(**kwargs)
+        partition_sql = super().get_partition_sql(**kwargs)
 
         if not self.frame and not self.bound:
             return partition_sql

@@ -26,7 +26,7 @@ class SQLLiteQueryBuilder(QueryBuilder):
     QUERY_CLS = SQLLiteQuery
 
     def __init__(self, **kwargs):
-        super(SQLLiteQueryBuilder, self).__init__(
+        super().__init__(
             dialect=Dialects.SQLITE, wrapper_cls=SQLLiteValueWrapper, **kwargs
         )
 
@@ -80,5 +80,5 @@ class SQLLiteQueryBuilder(QueryBuilder):
             if self._limit:
                 querystring += self._limit_sql()
         else:
-            querystring = super(SQLLiteQueryBuilder, self).get_sql(**kwargs)
+            querystring = super().get_sql(**kwargs)
         return querystring

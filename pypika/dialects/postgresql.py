@@ -176,9 +176,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
             if self._limit:
                 querystring += self._limit_sql()
         else:
-            querystring = super(PostgreSQLQueryBuilder, self).get_sql(
-                with_alias, subquery, **kwargs
-            )
+            querystring = super().get_sql(with_alias, subquery, **kwargs)
         if self._returns:
             kwargs["with_namespace"] = self._update_table and self.from_
             querystring += self._returning_sql(**kwargs)
