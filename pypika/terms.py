@@ -30,15 +30,8 @@ from pypika.enums import (
     Matching,
     Order,
 )
-from pypika.utils import (
-    CaseException,
-    FunctionException,
-    builder,
-    format_alias_sql,
-    format_quotes,
-    ignore_copy,
-    resolve_is_aggregate,
-)
+from pypika.exceptions import CaseException, FunctionException
+from pypika.utils import builder, format_alias_sql, format_quotes, ignore_copy, resolve_is_aggregate
 
 if TYPE_CHECKING:
     from pypika.queries import QueryBuilder, Selectable, Table

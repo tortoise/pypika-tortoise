@@ -1,36 +1,6 @@
-from typing import Any, Callable, List, Optional, Type
+from __future__ import annotations
 
-
-class QueryException(Exception):
-    pass
-
-
-class GroupingException(Exception):
-    pass
-
-
-class CaseException(Exception):
-    pass
-
-
-class JoinException(Exception):
-    pass
-
-
-class SetOperationException(Exception):
-    pass
-
-
-class RollupException(Exception):
-    pass
-
-
-class DialectNotSupported(Exception):
-    pass
-
-
-class FunctionException(Exception):
-    pass
+from typing import Any, Callable, Optional, Type
 
 
 def builder(func: Callable) -> Callable:
@@ -83,7 +53,7 @@ def ignore_copy(func: Callable) -> Callable:
     return _getattr
 
 
-def resolve_is_aggregate(values: List[Optional[bool]]) -> Optional[bool]:
+def resolve_is_aggregate(values: list[Optional[bool]]) -> Optional[bool]:
     """
     Resolves the is_aggregate flag for an expression that contains multiple terms.  This works like a voter system,
     each term votes True or False or abstains with None.
