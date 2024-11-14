@@ -1,6 +1,7 @@
 """
 Package for SQL functions wrappers
 """
+
 from pypika.enums import SqlTypes
 from pypika.terms import AggregateFunction, Function, Star
 from pypika.utils import builder

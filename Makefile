@@ -1,5 +1,5 @@
 checkfiles = pypika/ tests/ conftest.py
-black_opts = -l 100 -t py37
+black_opts = -l 100 -t py38
 py_warn = PYTHONDEVMODE=1
 
 up:
@@ -8,25 +8,28 @@ up:
 deps:
 	@poetry install
 
-check: deps build
+check: deps _build _check
+_check:
 ifneq ($(shell which black),)
 	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
 endif
 	ruff check $(checkfiles)
 	twine check dist/*
 
-test: deps
+test: deps _test
+_test:
 	$(py_warn) pytest
 
-ci: check test
+ci: deps _check _test
 
 style: deps
 	isort -src $(checkfiles)
 	black $(black_opts) $(checkfiles)
 
-build: deps
+build: deps _build
+_build:
 	rm -fR dist/
 	poetry build
 
-publish: deps build
+publish: deps _build
 	twine upload dist/*
