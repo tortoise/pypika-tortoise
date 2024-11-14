@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, Type
 
 
 def builder(func: Callable) -> Callable:
@@ -53,7 +53,7 @@ def ignore_copy(func: Callable) -> Callable:
     return _getattr
 
 
-def resolve_is_aggregate(values: list[Optional[bool]]) -> Optional[bool]:
+def resolve_is_aggregate(values: list[bool | None]) -> bool | None:
     """
     Resolves the is_aggregate flag for an expression that contains multiple terms.  This works like a voter system,
     each term votes True or False or abstains with None.
@@ -68,15 +68,15 @@ def resolve_is_aggregate(values: list[Optional[bool]]) -> Optional[bool]:
     return None
 
 
-def format_quotes(value: Any, quote_char: Optional[str]) -> str:
+def format_quotes(value: Any, quote_char: str | None) -> str:
     return "{quote}{value}{quote}".format(value=value, quote=quote_char or "")
 
 
 def format_alias_sql(
     sql: str,
-    alias: Optional[str],
-    quote_char: Optional[str] = None,
-    alias_quote_char: Optional[str] = None,
+    alias: str | None,
+    quote_char: str | None = None,
+    alias_quote_char: str | None = None,
     as_keyword: bool = False,
     **kwargs: Any,
 ) -> str:
@@ -89,8 +89,8 @@ def format_alias_sql(
     )
 
 
-def validate(*args: Any, exc: Optional[Exception] = None, type: Optional[Type] = None) -> None:
+def validate(*args: Any, exc: Exception | None = None, type: Type | None = None) -> None:
     if type is not None:
         for arg in args:
             if not isinstance(arg, type):
-                raise exc
+                raise exc  # type:ignore[misc]
