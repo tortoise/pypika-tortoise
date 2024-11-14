@@ -26,9 +26,7 @@ class SQLLiteQueryBuilder(QueryBuilder):
     QUERY_CLS = SQLLiteQuery
 
     def __init__(self, **kwargs):
-        super().__init__(
-            dialect=Dialects.SQLITE, wrapper_cls=SQLLiteValueWrapper, **kwargs
-        )
+        super().__init__(dialect=Dialects.SQLITE, wrapper_cls=SQLLiteValueWrapper, **kwargs)
 
     def get_sql(self, **kwargs: Any) -> str:
         self._set_kwargs_defaults(kwargs)

@@ -4,6 +4,9 @@
 
 ### 0.2.2
 - Fix enums not quoted. (#7)
+- Drop python3.7 support
+- Move all custom Exception class to `pypika.exceptions`
+- Apply bandit check in ci
 
 ### 0.2.1
 - Fix stringification of datetime objects
