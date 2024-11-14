@@ -14,6 +14,8 @@ ifneq ($(shell which black),)
 	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
 endif
 	ruff check $(checkfiles)
+	bandit -c pyproject.toml -r $(checkfiles)
+	mypy $(checkfiles)
 	twine check dist/*
 
 test: deps _test

@@ -844,7 +844,7 @@ class QueryBuilder(Selectable, Term):
                             value=field.get_sql(**kwargs),
                         )
                     )
-            action_sql = " DO UPDATE SET {updates}".format(updates=",".join(updates))
+            action_sql = " DO UPDATE SET {updates}".format(updates=",".join(updates))  # nosec:B608
 
             if self._on_conflict_do_update_wheres:
                 action_sql += " WHERE {where}".format(
@@ -1255,7 +1255,7 @@ class QueryBuilder(Selectable, Term):
 
     def _select_field_str(self, term: str) -> None:
         if 0 == len(self._from):
-            raise QueryException("Cannot select {term}, no FROM table specified.".format(term=term))
+            raise QueryException(f"Cannot select {term}, no FROM table specified.")  # nosec:B608
 
         if term == "*":
             self._select_star = True
