@@ -2,6 +2,9 @@ import unittest
 from datetime import date
 
 from pypika import Parameter, Query, Tables, ValueWrapper
+from pypika.dialects.mssql import MSSQLQuery
+from pypika.dialects.mysql import MySQLQuery
+from pypika.dialects.postgresql import PostgreSQLQuery
 from pypika.enums import Dialects
 from pypika.functions import Upper
 from pypika.terms import Case, Parameterizer
@@ -115,7 +118,7 @@ class ParameterizerTests(unittest.TestCase):
 
     def test_select_join_in_mysql(self):
         q = (
-            Query.from_(self.table_abc)
+            MySQLQuery.from_(self.table_abc)
             .select("*")
             .where(self.table_abc.category == "foobar")
             .join(self.table_efg)
@@ -127,14 +130,14 @@ class ParameterizerTests(unittest.TestCase):
         parameterizer = Parameterizer()
         sql = q.get_sql(parameterizer=parameterizer, dialect=Dialects.MYSQL)
         self.assertEqual(
-            'SELECT * FROM "abc" JOIN "efg" ON "abc"."id"="efg"."abc_id" WHERE "abc"."category"=%s AND "efg"."date">=%s LIMIT 10',
+            "SELECT * FROM `abc` JOIN `efg` ON `abc`.`id`=`efg`.`abc_id` WHERE `abc`.`category`=%s AND `efg`.`date`>=%s LIMIT %s",
             sql,
         )
-        self.assertEqual(["foobar", date(2024, 2, 22)], parameterizer.values)
+        self.assertEqual(["foobar", date(2024, 2, 22), 10], parameterizer.values)
 
     def test_select_subquery_in_postgres(self):
         q = (
-            Query.from_(self.table_abc)
+            PostgreSQLQuery.from_(self.table_abc)
             .select("*")
             .where(self.table_abc.category == "foobar")
             .where(
@@ -150,10 +153,10 @@ class ParameterizerTests(unittest.TestCase):
         parameterizer = Parameterizer()
         sql = q.get_sql(parameterizer=parameterizer, dialect=Dialects.POSTGRESQL)
         self.assertEqual(
-            'SELECT * FROM "abc" WHERE "category"=$1 AND "id" IN (SELECT "abc_id" FROM "efg" WHERE "date">=$2) LIMIT 10',
+            'SELECT * FROM "abc" WHERE "category"=$1 AND "id" IN (SELECT "abc_id" FROM "efg" WHERE "date">=$2) LIMIT $3',
             sql,
         )
-        self.assertEqual(["foobar", date(2024, 2, 22)], parameterizer.values)
+        self.assertEqual(["foobar", date(2024, 2, 22), 10], parameterizer.values)
 
     def test_join_in_postgres(self):
         subquery = (
@@ -163,7 +166,7 @@ class ParameterizerTests(unittest.TestCase):
         )
 
         q = (
-            Query.from_(self.table_abc)
+            PostgreSQLQuery.from_(self.table_abc)
             .join(subquery)
             .on(self.table_abc.bar == subquery.buz)
             .select(self.table_abc.foo, subquery.fiz)
@@ -216,3 +219,19 @@ class ParameterizerTests(unittest.TestCase):
             sql,
         )
         self.assertEqual(["foobar", 1, 2], parameterizer.values)
+
+    def test_limit_and_offest(self):
+        q = Query.from_(self.table_abc).select("*").limit(10).offset(5)
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer)
+        self.assertEqual('SELECT * FROM "abc" LIMIT ? OFFSET ?', sql)
+        self.assertEqual([10, 5], parameterizer.values)
+
+    def test_limit_and_offest_in_mssql(self):
+        q = MSSQLQuery.from_(self.table_abc).select("*").limit(10).offset(5)
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer)
+        self.assertEqual(
+            'SELECT * FROM "abc" ORDER BY (SELECT 0) OFFSET ? ROWS FETCH NEXT ? ROWS ONLY', sql
+        )
+        self.assertEqual([5, 10], parameterizer.values)
