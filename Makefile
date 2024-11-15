@@ -15,6 +15,7 @@ ifneq ($(shell which black),)
 endif
 	ruff check $(checkfiles)
 	bandit -c pyproject.toml -r $(checkfiles)
+	mypy $(checkfiles)
 	twine check dist/*
 
 test: deps _test

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from datetime import time
-from typing import Any, Union
+from typing import Any, cast
 
 from pypika.enums import Dialects
 from pypika.queries import Query, QueryBuilder, Table
@@ -25,15 +27,15 @@ class MySQLQuery(Query):
 class MySQLValueWrapper(ValueWrapper):
     def get_value_sql(self, **kwargs: Any) -> str:
         quote_char = kwargs.get("secondary_quote_char") or ""
-        if isinstance(self.value, str):
-            value = self.value.replace(quote_char, quote_char * 2)
+        if isinstance(value := self.value, str):
+            value = value.replace(quote_char, quote_char * 2)
             value = value.replace("\\", "\\\\")
             return format_quotes(value, quote_char)
-        elif isinstance(self.value, time):
-            value = self.value.replace(tzinfo=None)
+        elif isinstance(value, time):
+            value = value.replace(tzinfo=None)
             return format_quotes(value.isoformat(), quote_char)
-        elif isinstance(self.value, (dict, list)):
-            value = format_quotes(json.dumps(self.value), quote_char)
+        elif isinstance(value, (dict, list)):
+            value = format_quotes(json.dumps(value), quote_char)
             return value.replace("\\", "\\\\")
         return super().get_value_sql(**kwargs)
 
@@ -49,7 +51,7 @@ class MySQLQueryBuilder(QueryBuilder):
             wrap_set_operation_queries=False,
             **kwargs,
         )
-        self._modifiers = []
+        self._modifiers: list[str] = []
 
     def _on_conflict_sql(self, **kwargs: Any) -> str:
         kwargs["alias_quote_char"] = (
@@ -61,7 +63,7 @@ class MySQLQueryBuilder(QueryBuilder):
         querystring = format_alias_sql("", self.alias, **kwargs)
         return querystring
 
-    def get_sql(self, **kwargs: Any) -> str:
+    def get_sql(self, **kwargs: Any) -> str:  # type:ignore[override]
         self._set_kwargs_defaults(kwargs)
         querystring = super().get_sql(**kwargs)
         if querystring:
@@ -98,7 +100,7 @@ class MySQLQueryBuilder(QueryBuilder):
         return ""
 
     @builder
-    def modifier(self, value: str) -> "MySQLQueryBuilder":
+    def modifier(self, value: str) -> MySQLQueryBuilder:  # type:ignore[return]
         """
         Adds a modifier such as SQL_CALC_FOUND_ROWS to the query.
         https://dev.mysql.com/doc/refman/5.7/en/select.html
@@ -121,8 +123,9 @@ class MySQLQueryBuilder(QueryBuilder):
         )
 
     def _insert_sql(self, **kwargs: Any) -> str:
+        insert_table = cast(Table, self._insert_table)
         return "INSERT {ignore}INTO {table}".format(
-            table=self._insert_table.get_sql(**kwargs),
+            table=insert_table.get_sql(**kwargs),
             ignore="IGNORE " if self._on_conflict_do_nothing else "",
         )
 
@@ -131,15 +134,15 @@ class MySQLLoadQueryBuilder:
     QUERY_CLS = MySQLQuery
 
     def __init__(self) -> None:
-        self._load_file = None
-        self._into_table = None
+        self._load_file: str | None = None
+        self._into_table: Table | None = None
 
     @builder
-    def load(self, fp: str) -> "MySQLLoadQueryBuilder":
+    def load(self, fp: str) -> MySQLLoadQueryBuilder:  # type:ignore[return]
         self._load_file = fp
 
     @builder
-    def into(self, table: Union[str, Table]) -> "MySQLLoadQueryBuilder":
+    def into(self, table: str | Table) -> MySQLLoadQueryBuilder:  # type:ignore[return]
         self._into_table = table if isinstance(table, Table) else Table(table)
 
     def get_sql(self, *args: Any, **kwargs: Any) -> str:
@@ -155,7 +158,8 @@ class MySQLLoadQueryBuilder:
         return "LOAD DATA LOCAL INFILE '{}'".format(self._load_file)
 
     def _into_table_sql(self, **kwargs: Any) -> str:
-        return " INTO TABLE `{}`".format(self._into_table.get_sql(**kwargs))
+        table = cast(Table, self._into_table)
+        return " INTO TABLE `{}`".format(table.get_sql(**kwargs))
 
     def _options_sql(self, **kwargs: Any) -> str:
         return " FIELDS TERMINATED BY ','"
