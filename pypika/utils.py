@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Type
+from typing import Any, Callable, Type, TypeVar
+
+T_Retval = TypeVar("T_Retval")
+T_Self = TypeVar("T_Self")
 
 
-def builder(func: Callable) -> Callable:
+def builder(func: Callable[..., T_Retval]) -> Callable[..., T_Self | T_Retval]:
     """
     Decorator for wrapper "builder" functions.  These are functions on the Query class or other classes used for
     building queries which mutate the query and return self.  To make the build functions immutable, this decorator is
@@ -12,7 +15,7 @@ def builder(func: Callable) -> Callable:
     """
     import copy
 
-    def _copy(self, *args, **kwargs):
+    def _copy(self: T_Self, *args, **kwargs) -> T_Self | T_Retval:
         self_copy = copy.copy(self) if getattr(self, "immutable", True) else self
         result = func(self_copy, *args, **kwargs)
 
@@ -26,7 +29,7 @@ def builder(func: Callable) -> Callable:
     return _copy
 
 
-def ignore_copy(func: Callable) -> Callable:
+def ignore_copy(func: Callable[[T_Self, str], T_Retval]) -> Callable[[T_Self, str], T_Retval]:
     """
     Decorator for wrapping the __getattr__ function for classes that are copied via deepcopy.  This prevents infinite
     recursion caused by deepcopy looking for magic functions in the class. Any class implementing __getattr__ that is
@@ -36,7 +39,7 @@ def ignore_copy(func: Callable) -> Callable:
     model type class (stored in the Query instance) is copied.
     """
 
-    def _getattr(self, name):
+    def _getattr(self: T_Self, name: str) -> T_Retval:
         if name in [
             "__copy__",
             "__deepcopy__",

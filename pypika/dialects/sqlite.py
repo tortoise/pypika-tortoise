@@ -27,7 +27,7 @@ class SQLLiteQuery(Query):
 class SQLLiteQueryBuilder(QueryBuilder):
     QUERY_CLS = SQLLiteQuery
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(dialect=Dialects.SQLITE, wrapper_cls=SQLLiteValueWrapper, **kwargs)
 
     def get_sql(self, **kwargs: Any) -> str:  # type:ignore[override]

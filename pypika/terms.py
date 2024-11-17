@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 import json
 import re
+import sys
 import uuid
 from datetime import date, datetime, time
 from enum import Enum
@@ -24,12 +25,17 @@ from pypika.utils import builder, format_alias_sql, format_quotes, ignore_copy, 
 if TYPE_CHECKING:
     from pypika.queries import QueryBuilder, Selectable, Table
 
+    if sys.version_info >= (3, 11):
+        from typing import Self
+    else:
+        from typing_extensions import Self
+
 T = TypeVar("T")
 NodeT = TypeVar("NodeT", bound="Node")
 
 
 class Node:
-    is_aggregate = None
+    is_aggregate: bool | None = None
 
     def nodes_(self) -> Iterator[NodeT]:
         yield self  # type:ignore[misc]
@@ -41,13 +47,13 @@ class Node:
 
 
 class Term(Node):
-    is_aggregate = False  # type:ignore[assignment]
+    is_aggregate: bool | None = False  # type:ignore[assignment]
 
     def __init__(self, alias: str | None = None) -> None:
         self.alias = alias
 
     @builder
-    def as_(self, alias: str) -> Term:  # type:ignore[return]
+    def as_(self, alias: str) -> "Self":  # type:ignore[return]
         self.alias = alias
 
     @property
@@ -107,7 +113,7 @@ class Term(Node):
 
         return JSON(val)
 
-    def replace_table(self, current_table: "Table" | None, new_table: "Table" | None) -> "Term":
+    def replace_table(self, current_table: "Table" | None, new_table: "Table" | None) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
         The base implementation returns self because not all terms have a table property.
@@ -220,7 +226,7 @@ class Term(Node):
     def __invert__(self) -> "Not":
         return Not(self)
 
-    def __pos__(self) -> "Term":
+    def __pos__(self) -> "Self":
         return self
 
     def __neg__(self) -> "Negative":
@@ -647,7 +653,7 @@ class Criterion(Term):
         crit = EmptyCriterion()
 
         for term in terms:
-            crit |= term
+            crit |= term  # type:ignore[assignment]
 
         return crit
 
@@ -665,19 +671,19 @@ class Criterion(Term):
 
 
 class EmptyCriterion:
-    is_aggregate = None
+    is_aggregate: bool | None = None
     tables_: set["Table"] = set()
 
     def fields_(self) -> set["Field"]:
         return set()
 
-    def __and__(self, other: Any) -> Any:
+    def __and__(self, other: T) -> T:
         return other
 
-    def __or__(self, other: Any) -> Any:
+    def __or__(self, other: T) -> T:
         return other
 
-    def __xor__(self, other: Any) -> Any:
+    def __xor__(self, other: T) -> T:
         return other
 
 
@@ -700,7 +706,7 @@ class Field(Criterion, JSON):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> Field:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -792,7 +798,7 @@ class Tuple(Criterion):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> Tuple:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -858,7 +864,7 @@ class NestedCriterion(Criterion):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> NestedCriterion:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -927,7 +933,7 @@ class BasicCriterion(Criterion):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> BasicCriterion:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -981,7 +987,7 @@ class ContainsCriterion(Criterion):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> ContainsCriterion:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1003,7 +1009,7 @@ class ContainsCriterion(Criterion):
         return format_alias_sql(sql, self.alias, **kwargs)
 
     @builder
-    def negate(self) -> ContainsCriterion:  # type:ignore[return]
+    def negate(self) -> "Self":  # type:ignore[return,override]
         self._is_negated = True
 
 
@@ -1029,7 +1035,7 @@ class BetweenCriterion(RangeCriterion):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> BetweenCriterion:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1076,7 +1082,7 @@ class BitwiseAndCriterion(Criterion):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> BitwiseAndCriterion:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1109,7 +1115,7 @@ class NullCriterion(Criterion):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> NullCriterion:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1190,7 +1196,7 @@ class ArithmeticExpression(Term):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> ArithmeticExpression:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1291,13 +1297,13 @@ class Case(Term):
         )
 
     @builder
-    def when(self, criterion: Any, term: Any) -> Case:  # type:ignore[return]
+    def when(self, criterion: Any, term: Any) -> "Self":  # type:ignore[return]
         self._cases.append((criterion, self.wrap_constant(term)))
 
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> Case:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1318,7 +1324,7 @@ class Case(Term):
         self._else = self._else.replace_table(current_table, new_table) if self._else else None
 
     @builder
-    def else_(self, term: Any) -> Case:
+    def else_(self, term: Any) -> "Self":
         self._else = self.wrap_constant(term)  # type:ignore[assignment]
         return self
 
@@ -1362,12 +1368,12 @@ class Not(Criterion):
         Delegate method calls to the class wrapped by Not().
         Re-wrap methods on child classes of Term (e.g. isin, eg...) to retain 'NOT <term>' output.
         """
-        item_func = getattr(self.term, name)
+        item_func: Callable[..., T] = getattr(self.term, name)
 
         if not inspect.ismethod(item_func):
             return item_func
 
-        def inner(inner_self, *args, **kwargs):
+        def inner(inner_self, *args, **kwargs) -> Not | T:
             result = item_func(inner_self, *args, **kwargs)
             if isinstance(result, (Term,)):
                 return Not(result)
@@ -1378,7 +1384,7 @@ class Not(Criterion):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> Not:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1460,7 +1466,7 @@ class Function(Criterion):
     @builder
     def replace_table(  # type:ignore[return]
         self, current_table: "Table" | None, new_table: "Table" | None
-    ) -> Function:
+    ) -> "Self":
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1559,12 +1565,12 @@ class AnalyticFunction(AggregateFunction):
         self._include_over = False
 
     @builder
-    def over(self, *terms: Any) -> AnalyticFunction:  # type:ignore[return]
+    def over(self, *terms: Any) -> "Self":  # type:ignore[return]
         self._include_over = True
         self._partition += terms
 
     @builder
-    def orderby(self, *terms: Any, **kwargs: Any) -> AnalyticFunction:  # type:ignore[return]
+    def orderby(self, *terms: Any, **kwargs: Any) -> "Self":  # type:ignore[return]
         self._include_over = True
         self._orderbys += [(term, kwargs.get("order")) for term in terms]
 
@@ -1644,13 +1650,13 @@ class WindowFrameAnalyticFunction(AnalyticFunction):
     @builder
     def rows(  # type:ignore[return]
         self, bound: str | EdgeT, and_bound: EdgeT | None = None
-    ) -> WindowFrameAnalyticFunction:
+    ) -> "Self":
         self._set_frame_and_bounds("ROWS", bound, and_bound)
 
     @builder
     def range(  # type:ignore[return]
         self, bound: str | EdgeT, and_bound: EdgeT | None = None
-    ) -> WindowFrameAnalyticFunction:
+    ) -> "Self":
         self._set_frame_and_bounds("RANGE", bound, and_bound)
 
     def get_frame_sql(self) -> str:
@@ -1679,7 +1685,7 @@ class IgnoreNullsAnalyticFunction(AnalyticFunction):
         self._ignore_nulls = False
 
     @builder
-    def ignore_nulls(self) -> IgnoreNullsAnalyticFunction:  # type:ignore[return]
+    def ignore_nulls(self) -> "Self":  # type:ignore[return]
         self._ignore_nulls = True
 
     def get_special_params_sql(self, **kwargs: Any) -> str | None:
@@ -1718,7 +1724,7 @@ class Interval(Node):
         quarters: int = 0,
         weeks: int = 0,
         dialect: Dialects | None = None,
-    ):
+    ) -> None:
         self.dialect = dialect
         self.largest = None
         self.smallest = None
@@ -1826,7 +1832,7 @@ class AtTimezone(Term):
         AT TIME ZONE INTERVAL '-06:00'
     """
 
-    is_aggregate = None
+    is_aggregate: bool | None = None
 
     def __init__(self, field, zone, interval=False, alias=None) -> None:
         super().__init__(alias)
