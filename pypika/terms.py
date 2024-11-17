@@ -666,7 +666,7 @@ class Criterion(Term):
 
         return crit
 
-    def get_sql(self) -> str:  # type:ignore[override]
+    def get_sql(self, **kwargs) -> str:  # type:ignore[override]
         raise NotImplementedError()
 
 
@@ -897,7 +897,7 @@ class NestedCriterion(Criterion):
 class BasicCriterion(Criterion):
     def __init__(
         self,
-        comparator: Comparator | JSONOperators,
+        comparator: Comparator | JSONOperators | Enum,
         left: Term,
         right: Term,
         alias: str | None = None,
@@ -1443,7 +1443,7 @@ class Function(Criterion):
     def __init__(self, name: str, *args: Any, **kwargs: Any) -> None:
         super().__init__(kwargs.get("alias"))
         self.name = name
-        self.args = [self.wrap_constant(param) for param in args]
+        self.args: list = [self.wrap_constant(param) for param in args]
         self.schema = kwargs.get("schema")
 
     def nodes_(self) -> Iterator[NodeT]:

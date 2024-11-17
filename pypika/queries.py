@@ -15,6 +15,7 @@ from pypika.terms import (
     Function,
     Index,
     Node,
+    Order,
     PeriodCriterion,
     Rollup,
     Star,
@@ -532,7 +533,7 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
         super().__init__(alias)  # type:ignore[arg-type]
         self.base_query = base_query
         self._set_operation = [(set_operation, set_operation_query)]
-        self._orderbys: list[tuple] = []
+        self._orderbys: list[tuple[Field, Order | None]] = []
 
         self._limit: int | None = None
         self._offset: int | None = None
@@ -719,7 +720,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self._prewheres: Criterion | None = None
         self._groupbys: list[Field] = []
         self._with_totals = False
-        self._havings: QueryBuilder | None = None
+        self._havings: Criterion | None = None
         self._orderbys: list[tuple] = []
         self._joins: list[Join] = []
         self._unions: list = []
@@ -1108,7 +1109,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 raise QueryException("Can not have fieldless ON CONFLICT WHERE")
 
     @builder
-    def having(self, criterion: Term) -> "Self":  # type:ignore[return]
+    def having(self, criterion: Criterion) -> "Self":  # type:ignore[return]
         if self._havings:
             self._havings &= criterion  # type:ignore[operator]
         else:

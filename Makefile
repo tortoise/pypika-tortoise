@@ -24,7 +24,8 @@ _test:
 
 ci: build _check _test
 
-style: deps
+style: deps _style
+_style:
 	isort -src $(checkfiles)
 	black $(black_opts) $(checkfiles)
 
