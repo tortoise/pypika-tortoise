@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any
 
 from pypika.enums import Dialects
@@ -25,12 +27,10 @@ class SQLLiteQuery(Query):
 class SQLLiteQueryBuilder(QueryBuilder):
     QUERY_CLS = SQLLiteQuery
 
-    def __init__(self, **kwargs):
-        super(SQLLiteQueryBuilder, self).__init__(
-            dialect=Dialects.SQLITE, wrapper_cls=SQLLiteValueWrapper, **kwargs
-        )
+    def __init__(self, **kwargs) -> None:
+        super().__init__(dialect=Dialects.SQLITE, wrapper_cls=SQLLiteValueWrapper, **kwargs)
 
-    def get_sql(self, **kwargs: Any) -> str:
+    def get_sql(self, **kwargs: Any) -> str:  # type:ignore[override]
         self._set_kwargs_defaults(kwargs)
         if not (self._selects or self._insert_table or self._delete_from or self._update_table):
             return ""
@@ -80,5 +80,5 @@ class SQLLiteQueryBuilder(QueryBuilder):
             if self._limit:
                 querystring += self._limit_sql()
         else:
-            querystring = super(SQLLiteQueryBuilder, self).get_sql(**kwargs)
+            querystring = super().get_sql(**kwargs)
         return querystring

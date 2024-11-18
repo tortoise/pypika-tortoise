@@ -1,39 +1,12 @@
-from typing import Any, Callable, List, Optional, Type
+from __future__ import annotations
+
+from typing import Any, Callable, Type, TypeVar
+
+T_Retval = TypeVar("T_Retval")
+T_Self = TypeVar("T_Self")
 
 
-class QueryException(Exception):
-    pass
-
-
-class GroupingException(Exception):
-    pass
-
-
-class CaseException(Exception):
-    pass
-
-
-class JoinException(Exception):
-    pass
-
-
-class SetOperationException(Exception):
-    pass
-
-
-class RollupException(Exception):
-    pass
-
-
-class DialectNotSupported(Exception):
-    pass
-
-
-class FunctionException(Exception):
-    pass
-
-
-def builder(func: Callable) -> Callable:
+def builder(func: Callable[..., T_Retval]) -> Callable[..., T_Self | T_Retval]:
     """
     Decorator for wrapper "builder" functions.  These are functions on the Query class or other classes used for
     building queries which mutate the query and return self.  To make the build functions immutable, this decorator is
@@ -42,7 +15,7 @@ def builder(func: Callable) -> Callable:
     """
     import copy
 
-    def _copy(self, *args, **kwargs):
+    def _copy(self: T_Self, *args, **kwargs) -> T_Self | T_Retval:
         self_copy = copy.copy(self) if getattr(self, "immutable", True) else self
         result = func(self_copy, *args, **kwargs)
 
@@ -56,7 +29,7 @@ def builder(func: Callable) -> Callable:
     return _copy
 
 
-def ignore_copy(func: Callable) -> Callable:
+def ignore_copy(func: Callable[[T_Self, str], T_Retval]) -> Callable[[T_Self, str], T_Retval]:
     """
     Decorator for wrapping the __getattr__ function for classes that are copied via deepcopy.  This prevents infinite
     recursion caused by deepcopy looking for magic functions in the class. Any class implementing __getattr__ that is
@@ -66,7 +39,7 @@ def ignore_copy(func: Callable) -> Callable:
     model type class (stored in the Query instance) is copied.
     """
 
-    def _getattr(self, name):
+    def _getattr(self: T_Self, name: str) -> T_Retval:
         if name in [
             "__copy__",
             "__deepcopy__",
@@ -83,7 +56,7 @@ def ignore_copy(func: Callable) -> Callable:
     return _getattr
 
 
-def resolve_is_aggregate(values: List[Optional[bool]]) -> Optional[bool]:
+def resolve_is_aggregate(values: list[bool | None]) -> bool | None:
     """
     Resolves the is_aggregate flag for an expression that contains multiple terms.  This works like a voter system,
     each term votes True or False or abstains with None.
@@ -98,15 +71,15 @@ def resolve_is_aggregate(values: List[Optional[bool]]) -> Optional[bool]:
     return None
 
 
-def format_quotes(value: Any, quote_char: Optional[str]) -> str:
+def format_quotes(value: Any, quote_char: str | None) -> str:
     return "{quote}{value}{quote}".format(value=value, quote=quote_char or "")
 
 
 def format_alias_sql(
     sql: str,
-    alias: Optional[str],
-    quote_char: Optional[str] = None,
-    alias_quote_char: Optional[str] = None,
+    alias: str | None,
+    quote_char: str | None = None,
+    alias_quote_char: str | None = None,
     as_keyword: bool = False,
     **kwargs: Any,
 ) -> str:
@@ -119,8 +92,8 @@ def format_alias_sql(
     )
 
 
-def validate(*args: Any, exc: Optional[Exception] = None, type: Optional[Type] = None) -> None:
+def validate(*args: Any, exc: Exception | None = None, type: Type | None = None) -> None:
     if type is not None:
         for arg in args:
             if not isinstance(arg, type):
-                raise exc
+                raise exc  # type:ignore[misc]

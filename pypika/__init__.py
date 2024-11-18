@@ -1,5 +1,14 @@
 from pypika.dialects import MSSQLQuery, MySQLQuery, OracleQuery, PostgreSQLQuery, SQLLiteQuery
 from pypika.enums import DatePart, Dialects, JoinType, Order
+from pypika.exceptions import (
+    CaseException,
+    FunctionException,
+    GroupingException,
+    JoinException,
+    QueryException,
+    RollupException,
+    SetOperationException,
+)
 from pypika.queries import AliasedQuery, Column, Database, Query, Schema, Table
 from pypika.queries import make_columns as Columns
 from pypika.queries import make_tables as Tables
@@ -25,15 +34,6 @@ from pypika.terms import (
     Rollup,
     SystemTimeValue,
     Tuple,
-)
-from pypika.utils import (
-    CaseException,
-    FunctionException,
-    GroupingException,
-    JoinException,
-    QueryException,
-    RollupException,
-    SetOperationException,
 )
 
 NULL = NullValue()

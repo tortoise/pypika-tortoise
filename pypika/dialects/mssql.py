@@ -1,8 +1,11 @@
-from typing import Any, Union
+from __future__ import annotations
+
+from typing import Any
 
 from pypika.enums import Dialects
+from pypika.exceptions import QueryException
 from pypika.queries import Query, QueryBuilder
-from pypika.utils import QueryException, builder
+from pypika.utils import builder
 
 
 class MSSQLQuery(Query):
@@ -20,10 +23,10 @@ class MSSQLQueryBuilder(QueryBuilder):
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(dialect=Dialects.MSSQL, **kwargs)
-        self._top = None
+        self._top: int | None = None
 
     @builder
-    def top(self, value: Union[str, int]) -> "MSSQLQueryBuilder":
+    def top(self, value: str | int) -> MSSQLQueryBuilder:  # type:ignore[return]
         """
         Implements support for simple TOP clauses.
 
@@ -37,7 +40,7 @@ class MSSQLQueryBuilder(QueryBuilder):
             raise QueryException("TOP value must be an integer")
 
     @builder
-    def fetch_next(self, limit: int) -> "MSSQLQueryBuilder":
+    def fetch_next(self, limit: int) -> MSSQLQueryBuilder:  # type:ignore[return]
         # Overridden to provide a more domain-specific API for T-SQL users
         self._limit = limit
 

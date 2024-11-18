@@ -4,9 +4,9 @@ from pypika import AliasedQuery, Case
 from pypika import Field as F
 from pypika import MySQLQuery, PostgreSQLQuery, Query, Table, Tables
 from pypika import functions as fn
+from pypika.exceptions import QueryException
 from pypika.functions import Avg
 from pypika.terms import Values
-from pypika.utils import QueryException
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"

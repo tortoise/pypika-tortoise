@@ -9,6 +9,8 @@ from pypika.terms import Star
 
 
 class DeleteTests(unittest.TestCase):
+    table_abc: Table
+
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -56,6 +58,8 @@ class DeleteTests(unittest.TestCase):
 
 
 class PostgresDeleteTests(unittest.TestCase):
+    table_abc: Table
+
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()

@@ -252,6 +252,8 @@ class ArrayTests(unittest.TestCase):
 
 
 class ReturningClauseTests(unittest.TestCase):
+    table_abc: Table
+
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
