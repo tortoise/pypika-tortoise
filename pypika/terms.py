@@ -13,6 +13,7 @@ from pypika.enums import (
     Arithmetic,
     Boolean,
     Comparator,
+    DatePart,
     Dialects,
     Equality,
     JSONOperators,
@@ -456,6 +457,8 @@ class ValueWrapper(Term):
         if isinstance(value, Term):
             return value.get_sql(**kwargs)
         if isinstance(value, Enum):
+            if isinstance(value, DatePart):
+                return value.value
             return cls.get_formatted_value(value.value, **kwargs)
         if isinstance(value, (date, time)):
             return cls.get_formatted_value(value.isoformat(), **kwargs)
