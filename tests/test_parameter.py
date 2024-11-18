@@ -235,3 +235,8 @@ class ParameterizerTests(unittest.TestCase):
             'SELECT * FROM "abc" ORDER BY (SELECT 0) OFFSET ? ROWS FETCH NEXT ? ROWS ONLY', sql
         )
         self.assertEqual([5, 10], parameterizer.values)
+
+    def test_placeholder_factory(self):
+        parameterizer = Parameterizer(placeholder_factory=lambda _: "%s")
+        param = parameterizer.create_param(1)
+        self.assertEqual("%s", param.get_sql())

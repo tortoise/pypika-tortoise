@@ -43,7 +43,7 @@ class UpdateTests(unittest.TestCase):
 
     def test_update_with_none(self):
         q = Query.update("abc").set("foo", None)
-        self.assertEqual('UPDATE "abc" SET "foo"=null', str(q))
+        self.assertEqual('UPDATE "abc" SET "foo"=NULL', str(q))
 
     def test_update_from(self):
         from_table = Table("from_table")

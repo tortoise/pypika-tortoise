@@ -367,7 +367,8 @@ class Parameterizer:
     be accessed via the `values` attribute.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, placeholder_factory: Optional[Callable[[int], str]] = None) -> None:
+        self.placeholder_factory = placeholder_factory
         self.values = []
 
     def should_parameterize(self, value: Any) -> bool:
@@ -380,7 +381,10 @@ class Parameterizer:
 
     def create_param(self, value: Any) -> Parameter:
         self.values.append(value)
-        return Parameter(idx=len(self.values))
+        if self.placeholder_factory:
+            return Parameter(self.placeholder_factory(len(self.values)))
+        else:
+            return Parameter(idx=len(self.values))
 
 
 class Negative(Term):

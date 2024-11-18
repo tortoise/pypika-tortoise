@@ -1252,7 +1252,8 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     @builder
     def set(self, field: Field | str, value: Any) -> "Self":  # type:ignore[return]
         field = Field(field) if not isinstance(field, Field) else field
-        self._updates.append((field, self._wrapper_cls(value)))
+        value = self.wrap_constant(value, wrapper_cls=self._wrapper_cls)
+        self._updates.append((field, value))
 
     def __add__(self, other: Self) -> _SetOperation:  # type:ignore[override]
         return self.union(other)
