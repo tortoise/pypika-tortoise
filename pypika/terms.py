@@ -333,8 +333,11 @@ class Parameter(Term):
     is_aggregate = None
 
     def __init__(self, placeholder: str | None = None, idx: int | None = None) -> None:
-        if not placeholder and not idx:
+        if not placeholder and idx is None:
             raise ValueError("Must provide either a placeholder or an idx")
+
+        if idx is not None and idx < 1:
+            raise ValueError("idx must start at 1")
 
         if placeholder and idx:
             raise ValueError("Cannot provide both a placeholder and an idx")
@@ -403,9 +406,23 @@ class Negative(Term):
 class ValueWrapper(Term):
     is_aggregate = None
 
-    def __init__(self, value: Any, alias: str | None = None) -> None:
+    def __init__(
+        self, value: Any, alias: str | None = None, allow_parametrize: bool = True
+    ) -> None:
+        """
+        A wrapper for a constant value such as a string or number.
+
+        :param value:
+            The value to be wrapped.
+        :param alias:
+            An optional alias for the value.
+        :param allow_parametrize:
+            Whether the value should be replaced with a parameter in the query if parameterizer
+            is used.
+        """
         super().__init__(alias)
         self.value = value
+        self.allow_parametrize = allow_parametrize
 
     def get_value_sql(self, **kwargs: Any) -> str:
         return self.get_formatted_value(self.value, **kwargs)
@@ -443,7 +460,11 @@ class ValueWrapper(Term):
         parameterizer: Parameterizer | None = None,
         **kwargs: Any,
     ) -> str:
-        if parameterizer is None or not parameterizer.should_parameterize(self.value):
+        if (
+            parameterizer is None
+            or not parameterizer.should_parameterize(self.value)
+            or not self.allow_parametrize
+        ):
             sql = self.get_value_sql(
                 quote_char=quote_char, secondary_quote_char=secondary_quote_char, **kwargs
             )
