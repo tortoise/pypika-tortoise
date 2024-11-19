@@ -370,9 +370,9 @@ class Parameterizer:
     be accessed via the `values` attribute.
     """
 
-    def __init__(self, placeholder_factory: Optional[Callable[[int], str]] = None) -> None:
+    def __init__(self, placeholder_factory: Callable[[int], str] | None = None) -> None:
         self.placeholder_factory = placeholder_factory
-        self.values = []
+        self.values: list = []
 
     def should_parameterize(self, value: Any) -> bool:
         if isinstance(value, Enum):

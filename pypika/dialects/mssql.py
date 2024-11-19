@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from pypika.enums import Dialects
 from pypika.exceptions import QueryException
 from pypika.queries import Query, QueryBuilder
+from pypika.terms import ValueWrapper
 from pypika.utils import builder
 
 
@@ -42,7 +43,7 @@ class MSSQLQueryBuilder(QueryBuilder):
     @builder
     def fetch_next(self, limit: int) -> MSSQLQueryBuilder:  # type:ignore[return]
         # Overridden to provide a more domain-specific API for T-SQL users
-        self._limit = limit
+        self._limit = cast(ValueWrapper, self.wrap_constant(limit))
 
     def _offset_sql(self, **kwargs) -> str:
         order_by = ""
@@ -53,6 +54,8 @@ class MSSQLQueryBuilder(QueryBuilder):
         )
 
     def _limit_sql(self, **kwargs) -> str:
+        if self._limit is None:
+            return ""
         return " FETCH NEXT {limit} ROWS ONLY".format(limit=self._limit.get_sql(**kwargs))
 
     def _apply_pagination(self, querystring: str, **kwargs) -> str:
