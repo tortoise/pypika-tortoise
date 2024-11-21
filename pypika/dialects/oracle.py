@@ -28,8 +28,12 @@ class OracleQueryBuilder(QueryBuilder):
         kwargs["groupby_alias"] = False
         return super().get_sql(*args, **kwargs)
 
-    def _offset_sql(self) -> str:
-        return " OFFSET {offset} ROWS".format(offset=self._offset)
+    def _offset_sql(self, **kwargs) -> str:
+        if self._offset is None:
+            return ""
+        return " OFFSET {offset} ROWS".format(offset=self._offset.get_sql(**kwargs))
 
-    def _limit_sql(self) -> str:
-        return " FETCH NEXT {limit} ROWS ONLY".format(limit=self._limit)
+    def _limit_sql(self, **kwargs) -> str:
+        if self._limit is None:
+            return ""
+        return " FETCH NEXT {limit} ROWS ONLY".format(limit=self._limit.get_sql(**kwargs))

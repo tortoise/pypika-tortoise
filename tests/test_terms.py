@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from pypika import Field, Query, Table
-from pypika.terms import AtTimezone
+from pypika.terms import AtTimezone, Parameterizer, ValueWrapper
 
 
 class FieldAliasTests(TestCase):
@@ -49,3 +49,15 @@ class AtTimezoneTests(TestCase):
             'FROM "customers" JOIN "accounts" ON "customers"."account_id"="accounts"."account_id"',
             query.get_sql(with_namespace=True),
         )
+
+
+class ValueWrapperTests(TestCase):
+    def test_allow_parametrize(self):
+        value = ValueWrapper("foo")
+        self.assertEqual("'foo'", value.get_sql())
+
+        value = ValueWrapper("foo")
+        self.assertEqual("?", value.get_sql(parameterizer=Parameterizer()))
+
+        value = ValueWrapper("foo", allow_parametrize=False)
+        self.assertEqual("'foo'", value.get_sql(parameterizer=Parameterizer()))

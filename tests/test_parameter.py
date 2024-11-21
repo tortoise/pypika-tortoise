@@ -1,17 +1,13 @@
 import unittest
 from datetime import date
 
-from pypika import (
-    FormatParameter,
-    NamedParameter,
-    NumericParameter,
-    Parameter,
-    PyformatParameter,
-    QmarkParameter,
-    Query,
-    Tables,
-)
-from pypika.terms import ListParameter, ParameterValueWrapper
+from pypika import Parameter, Query, Tables, ValueWrapper
+from pypika.dialects.mssql import MSSQLQuery
+from pypika.dialects.mysql import MySQLQuery
+from pypika.dialects.postgresql import PostgreSQLQuery
+from pypika.enums import Dialects
+from pypika.functions import Upper
+from pypika.terms import Case, Parameterizer
 
 
 class ParametrizedTests(unittest.TestCase):
@@ -86,36 +82,43 @@ class ParametrizedTests(unittest.TestCase):
         )
 
     def test_qmark_parameter(self):
-        self.assertEqual("?", QmarkParameter().get_sql())
+        self.assertEqual("?", Parameter("?").get_sql())
 
-    def test_numeric_parameter(self):
-        self.assertEqual(":14", NumericParameter("14").get_sql())
-        self.assertEqual(":15", NumericParameter(15).get_sql())
+    def test_oracle(self):
+        self.assertEqual("?", Parameter(idx=1).get_sql(dialect=Dialects.ORACLE))
+        self.assertEqual("?", Parameter(idx=2).get_sql(dialect=Dialects.ORACLE))
 
-    def test_named_parameter(self):
-        self.assertEqual(":buz", NamedParameter("buz").get_sql())
+    def test_mssql(self):
+        self.assertEqual("?", Parameter(idx=1).get_sql(dialect=Dialects.MSSQL))
+        self.assertEqual("?", Parameter(idx=2).get_sql(dialect=Dialects.MSSQL))
 
-    def test_format_parameter(self):
-        self.assertEqual("%s", FormatParameter().get_sql())
+    def test_mysql(self):
+        self.assertEqual("%s", Parameter(idx=1).get_sql(dialect=Dialects.MYSQL))
+        self.assertEqual("%s", Parameter(idx=2).get_sql(dialect=Dialects.MYSQL))
 
-    def test_pyformat_parameter(self):
-        self.assertEqual("%(buz)s", PyformatParameter("buz").get_sql())
+    def test_postgres(self):
+        self.assertEqual("$1", Parameter(idx=1).get_sql(dialect=Dialects.POSTGRESQL))
+        self.assertEqual("$2", Parameter(idx=2).get_sql(dialect=Dialects.POSTGRESQL))
+
+    def test_sqlite(self):
+        self.assertEqual("?", Parameter(idx=1).get_sql(dialect=Dialects.SQLITE))
+        self.assertEqual("?", Parameter(idx=2).get_sql(dialect=Dialects.SQLITE))
 
 
-class ParametrizedTestsWithValues(unittest.TestCase):
+class ParameterizerTests(unittest.TestCase):
     table_abc, table_efg = Tables("abc", "efg")
 
     def test_param_insert(self):
         q = Query.into(self.table_abc).columns("a", "b", "c").insert(1, 2.2, "foo")
 
-        parameter = QmarkParameter()
-        sql = q.get_sql(parameter=parameter)
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer)
         self.assertEqual('INSERT INTO "abc" ("a","b","c") VALUES (?,?,?)', sql)
-        self.assertEqual([1, 2.2, "foo"], parameter.get_parameters())
+        self.assertEqual([1, 2.2, "foo"], parameterizer.values)
 
-    def test_param_select_join(self):
+    def test_select_join_in_mysql(self):
         q = (
-            Query.from_(self.table_abc)
+            MySQLQuery.from_(self.table_abc)
             .select("*")
             .where(self.table_abc.category == "foobar")
             .join(self.table_efg)
@@ -124,17 +127,17 @@ class ParametrizedTestsWithValues(unittest.TestCase):
             .limit(10)
         )
 
-        parameter = FormatParameter()
-        sql = q.get_sql(parameter=parameter)
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer, dialect=Dialects.MYSQL)
         self.assertEqual(
-            'SELECT * FROM "abc" JOIN "efg" ON "abc"."id"="efg"."abc_id" WHERE "abc"."category"=%s AND "efg"."date">=%s LIMIT 10',
+            "SELECT * FROM `abc` JOIN `efg` ON `abc`.`id`=`efg`.`abc_id` WHERE `abc`.`category`=%s AND `efg`.`date`>=%s LIMIT %s",
             sql,
         )
-        self.assertEqual(["foobar", date(2024, 2, 22)], parameter.get_parameters())
+        self.assertEqual(["foobar", date(2024, 2, 22), 10], parameterizer.values)
 
-    def test_param_select_subquery(self):
+    def test_select_subquery_in_postgres(self):
         q = (
-            Query.from_(self.table_abc)
+            PostgreSQLQuery.from_(self.table_abc)
             .select("*")
             .where(self.table_abc.category == "foobar")
             .where(
@@ -147,15 +150,15 @@ class ParametrizedTestsWithValues(unittest.TestCase):
             .limit(10)
         )
 
-        parameter = ListParameter(placeholder=lambda idx: f"&{idx+1}")
-        sql = q.get_sql(parameter=parameter)
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer, dialect=Dialects.POSTGRESQL)
         self.assertEqual(
-            'SELECT * FROM "abc" WHERE "category"=&1 AND "id" IN (SELECT "abc_id" FROM "efg" WHERE "date">=&2) LIMIT 10',
+            'SELECT * FROM "abc" WHERE "category"=$1 AND "id" IN (SELECT "abc_id" FROM "efg" WHERE "date">=$2) LIMIT $3',
             sql,
         )
-        self.assertEqual(["foobar", date(2024, 2, 22)], parameter.get_parameters())
+        self.assertEqual(["foobar", date(2024, 2, 22), 10], parameterizer.values)
 
-    def test_join(self):
+    def test_join_in_postgres(self):
         subquery = (
             Query.from_(self.table_efg)
             .select(self.table_efg.fiz, self.table_efg.buz)
@@ -163,52 +166,77 @@ class ParametrizedTestsWithValues(unittest.TestCase):
         )
 
         q = (
-            Query.from_(self.table_abc)
+            PostgreSQLQuery.from_(self.table_abc)
             .join(subquery)
             .on(self.table_abc.bar == subquery.buz)
             .select(self.table_abc.foo, subquery.fiz)
             .where(self.table_abc.bar == "bar")
         )
 
-        parameter = NamedParameter()
-        sql = q.get_sql(parameter=parameter)
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer, dialect=Dialects.POSTGRESQL)
         self.assertEqual(
-            'SELECT "abc"."foo","sq0"."fiz" FROM "abc" JOIN (SELECT "fiz","buz" FROM "efg" WHERE "buz"=:param1)'
-            ' "sq0" ON "abc"."bar"="sq0"."buz" WHERE "abc"."bar"=:param2',
+            'SELECT "abc"."foo","sq0"."fiz" FROM "abc" JOIN (SELECT "fiz","buz" FROM "efg" WHERE "buz"=$1)'
+            ' "sq0" ON "abc"."bar"="sq0"."buz" WHERE "abc"."bar"=$2',
             sql,
         )
-        self.assertEqual({"param1": "buz", "param2": "bar"}, parameter.get_parameters())
+        self.assertEqual(["buz", "bar"], parameterizer.values)
 
-    def test_join_with_parameter_value_wrapper(self):
-        subquery = (
-            Query.from_(self.table_efg)
-            .select(self.table_efg.fiz, self.table_efg.buz)
-            .where(self.table_efg.buz == ParameterValueWrapper(Parameter(":buz"), "buz"))
-        )
-
+    def test_function_parameter(self):
         q = (
             Query.from_(self.table_abc)
-            .join(subquery)
-            .on(self.table_abc.bar == subquery.buz)
-            .select(self.table_abc.foo, subquery.fiz)
-            .where(self.table_abc.bar == ParameterValueWrapper(NamedParameter("bar"), "bar"))
+            .select("*")
+            .where(self.table_abc.category == Upper(ValueWrapper("foobar")))
         )
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer)
+        self.assertEqual('SELECT * FROM "abc" WHERE "category"=UPPER(?)', sql)
 
-        parameter = NamedParameter()
-        sql = q.get_sql(parameter=parameter)
+        self.assertEqual(["foobar"], parameterizer.values)
+
+    def test_case_when_in_select(self):
+        q = Query.from_(self.table_abc).select(
+            Case().when(self.table_abc.category == "foobar", 1).else_(2)
+        )
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer)
+        self.assertEqual('SELECT CASE WHEN "category"=? THEN ? ELSE ? END FROM "abc"', sql)
+        self.assertEqual(["foobar", 1, 2], parameterizer.values)
+
+    def test_case_when_in_where(self):
+        q = (
+            Query.from_(self.table_abc)
+            .select("*")
+            .where(
+                self.table_abc.category_int
+                > Case().when(self.table_abc.category == "foobar", 1).else_(2)
+            )
+        )
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer)
         self.assertEqual(
-            'SELECT "abc"."foo","sq0"."fiz" FROM "abc" JOIN (SELECT "fiz","buz" FROM "efg" WHERE "buz"=:buz)'
-            ' "sq0" ON "abc"."bar"="sq0"."buz" WHERE "abc"."bar"=:bar',
+            'SELECT * FROM "abc" WHERE "category_int">CASE WHEN "category"=? THEN ? ELSE ? END',
             sql,
         )
-        self.assertEqual({":buz": "buz", "bar": "bar"}, parameter.get_parameters())
+        self.assertEqual(["foobar", 1, 2], parameterizer.values)
 
-    def test_pyformat_parameter(self):
-        q = Query.into(self.table_abc).columns("a", "b", "c").insert(1, 2.2, "foo")
+    def test_limit_and_offest(self):
+        q = Query.from_(self.table_abc).select("*").limit(10).offset(5)
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer)
+        self.assertEqual('SELECT * FROM "abc" LIMIT ? OFFSET ?', sql)
+        self.assertEqual([10, 5], parameterizer.values)
 
-        parameter = PyformatParameter()
-        sql = q.get_sql(parameter=parameter)
+    def test_limit_and_offest_in_mssql(self):
+        q = MSSQLQuery.from_(self.table_abc).select("*").limit(10).offset(5)
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer)
         self.assertEqual(
-            'INSERT INTO "abc" ("a","b","c") VALUES (%(param1)s,%(param2)s,%(param3)s)', sql
+            'SELECT * FROM "abc" ORDER BY (SELECT 0) OFFSET ? ROWS FETCH NEXT ? ROWS ONLY', sql
         )
-        self.assertEqual({"param1": 1, "param2": 2.2, "param3": "foo"}, parameter.get_parameters())
+        self.assertEqual([5, 10], parameterizer.values)
+
+    def test_placeholder_factory(self):
+        parameterizer = Parameterizer(placeholder_factory=lambda _: "%s")
+        param = parameterizer.create_param(1)
+        self.assertEqual("%s", param.get_sql())

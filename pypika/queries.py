@@ -535,8 +535,8 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
         self._set_operation = [(set_operation, set_operation_query)]
         self._orderbys: list[tuple[Field, Order | None]] = []
 
-        self._limit: int | None = None
-        self._offset: int | None = None
+        self._limit: ValueWrapper | None = None
+        self._offset: ValueWrapper | None = None
 
         self._wrapper_cls = wrapper_cls
 
@@ -553,11 +553,11 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
 
     @builder
     def limit(self, limit: int) -> "Self":  # type:ignore[return]
-        self._limit = limit
+        self._limit = cast(ValueWrapper, self.wrap_constant(limit))
 
     @builder
     def offset(self, offset: int) -> "Self":  # type:ignore[return]
-        self._offset = offset
+        self._offset = cast(ValueWrapper, self.wrap_constant(offset))
 
     @builder
     def union(self, other: Selectable) -> "Self":  # type:ignore[return]
@@ -624,11 +624,8 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
         if self._orderbys:
             querystring += self._orderby_sql(**kwargs)
 
-        if self._limit is not None:
-            querystring += self._limit_sql()
-
-        if self._offset:
-            querystring += self._offset_sql()
+        querystring += self._limit_sql(**kwargs)
+        querystring += self._offset_sql(**kwargs)
 
         if subquery:
             querystring = "({query})".format(query=querystring, **kwargs)
@@ -668,11 +665,15 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
 
         return " ORDER BY {orderby}".format(orderby=",".join(clauses))
 
-    def _offset_sql(self) -> str:
-        return " OFFSET {offset}".format(offset=self._offset)
+    def _offset_sql(self, **kwargs) -> str:
+        if self._offset is None:
+            return ""
+        return " OFFSET {offset}".format(offset=self._offset.get_sql(**kwargs))
 
-    def _limit_sql(self) -> str:
-        return " LIMIT {limit}".format(limit=self._limit)
+    def _limit_sql(self, **kwargs) -> str:
+        if self._limit is None:
+            return ""
+        return " LIMIT {limit}".format(limit=self._limit.get_sql(**kwargs))
 
 
 class QueryBuilder(Selectable, Term):  # type:ignore[misc]
@@ -725,8 +726,8 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self._joins: list[Join] = []
         self._unions: list = []
 
-        self._limit: int | None = None
-        self._offset: int | None = None
+        self._limit: ValueWrapper | None = None
+        self._offset: ValueWrapper | None = None
 
         self._updates: list[tuple] = []
 
@@ -1223,11 +1224,11 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
 
     @builder
     def limit(self, limit: int) -> "Self":  # type:ignore[return]
-        self._limit = limit
+        self._limit = cast(ValueWrapper, self.wrap_constant(limit))
 
     @builder
     def offset(self, offset: int) -> "Self":  # type:ignore[return]
-        self._offset = offset
+        self._offset = cast(ValueWrapper, self.wrap_constant(offset))
 
     @builder
     def union(self, other: Self) -> _SetOperation:
@@ -1252,7 +1253,8 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     @builder
     def set(self, field: Field | str, value: Any) -> "Self":  # type:ignore[return]
         field = Field(field) if not isinstance(field, Field) else field
-        self._updates.append((field, self._wrapper_cls(value)))
+        value = self.wrap_constant(value, wrapper_cls=self._wrapper_cls)
+        self._updates.append((field, value))
 
     def __add__(self, other: Self) -> _SetOperation:  # type:ignore[override]
         return self.union(other)
@@ -1265,8 +1267,10 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
 
     @builder
     def slice(self, slice: slice) -> "Self":  # type:ignore[return]
-        self._offset = slice.start
-        self._limit = slice.stop
+        if slice.start is not None:
+            self._offset = cast(ValueWrapper, self.wrap_constant(slice.start))
+        if slice.stop is not None:
+            self._limit = cast(ValueWrapper, self.wrap_constant(slice.stop))
 
     def __getitem__(self, item: Any) -> Self | Field:  # type:ignore[override]
         if not isinstance(item, slice):
@@ -1512,7 +1516,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         if self._orderbys:
             querystring += self._orderby_sql(**kwargs)
 
-        querystring = self._apply_pagination(querystring)
+        querystring = self._apply_pagination(querystring, **kwargs)
 
         if self._for_update:
             querystring += self._for_update_sql(**kwargs)
@@ -1532,13 +1536,9 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
 
         return querystring
 
-    def _apply_pagination(self, querystring: str) -> str:
-        if self._limit is not None:
-            querystring += self._limit_sql()
-
-        if self._offset:
-            querystring += self._offset_sql()
-
+    def _apply_pagination(self, querystring: str, **kwargs) -> str:
+        querystring += self._limit_sql(**kwargs)
+        querystring += self._offset_sql(**kwargs)
         return querystring
 
     def _with_sql(self, **kwargs: Any) -> str:
@@ -1750,11 +1750,15 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         having = self._havings.get_sql(quote_char=quote_char, **kwargs)  # type:ignore[union-attr]
         return f" HAVING {having}"
 
-    def _offset_sql(self) -> str:
-        return " OFFSET {offset}".format(offset=self._offset)
+    def _offset_sql(self, **kwargs) -> str:
+        if self._offset is None:
+            return ""
+        return " OFFSET {offset}".format(offset=self._offset.get_sql(**kwargs))
 
-    def _limit_sql(self) -> str:
-        return " LIMIT {limit}".format(limit=self._limit)
+    def _limit_sql(self, **kwargs) -> str:
+        if self._limit is None:
+            return ""
+        return " LIMIT {limit}".format(limit=self._limit.get_sql(**kwargs))
 
     def _set_sql(self, **kwargs: Any) -> str:
         return " SET {set}".format(

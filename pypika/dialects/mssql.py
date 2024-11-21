@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from pypika.enums import Dialects
 from pypika.exceptions import QueryException
 from pypika.queries import Query, QueryBuilder
+from pypika.terms import ValueWrapper
 from pypika.utils import builder
 
 
@@ -42,25 +43,29 @@ class MSSQLQueryBuilder(QueryBuilder):
     @builder
     def fetch_next(self, limit: int) -> MSSQLQueryBuilder:  # type:ignore[return]
         # Overridden to provide a more domain-specific API for T-SQL users
-        self._limit = limit
+        self._limit = cast(ValueWrapper, self.wrap_constant(limit))
 
-    def _offset_sql(self) -> str:
+    def _offset_sql(self, **kwargs) -> str:
         order_by = ""
         if not self._orderbys:
-            order_by = "ORDER BY (SELECT 0)"
-        return order_by + " OFFSET {offset} ROWS".format(offset=self._offset or 0)
+            order_by = " ORDER BY (SELECT 0)"
+        return order_by + " OFFSET {offset} ROWS".format(
+            offset=self._offset.get_sql(**kwargs) if self._offset is not None else 0
+        )
 
-    def _limit_sql(self) -> str:
-        return " FETCH NEXT {limit} ROWS ONLY".format(limit=self._limit)
+    def _limit_sql(self, **kwargs) -> str:
+        if self._limit is None:
+            return ""
+        return " FETCH NEXT {limit} ROWS ONLY".format(limit=self._limit.get_sql(**kwargs))
 
-    def _apply_pagination(self, querystring: str) -> str:
+    def _apply_pagination(self, querystring: str, **kwargs) -> str:
         # Note: Overridden as MSSQL specifies offset before the fetch next limit
         if self._limit is not None or self._offset:
             # Offset has to be present if fetch next is specified in a MSSQL query
-            querystring += self._offset_sql()
+            querystring += self._offset_sql(**kwargs)
 
         if self._limit is not None:
-            querystring += self._limit_sql()
+            querystring += self._limit_sql(**kwargs)
 
         return querystring
 

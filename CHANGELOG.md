@@ -1,5 +1,14 @@
 # ChangeLog
 
+## 0.3
+
+## 0.3.0
+- Add `Parameterizer`
+- Uppdate `Parameter` to be dialect-aware
+- Remove `ListParameter`, `DictParameter`, `QmarkParameter`, etc.
+- Wrap query's offset and limit with ValueWrapper so they can be parametrized
+- Fix a missing whitespace for MSSQL when pagination without ordering is used
+
 ## 0.2
 
 ### 0.2.2
