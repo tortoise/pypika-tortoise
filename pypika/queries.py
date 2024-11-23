@@ -757,7 +757,6 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     def __copy__(self) -> "Self":
         newone = type(self).__new__(type(self))
         newone.__dict__.update(self.__dict__)
-        newone._select_star_tables = copy(self._select_star_tables)
         newone._from = copy(self._from)
         newone._with = copy(self._with)
         newone._selects = copy(self._selects)
@@ -768,6 +767,9 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         newone._joins = copy(self._joins)
         newone._unions = copy(self._unions)
         newone._updates = copy(self._updates)
+        newone._select_star_tables = copy(self._select_star_tables)
+        newone._on_conflict_fields = copy(self._on_conflict_fields)
+        newone._on_conflict_do_updates = copy(self._on_conflict_do_updates)
         return newone
 
     @builder
