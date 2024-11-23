@@ -69,7 +69,7 @@ class Term(Node):
     @staticmethod
     def wrap_constant(
         val, wrapper_cls: Type["Term"] | None = None
-    ) -> ValueError | NodeT | "LiteralValue" | "Array" | "Tuple" | "ValueWrapper":
+    ) -> NodeT | "LiteralValue" | "Array" | "Tuple" | "ValueWrapper":
         """
         Used for wrapping raw inputs such as numbers in Criterions and Operator.
 
