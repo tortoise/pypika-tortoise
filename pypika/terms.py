@@ -210,7 +210,7 @@ class Term(Node):
 
     def isin(self, arg: list | tuple | set | "Term") -> "ContainsCriterion":
         if isinstance(arg, (list, tuple, set)):
-            return ContainsCriterion(self, Tuple(*[self.wrap_constant(value) for value in arg]))
+            return ContainsCriterion(self, Tuple(*arg))
         return ContainsCriterion(self, arg)
 
     def notin(self, arg: list | tuple | set | "Term") -> "ContainsCriterion":
