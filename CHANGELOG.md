@@ -2,7 +2,10 @@
 
 ## 0.3
 
-## 0.3.0
+### 0.3.1
+- `Array` can be parametrized
+
+### 0.3.0
 - Add `Parameterizer`
 - Uppdate `Parameter` to be dialect-aware
 - Remove `ListParameter`, `DictParameter`, `QmarkParameter`, etc.

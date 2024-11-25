@@ -2,7 +2,7 @@ import unittest
 
 from pypika import Array, Bracket, PostgreSQLQuery, Query, Table, Tables, Tuple
 from pypika.functions import Coalesce, NullIf, Sum
-from pypika.terms import Field
+from pypika.terms import Field, Parameterizer, Star
 
 
 class TupleTests(unittest.TestCase):
@@ -148,6 +148,13 @@ class ArrayTests(unittest.TestCase):
 
         q = Query.from_(tb).select(Array(tb.col).as_("different_name"))
         self.assertEqual(str(q), 'SELECT ["col"] "different_name" FROM "tb"')
+
+    def test_parametrization(self):
+        q = Query.from_(self.table_abc).select(Star()).where(self.table_abc.f == Array(1, 2, 3))
+
+        parameterizer = Parameterizer()
+        sql = q.get_sql(parameterizer=parameterizer)
+        self.assertEqual('SELECT * FROM "abc" WHERE "f"=?', sql)
 
 
 class BracketTests(unittest.TestCase):
