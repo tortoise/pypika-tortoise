@@ -1,4 +1,5 @@
 import unittest
+from copy import copy
 
 from pypika import Case, Query, Tables, Tuple, functions
 from pypika.dialects import (
@@ -175,3 +176,36 @@ class QueryBuilderTests(unittest.TestCase):
 
         with self.subTest("SQLLiteQueryBuilder"):
             self.assertEqual(SQLLiteQuery, SQLLiteQueryBuilder.QUERY_CLS)
+
+    def test_query_builder_copy(self):
+        qb = QueryBuilder()
+        qb2 = copy(qb)
+
+        self.assertIsNot(qb, qb2)
+        self.assertEqual(qb, qb2)
+        self.assertEqual(qb._select_star_tables, qb2._select_star_tables)
+        self.assertIsNot(qb._select_star_tables, qb2._select_star_tables)
+        self.assertEqual(qb._from, qb2._from)
+        self.assertIsNot(qb._from, qb2._from)
+        self.assertEqual(qb._with, qb2._with)
+        self.assertIsNot(qb._with, qb2._with)
+        self.assertEqual(qb._selects, qb2._selects)
+        self.assertIsNot(qb._selects, qb2._selects)
+        self.assertEqual(qb._columns, qb2._columns)
+        self.assertIsNot(qb._columns, qb2._columns)
+        self.assertEqual(qb._values, qb2._values)
+        self.assertIsNot(qb._values, qb2._values)
+        self.assertEqual(qb._groupbys, qb2._groupbys)
+        self.assertIsNot(qb._groupbys, qb2._groupbys)
+        self.assertEqual(qb._orderbys, qb2._orderbys)
+        self.assertIsNot(qb._orderbys, qb2._orderbys)
+        self.assertEqual(qb._joins, qb2._joins)
+        self.assertIsNot(qb._joins, qb2._joins)
+        self.assertEqual(qb._unions, qb2._unions)
+        self.assertIsNot(qb._unions, qb2._unions)
+        self.assertEqual(qb._updates, qb2._updates)
+        self.assertIsNot(qb._updates, qb2._updates)
+        self.assertEqual(qb._on_conflict_fields, qb2._on_conflict_fields)
+        self.assertIsNot(qb._on_conflict_fields, qb2._on_conflict_fields)
+        self.assertEqual(qb._on_conflict_do_updates, qb2._on_conflict_do_updates)
+        self.assertIsNot(qb._on_conflict_do_updates, qb2._on_conflict_do_updates)
