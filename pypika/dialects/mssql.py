@@ -38,7 +38,7 @@ class MSSQLQueryBuilder(QueryBuilder):
         try:
             self._top = int(value)
         except ValueError:
-            raise QueryException("TOP value must be an integer")
+            raise QueryException("TOP value must be an integer") from None
 
     @builder
     def fetch_next(self, limit: int) -> MSSQLQueryBuilder:  # type:ignore[return]
@@ -76,10 +76,7 @@ class MSSQLQueryBuilder(QueryBuilder):
         return super().get_sql(*args, **kwargs)
 
     def _top_sql(self) -> str:
-        if self._top:
-            return "TOP ({}) ".format(self._top)
-        else:
-            return ""
+        return "TOP ({}) ".format(self._top) if self._top else ""
 
     def _select_sql(self, **kwargs: Any) -> str:
         return "SELECT {distinct}{top}{select}".format(

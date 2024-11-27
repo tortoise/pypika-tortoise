@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from copy import copy
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Sequence, Type, cast
+from typing import TYPE_CHECKING, Any, Sequence, Type, cast, overload
 
 from pypika.enums import Dialects, JoinType, SetOperation
 from pypika.exceptions import JoinException, QueryException, RollupException, SetOperationException
@@ -75,9 +75,9 @@ class AliasedQuery(Selectable):
     def get_sql(self, **kwargs: Any) -> str:
         if self.query is None:
             return self.name
-        return self.query.get_sql(**kwargs)  # type:ignore[operator]
+        return self.query.get_sql(**kwargs)
 
-    def __eq__(self, other: Self) -> bool:  # type:ignore[override]
+    def __eq__(self, other: Any) -> bool:
         return isinstance(other, AliasedQuery) and self.name == other.name
 
     def __hash__(self) -> int:
@@ -96,14 +96,14 @@ class Schema:
         self._name = name
         self._parent = parent
 
-    def __eq__(self, other: Self) -> bool:  # type:ignore[override]
+    def __eq__(self, other: Any) -> bool:
         return (
             isinstance(other, Schema)
             and self._name == other._name
-            and self._parent == other._parent  # type:ignore[operator]
+            and self._parent == other._parent
         )
 
-    def __ne__(self, other: Schema) -> bool:  # type:ignore[override]
+    def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
     @ignore_copy
@@ -130,6 +130,18 @@ class Database(Schema):
 
 
 class Table(Selectable):
+    @overload
+    @staticmethod
+    def _init_schema(
+        schema: None,
+    ) -> None: ...
+
+    @overload
+    @staticmethod
+    def _init_schema(
+        schema: str | list | tuple | Schema,
+    ) -> Schema: ...
+
     @staticmethod
     def _init_schema(
         schema: str | list | tuple | Schema | None,
@@ -154,11 +166,13 @@ class Table(Selectable):
         super().__init__(alias)  # type:ignore[arg-type]
         self._table_name = name
         self._schema = self._init_schema(schema)
-        self._query_cls = query_cls or Query
+        if query_cls is None:
+            query_cls = Query
+        elif not issubclass(query_cls, Query):
+            raise TypeError("Expected 'query_cls' to be subclass of Query")
+        self._query_cls = query_cls
         self._for: Criterion | None = None
         self._for_portion: PeriodCriterion | None = None
-        if not issubclass(self._query_cls, Query):
-            raise TypeError("Expected 'query_cls' to be subclass of Query")
 
     def get_table_name(self) -> str:
         return self.alias or self._table_name
@@ -203,20 +217,13 @@ class Table(Selectable):
     def __str__(self) -> str:
         return self.get_sql(quote_char='"')
 
-    def __eq__(self, other: Self | Any) -> bool:
-        if not isinstance(other, Table):
-            return False
-
-        if self._table_name != other._table_name:
-            return False
-
-        if self._schema != other._schema:  # type:ignore[operator]
-            return False
-
-        if self.alias != other.alias:
-            return False
-
-        return True
+    def __eq__(self, other: Any) -> bool:
+        return (
+            isinstance(other, Table)
+            and self._table_name == other._table_name
+            and self._schema == other._schema
+            and self.alias == other.alias
+        )
 
     def __repr__(self) -> str:
         if self._schema:
@@ -1384,16 +1391,10 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     def __repr__(self) -> str:
         return self.__str__()
 
-    def __eq__(self, other: Self) -> bool:  # type:ignore[override]
-        if not isinstance(other, QueryBuilder):
-            return False
+    def __eq__(self, other: Any) -> bool:  # type:ignore[override]
+        return isinstance(other, QueryBuilder) and self.alias == other.alias
 
-        if not self.alias == other.alias:
-            return False
-
-        return True
-
-    def __ne__(self, other: Self) -> bool:  # type:ignore[override]
+    def __ne__(self, other: Any) -> bool:  # type:ignore[override]
         return not self.__eq__(other)
 
     def __hash__(self) -> int:
@@ -1564,12 +1565,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         )
 
     def _distinct_sql(self, **kwargs: Any) -> str:
-        if self._distinct:
-            distinct = "DISTINCT "
-        else:
-            distinct = ""
-
-        return distinct
+        return "DISTINCT " if self._distinct else ""
 
     def _for_update_sql(self, **kwargs) -> str:
         if self._for_update:
@@ -1680,19 +1676,20 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         clauses = []
         selected_aliases = {s.alias for s in self._selects}
         for field in self._groupbys:
-            if groupby_alias and field.alias and field.alias in selected_aliases:
-                clauses.append(format_quotes(field.alias, alias_quote_char or quote_char))
-            elif not groupby_alias and field.alias and field.alias in selected_aliases:
-                for select in self._selects:
-                    if select.alias == field.alias:
-                        clauses.append(
-                            select.get_sql(
-                                quote_char=quote_char,
-                                alias_quote_char=alias_quote_char,
-                                **kwargs,
+            if (alias := field.alias) and alias in selected_aliases:
+                if groupby_alias:
+                    clauses.append(format_quotes(alias, alias_quote_char or quote_char))
+                else:
+                    for select in self._selects:
+                        if select.alias == alias:
+                            clauses.append(
+                                select.get_sql(
+                                    quote_char=quote_char,
+                                    alias_quote_char=alias_quote_char,
+                                    **kwargs,
+                                )
                             )
-                        )
-                        break
+                            break
             else:
                 clauses.append(
                     field.get_sql(

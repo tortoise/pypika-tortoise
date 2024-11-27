@@ -1,14 +1,21 @@
 from __future__ import annotations
 
 import itertools
+import sys
 from copy import copy
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pypika.enums import Dialects
 from pypika.exceptions import QueryException
 from pypika.queries import Query, QueryBuilder
 from pypika.terms import ArithmeticExpression, Field, Function, Star, Term
 from pypika.utils import builder
+
+if TYPE_CHECKING:
+    if sys.version_info >= (3, 11):
+        from typing import Self
+    else:
+        from typing_extensions import Self
 
 
 class PostgreSQLQuery(Query):
@@ -32,8 +39,8 @@ class PostgreSQLQueryBuilder(QueryBuilder):
 
         self._distinct_on: list[Field | Term] = []
 
-    def __copy__(self) -> PostgreSQLQueryBuilder:
-        newone: PostgreSQLQueryBuilder = super().__copy__()  # type:ignore[assignment]
+    def __copy__(self) -> "Self":
+        newone = super().__copy__()
         newone._returns = copy(self._returns)
         newone._on_conflict_do_updates = copy(self._on_conflict_do_updates)
         return newone
