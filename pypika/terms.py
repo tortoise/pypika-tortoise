@@ -69,7 +69,7 @@ class Term(Node):
     @staticmethod
     def wrap_constant(
         val, wrapper_cls: Type["Term"] | None = None
-    ) -> ValueError | NodeT | "LiteralValue" | "Array" | "Tuple" | "ValueWrapper":
+    ) -> NodeT | "LiteralValue" | "Array" | "Tuple" | "ValueWrapper":
         """
         Used for wrapping raw inputs such as numbers in Criterions and Operator.
 
@@ -210,7 +210,7 @@ class Term(Node):
 
     def isin(self, arg: list | tuple | set | "Term") -> "ContainsCriterion":
         if isinstance(arg, (list, tuple, set)):
-            return ContainsCriterion(self, Tuple(*[self.wrap_constant(value) for value in arg]))
+            return ContainsCriterion(self, Tuple(*arg))
         return ContainsCriterion(self, arg)
 
     def notin(self, arg: list | tuple | set | "Term") -> "ContainsCriterion":
@@ -776,15 +776,25 @@ class Tuple(Criterion):
 
 
 class Array(Tuple):
-    def get_sql(self, **kwargs: Any) -> str:
-        dialect = kwargs.get("dialect", None)
-        values = ",".join(term.get_sql(**kwargs) for term in self.values)  # type:ignore[union-attr]
+    def __init__(self, *values: Any) -> None:
+        super().__init__(*values)
+        self.original_value = list(values)
 
-        sql = "[{}]".format(values)
-        if dialect in (Dialects.POSTGRESQL, Dialects.REDSHIFT):
-            sql = "ARRAY[{}]".format(values) if len(values) > 0 else "'{}'"
+    def get_sql(self, parameterizer: Parameterizer | None = None, **kwargs: Any) -> str:
+        if parameterizer is None or not parameterizer.should_parameterize(self.original_value):
+            dialect = kwargs.get("dialect", None)
+            values = ",".join(
+                term.get_sql(**kwargs) for term in self.values
+            )  # type:ignore[union-attr]
 
-        return format_alias_sql(sql, self.alias, **kwargs)
+            sql = "[{}]".format(values)
+            if dialect in (Dialects.POSTGRESQL, Dialects.REDSHIFT):
+                sql = "ARRAY[{}]".format(values) if len(values) > 0 else "'{}'"
+
+            return format_alias_sql(sql, self.alias, **kwargs)
+
+        param = parameterizer.create_param(self.original_value)
+        return param.get_sql(**kwargs)
 
 
 class Bracket(Tuple):
