@@ -66,12 +66,11 @@ class MySQLQueryBuilder(QueryBuilder):
     def get_sql(self, **kwargs: Any) -> str:  # type:ignore[override]
         self._set_kwargs_defaults(kwargs)
         querystring = super().get_sql(**kwargs)
-        if querystring:
-            if self._update_table:
-                if self._orderbys:
-                    querystring += self._orderby_sql(**kwargs)
-                if self._limit:
-                    querystring += self._limit_sql()
+        if querystring and self._update_table:
+            if self._orderbys:
+                querystring += self._orderby_sql(**kwargs)
+            if self._limit:
+                querystring += self._limit_sql()
         return querystring
 
     def _on_conflict_action_sql(self, **kwargs: Any) -> str:
@@ -88,10 +87,9 @@ class MySQLQueryBuilder(QueryBuilder):
                     )
                 else:
                     updates.append(
-                        "{field}={alias_quote_char}{alias}{alias_quote_char}.{value}".format(
-                            alias_quote_char=self.QUOTE_CHAR,
+                        "{field}={alias}.{value}".format(
                             field=field.get_sql(**kwargs),
-                            alias=self.alias,
+                            alias=format_quotes(self.alias, self.QUOTE_CHAR),
                             value=field.get_sql(**kwargs),
                         )
                     )
