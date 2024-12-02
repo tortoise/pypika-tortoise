@@ -4,6 +4,7 @@ import inspect
 import json
 import re
 import sys
+import typing
 import uuid
 from datetime import date, time
 from enum import Enum
@@ -23,7 +24,7 @@ from pypika.enums import (
 from pypika.exceptions import CaseException, FunctionException
 from pypika.utils import builder, format_alias_sql, format_quotes, ignore_copy, resolve_is_aggregate
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: nocoverage
     from pypika.queries import QueryBuilder, Selectable, Table
 
     if sys.version_info >= (3, 11):
@@ -48,7 +49,7 @@ class Node:
 
 
 class Term(Node):
-    is_aggregate: bool | None = False  # type:ignore[assignment]
+    is_aggregate: bool | None = False
 
     def __init__(self, alias: str | None = None) -> None:
         self.alias = alias
@@ -66,10 +67,31 @@ class Term(Node):
     def fields_(self) -> set["Field"]:
         return set(self.find_(Field))
 
+    if TYPE_CHECKING:  # pragma: nocoverage
+
+        @typing.overload
+        @staticmethod
+        def wrap_constant(val: NodeT, wrapper_cls: Type[Term] | None = None) -> NodeT: ...
+        @typing.overload
+        @staticmethod
+        def wrap_constant(val: None, wrapper_cls: Type[Term] | None = None) -> "NullValue": ...
+        @typing.overload
+        @staticmethod
+        def wrap_constant(val: list, wrapper_cls: Type[Term] | None = None) -> "Array": ...
+        @typing.overload
+        @staticmethod
+        def wrap_constant(val: tuple, wrapper_cls: Type[Term] | None = None) -> "Tuple": ...
+        @typing.overload
+        @staticmethod
+        def wrap_constant(val: Any, wrapper_cls: None = None) -> "ValueWrapper": ...
+        @typing.overload
+        @staticmethod
+        def wrap_constant(val: Any, wrapper_cls: Type[Term]) -> Term: ...
+
     @staticmethod
     def wrap_constant(
-        val, wrapper_cls: Type["Term"] | None = None
-    ) -> NodeT | "LiteralValue" | "Array" | "Tuple" | "ValueWrapper":
+        val: Any, wrapper_cls: Type[Term] | None = None
+    ) -> NodeT | "LiteralValue" | "Array" | "Tuple" | "ValueWrapper" | Term:
         """
         Used for wrapping raw inputs such as numbers in Criterions and Operator.
 
@@ -84,7 +106,6 @@ class Term(Node):
             querybuilder will be returned as inputted.
 
         """
-
         if isinstance(val, Node):
             return cast(NodeT, val)
         if val is None:
@@ -95,13 +116,39 @@ class Term(Node):
             return Tuple(*val)
 
         # Need to default here to avoid the recursion. ValueWrapper extends this class.
-        wrapper_cls = wrapper_cls or ValueWrapper
-        return wrapper_cls(val)  # type:ignore[return-value]
+        if not wrapper_cls:
+            return ValueWrapper(val)
+        return wrapper_cls(val)
+
+    if TYPE_CHECKING:  # pragma: nocoverage
+
+        @typing.overload
+        @staticmethod
+        def wrap_json(val: "QueryBuilder", wrapper_cls=None) -> "QueryBuilder": ...
+        @typing.overload
+        @staticmethod
+        def wrap_json(val: "Term", wrapper_cls=None) -> "Term": ...
+        @typing.overload
+        @staticmethod
+        def wrap_json(val: "Interval", wrapper_cls=None) -> "Interval": ...
+        @typing.overload
+        @staticmethod
+        def wrap_json(val: None, wrapper_cls=None) -> "NullValue": ...
+        @typing.overload
+        @staticmethod
+        def wrap_json(val: str | int | bool, wrapper_cls: None = None) -> "ValueWrapper": ...
+        @typing.overload
+        @staticmethod
+        def wrap_json(val: str | int | bool, wrapper_cls: Callable[..., T]) -> T: ...
+        @typing.overload
+        @staticmethod
+        def wrap_json(val: Any, wrapper_cls: Callable[..., T] | None = None) -> "JSON": ...
 
     @staticmethod
     def wrap_json(
-        val: "Term" | "QueryBuilder" | "Interval" | None | str | int | bool, wrapper_cls=None
-    ) -> "Term" | "QueryBuilder" | "Interval" | "NullValue" | "ValueWrapper" | "JSON":
+        val: "Term" | "QueryBuilder" | "Interval" | None | str | int | bool | Any,
+        wrapper_cls: Callable[..., T] | None = None,
+    ) -> "Term" | "QueryBuilder" | "Interval" | "NullValue" | "ValueWrapper" | T | "JSON":
         from .queries import QueryBuilder
 
         if isinstance(val, (Term, QueryBuilder, Interval)):
@@ -109,7 +156,8 @@ class Term(Node):
         if val is None:
             return NullValue()
         if isinstance(val, (str, int, bool)):
-            wrapper_cls = wrapper_cls or ValueWrapper
+            if not wrapper_cls:
+                return ValueWrapper(val)
             return wrapper_cls(val)
 
         return JSON(val)
@@ -138,7 +186,7 @@ class Term(Node):
         return self.isnull().negate()
 
     def bitwiseand(self, value: int) -> "BitwiseAndCriterion":
-        return BitwiseAndCriterion(self, self.wrap_constant(value))  # type:ignore[arg-type]
+        return BitwiseAndCriterion(self, self.wrap_constant(value))
 
     def gt(self, other: Any) -> "BasicCriterion":
         return self > other
@@ -156,54 +204,34 @@ class Term(Node):
         return self != other
 
     def glob(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.glob, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.glob, self, self.wrap_constant(expr))
 
     def like(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.like, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.like, self, self.wrap_constant(expr))
 
     def not_like(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.not_like, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.not_like, self, self.wrap_constant(expr))
 
     def ilike(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.ilike, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.ilike, self, self.wrap_constant(expr))
 
     def not_ilike(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.not_ilike, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.not_ilike, self, self.wrap_constant(expr))
 
     def rlike(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.rlike, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.rlike, self, self.wrap_constant(expr))
 
     def regex(self, pattern: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.regex, self, self.wrap_constant(pattern)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.regex, self, self.wrap_constant(pattern))
 
     def between(self, lower: Any, upper: Any) -> "BetweenCriterion":
-        return BetweenCriterion(
-            self, self.wrap_constant(lower), self.wrap_constant(upper)  # type:ignore[arg-type]
-        )
+        return BetweenCriterion(self, self.wrap_constant(lower), self.wrap_constant(upper))
 
     def from_to(self, start: Any, end: Any) -> "PeriodCriterion":
-        return PeriodCriterion(
-            self, self.wrap_constant(start), self.wrap_constant(end)  # type:ignore[arg-type]
-        )
+        return PeriodCriterion(self, self.wrap_constant(start), self.wrap_constant(end))
 
     def as_of(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.as_of, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.as_of, self, self.wrap_constant(expr))
 
     def all_(self) -> "All":
         return All(self)
@@ -217,9 +245,7 @@ class Term(Node):
         return self.isin(arg).negate()
 
     def bin_regex(self, pattern: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.bin_regex, self, self.wrap_constant(pattern)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.bin_regex, self, self.wrap_constant(pattern))
 
     def negate(self) -> "Not":
         return Not(self)
@@ -234,24 +260,16 @@ class Term(Node):
         return Negative(self)
 
     def __add__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.add, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.add, self, self.wrap_constant(other))
 
     def __sub__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.sub, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.sub, self, self.wrap_constant(other))
 
     def __mul__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.mul, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.mul, self, self.wrap_constant(other))
 
     def __truediv__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.div, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.div, self, self.wrap_constant(other))
 
     def __pow__(self, other: Any) -> "Pow":
         return Pow(self, other)
@@ -260,46 +278,34 @@ class Term(Node):
         return Mod(self, other)
 
     def __radd__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.add, self.wrap_constant(other), self  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.add, self.wrap_constant(other), self)
 
     def __rsub__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.sub, self.wrap_constant(other), self  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.sub, self.wrap_constant(other), self)
 
     def __rmul__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.mul, self.wrap_constant(other), self  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.mul, self.wrap_constant(other), self)
 
     def __rtruediv__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.div, self.wrap_constant(other), self  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.div, self.wrap_constant(other), self)
 
     def __eq__(self, other: Any) -> "BasicCriterion":  # type:ignore[override]
-        return BasicCriterion(Equality.eq, self, self.wrap_constant(other))  # type:ignore[arg-type]
+        return BasicCriterion(Equality.eq, self, self.wrap_constant(other))
 
     def __ne__(self, other: Any) -> "BasicCriterion":  # type:ignore[override]
-        return BasicCriterion(Equality.ne, self, self.wrap_constant(other))  # type:ignore[arg-type]
+        return BasicCriterion(Equality.ne, self, self.wrap_constant(other))
 
     def __gt__(self, other: Any) -> "BasicCriterion":
-        return BasicCriterion(Equality.gt, self, self.wrap_constant(other))  # type:ignore[arg-type]
+        return BasicCriterion(Equality.gt, self, self.wrap_constant(other))
 
     def __ge__(self, other: Any) -> "BasicCriterion":
-        return BasicCriterion(
-            Equality.gte, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Equality.gte, self, self.wrap_constant(other))
 
     def __lt__(self, other: Any) -> "BasicCriterion":
-        return BasicCriterion(Equality.lt, self, self.wrap_constant(other))  # type:ignore[arg-type]
+        return BasicCriterion(Equality.lt, self, self.wrap_constant(other))
 
     def __le__(self, other: Any) -> "BasicCriterion":
-        return BasicCriterion(
-            Equality.lte, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Equality.lte, self, self.wrap_constant(other))
 
     def __getitem__(self, item: slice) -> "BetweenCriterion":
         if not isinstance(item, slice):
@@ -397,7 +403,7 @@ class Negative(Term):
 
     @property
     def is_aggregate(self) -> bool | None:  # type:ignore[override]
-        return self.term.is_aggregate  # type:ignore[has-type]
+        return self.term.is_aggregate  # t2ype:ignore[has-type]
 
     def get_sql(self, **kwargs: Any) -> str:
         return "-{term}".format(term=self.term.get_sql(**kwargs))
@@ -518,49 +524,49 @@ class JSON(Term):
         return BasicCriterion(
             JSONOperators.GET_JSON_VALUE,
             self,
-            self.wrap_constant(key_or_index),  # type:ignore[arg-type]
+            self.wrap_constant(key_or_index),
         )
 
     def get_text_value(self, key_or_index: str | int) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.GET_TEXT_VALUE,
             self,
-            self.wrap_constant(key_or_index),  # type:ignore[arg-type]
+            self.wrap_constant(key_or_index),
         )
 
     def get_path_json_value(self, path_json: str) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.GET_PATH_JSON_VALUE,
             self,
-            self.wrap_json(path_json),  # type:ignore[arg-type]
+            self.wrap_json(path_json),
         )
 
     def get_path_text_value(self, path_json: str) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.GET_PATH_TEXT_VALUE,
             self,
-            self.wrap_json(path_json),  # type:ignore[arg-type]
+            self.wrap_json(path_json),
         )
 
     def has_key(self, other: Any) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.HAS_KEY,
             self,
-            self.wrap_json(other),  # type:ignore[arg-type]
+            self.wrap_json(other),
         )
 
     def contains(self, other: Any) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.CONTAINS,
             self,
-            self.wrap_json(other),  # type:ignore[arg-type]
+            self.wrap_json(other),
         )
 
     def contained_by(self, other: Any) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.CONTAINED_BY,
             self,
-            self.wrap_json(other),  # type:ignore[arg-type]
+            self.wrap_json(other),
         )
 
     def has_keys(self, other: Iterable) -> "BasicCriterion":
@@ -1295,7 +1301,7 @@ class Case(Term):
 
     @builder
     def else_(self, term: Any) -> "Self":
-        self._else = self.wrap_constant(term)  # type:ignore[assignment]
+        self._else = self.wrap_constant(term)
         return self
 
     def get_sql(self, with_alias: bool = False, **kwargs: Any) -> str:
@@ -1802,7 +1808,7 @@ class AtTimezone(Term):
         AT TIME ZONE INTERVAL '-06:00'
     """
 
-    is_aggregate: bool | None = None
+    is_aggregate = None
 
     def __init__(self, field, zone, interval=False, alias=None) -> None:
         super().__init__(alias)
