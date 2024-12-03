@@ -2,6 +2,9 @@
 
 ## 0.3
 
+### 0.3.2
+- Added `QueryBuilder.get_parameterized_sql`
+
 ### 0.3.1
 - `Array` can be parametrized
 
