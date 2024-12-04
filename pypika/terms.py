@@ -72,18 +72,23 @@ class Term(Node):
         @typing.overload
         @staticmethod
         def wrap_constant(val: NodeT, wrapper_cls: Type[Term] | None = None) -> NodeT: ...
+
         @typing.overload
         @staticmethod
         def wrap_constant(val: None, wrapper_cls: Type[Term] | None = None) -> "NullValue": ...
+
         @typing.overload
         @staticmethod
         def wrap_constant(val: list, wrapper_cls: Type[Term] | None = None) -> "Array": ...
+
         @typing.overload
         @staticmethod
         def wrap_constant(val: tuple, wrapper_cls: Type[Term] | None = None) -> "Tuple": ...
+
         @typing.overload
         @staticmethod
         def wrap_constant(val: Any, wrapper_cls: None = None) -> "ValueWrapper": ...
+
         @typing.overload
         @staticmethod
         def wrap_constant(val: Any, wrapper_cls: Type[Term]) -> Term: ...
@@ -125,21 +130,27 @@ class Term(Node):
         @typing.overload
         @staticmethod
         def wrap_json(val: "QueryBuilder", wrapper_cls=None) -> "QueryBuilder": ...
+
         @typing.overload
         @staticmethod
         def wrap_json(val: "Term", wrapper_cls=None) -> "Term": ...
+
         @typing.overload
         @staticmethod
         def wrap_json(val: "Interval", wrapper_cls=None) -> "Interval": ...
+
         @typing.overload
         @staticmethod
         def wrap_json(val: None, wrapper_cls=None) -> "NullValue": ...
+
         @typing.overload
         @staticmethod
         def wrap_json(val: str | int | bool, wrapper_cls: None = None) -> "ValueWrapper": ...
+
         @typing.overload
         @staticmethod
         def wrap_json(val: str | int | bool, wrapper_cls: Callable[..., T]) -> T: ...
+
         @typing.overload
         @staticmethod
         def wrap_json(val: Any, wrapper_cls: Callable[..., T] | None = None) -> "JSON": ...
@@ -403,7 +414,7 @@ class Negative(Term):
 
     @property
     def is_aggregate(self) -> bool | None:  # type:ignore[override]
-        return self.term.is_aggregate  # t2ype:ignore[has-type]
+        return self.term.is_aggregate
 
     def get_sql(self, **kwargs: Any) -> str:
         return "-{term}".format(term=self.term.get_sql(**kwargs))
