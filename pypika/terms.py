@@ -472,14 +472,14 @@ class JSON(Term):
         return BasicCriterion(
             JSONOperators.GET_JSON_VALUE,
             self,
-            self.wrap_constant(key_or_index),  # type:ignore[arg-type]
+            self.wrap_constant(key_or_index),
         )
 
     def get_text_value(self, key_or_index: str | int) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.GET_TEXT_VALUE,
             self,
-            self.wrap_constant(key_or_index),  # type:ignore[arg-type]
+            self.wrap_constant(key_or_index),
         )
 
     def get_path_json_value(self, path_json: str) -> "BasicCriterion":
