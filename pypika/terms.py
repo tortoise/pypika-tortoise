@@ -24,7 +24,7 @@ from pypika.exceptions import CaseException, FunctionException
 from pypika.utils import builder, format_alias_sql, format_quotes, ignore_copy, resolve_is_aggregate
 
 if TYPE_CHECKING:
-    from pypika.queries import QueryBuilder, Selectable, Table
+    from pypika.queries import Selectable, Table
 
     if sys.version_info >= (3, 11):
         from typing import Self
@@ -99,12 +99,8 @@ class Term(Node):
         return wrapper_cls(val)  # type:ignore[return-value]
 
     @staticmethod
-    def wrap_json(
-        val: "Term" | "QueryBuilder" | "Interval" | None | str | int | bool, wrapper_cls=None
-    ) -> "Term" | "QueryBuilder" | "Interval" | "NullValue" | "ValueWrapper" | "JSON":
-        from .queries import QueryBuilder
-
-        if isinstance(val, (Term, QueryBuilder, Interval)):
+    def wrap_json(val: Any, wrapper_cls=None) -> "Term":
+        if isinstance(val, Term):
             return val
         if val is None:
             return NullValue()
@@ -490,35 +486,35 @@ class JSON(Term):
         return BasicCriterion(
             JSONOperators.GET_PATH_JSON_VALUE,
             self,
-            self.wrap_json(path_json),  # type:ignore[arg-type]
+            self.wrap_json(path_json),
         )
 
     def get_path_text_value(self, path_json: str) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.GET_PATH_TEXT_VALUE,
             self,
-            self.wrap_json(path_json),  # type:ignore[arg-type]
+            self.wrap_json(path_json),
         )
 
     def has_key(self, other: Any) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.HAS_KEY,
             self,
-            self.wrap_json(other),  # type:ignore[arg-type]
+            self.wrap_json(other),
         )
 
     def contains(self, other: Any) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.CONTAINS,
             self,
-            self.wrap_json(other),  # type:ignore[arg-type]
+            self.wrap_json(other),
         )
 
     def contained_by(self, other: Any) -> "BasicCriterion":
         return BasicCriterion(
             JSONOperators.CONTAINED_BY,
             self,
-            self.wrap_json(other),  # type:ignore[arg-type]
+            self.wrap_json(other),
         )
 
     def has_keys(self, other: Iterable) -> "BasicCriterion":
@@ -1624,7 +1620,7 @@ class IgnoreNullsAnalyticFunction(AnalyticFunction):
         return None
 
 
-class Interval(Node):
+class Interval(Term):
     templates = {
         # PostgreSQL, Redshift and Vertica require quotes around the expr and unit e.g. INTERVAL '1 week'
         Dialects.POSTGRESQL: "INTERVAL '{expr} {unit}'",
