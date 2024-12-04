@@ -48,7 +48,7 @@ class Node:
 
 
 class Term(Node):
-    is_aggregate: bool | None = False  # type:ignore[assignment]
+    is_aggregate: bool | None = False
 
     def __init__(self, alias: str | None = None) -> None:
         self.alias = alias
@@ -351,7 +351,7 @@ class Negative(Term):
 
     @property
     def is_aggregate(self) -> bool | None:  # type:ignore[override]
-        return self.term.is_aggregate  # type:ignore[has-type]
+        return self.term.is_aggregate
 
     def get_sql(self, **kwargs: Any) -> str:
         return "-{term}".format(term=self.term.get_sql(**kwargs))
@@ -580,7 +580,7 @@ class Criterion(Term):
 
         return crit
 
-    def get_sql(self, **kwargs) -> str:  # type:ignore[override]
+    def get_sql(self, **kwargs) -> str:
         raise NotImplementedError()
 
 
@@ -632,7 +632,7 @@ class Field(Criterion, JSON):
             A copy of the field with the tables replaced.
         """
         if self.table == current_table:
-            self.table = new_table  # type:ignore[assignment]
+            self.table = new_table
 
     def get_sql(self, **kwargs: Any) -> str:  # type:ignore[override]
         with_alias = kwargs.pop("with_alias", False)
@@ -695,19 +695,15 @@ class Tuple(Criterion):
     def nodes_(self) -> Iterator[NodeT]:
         yield self  # type:ignore[misc]
         for value in self.values:
-            yield from value.nodes_()  # type:ignore[union-attr]
+            yield from value.nodes_()
 
     def get_sql(self, **kwargs: Any) -> str:
-        sql = "({})".format(
-            ",".join(term.get_sql(**kwargs) for term in self.values)  # type:ignore[union-attr]
-        )
+        sql = "({})".format(",".join(term.get_sql(**kwargs) for term in self.values))
         return format_alias_sql(sql, self.alias, **kwargs)
 
     @property
     def is_aggregate(self) -> bool | None:  # type:ignore[override]
-        return resolve_is_aggregate(
-            [val.is_aggregate for val in self.values]  # type:ignore[has-type,union-attr]
-        )
+        return resolve_is_aggregate([val.is_aggregate for val in self.values])
 
     @builder
     def replace_table(  # type:ignore[return]
@@ -723,10 +719,7 @@ class Tuple(Criterion):
         :return:
             A copy of the field with the tables replaced.
         """
-        self.values = [
-            value.replace_table(current_table, new_table)  # type:ignore[misc,union-attr]
-            for value in self.values
-        ]
+        self.values = [value.replace_table(current_table, new_table) for value in self.values]
 
 
 class Array(Tuple):
@@ -737,9 +730,7 @@ class Array(Tuple):
     def get_sql(self, parameterizer: Parameterizer | None = None, **kwargs: Any) -> str:
         if parameterizer is None or not parameterizer.should_parameterize(self.original_value):
             dialect = kwargs.get("dialect", None)
-            values = ",".join(
-                term.get_sql(**kwargs) for term in self.values
-            )  # type:ignore[union-attr]
+            values = ",".join(term.get_sql(**kwargs) for term in self.values)
 
             sql = "[{}]".format(values)
             if dialect in (Dialects.POSTGRESQL, Dialects.REDSHIFT):
@@ -851,7 +842,7 @@ class BasicCriterion(Criterion):
 
     @property
     def is_aggregate(self) -> bool | None:  # type:ignore[override]
-        aggrs = [term.is_aggregate for term in (self.left, self.right)]  # type:ignore[has-type]
+        aggrs = [term.is_aggregate for term in (self.left, self.right)]
         return resolve_is_aggregate(aggrs)
 
     @builder
@@ -952,7 +943,7 @@ class RangeCriterion(Criterion):
 
     @property
     def is_aggregate(self) -> bool | None:  # type:ignore[override]
-        return self.term.is_aggregate  # type:ignore[has-type]
+        return self.term.is_aggregate
 
 
 class BetweenCriterion(RangeCriterion):
@@ -1217,7 +1208,7 @@ class Case(Term):
         # True if all criterions/cases are True or None. None all cases are None. Otherwise, False
         return resolve_is_aggregate(
             [criterion.is_aggregate or term.is_aggregate for criterion, term in self._cases]
-            + [self._else.is_aggregate if self._else else None]  # type:ignore[has-type]
+            + [self._else.is_aggregate if self._else else None]
         )
 
     @builder
@@ -1373,7 +1364,7 @@ class Function(Criterion):
     def nodes_(self) -> Iterator[NodeT]:
         yield self  # type:ignore[misc]
         for arg in self.args:
-            yield from arg.nodes_()  # type:ignore[union-attr]
+            yield from arg.nodes_()
 
     @property
     def is_aggregate(self) -> bool | None:  # type:ignore[override]
@@ -1383,9 +1374,7 @@ class Function(Criterion):
         :returns:
             True if the function accepts one argument and that argument is aggregate.
         """
-        return resolve_is_aggregate(
-            [arg.is_aggregate for arg in self.args]  # type:ignore[has-type,union-attr]
-        )
+        return resolve_is_aggregate([arg.is_aggregate for arg in self.args])
 
     @builder
     def replace_table(  # type:ignore[return]
@@ -1401,10 +1390,7 @@ class Function(Criterion):
         :return:
             A copy of the criterion with the tables replaced.
         """
-        self.args = [
-            param.replace_table(current_table, new_table)  # type:ignore[misc,union-attr]
-            for param in self.args
-        ]
+        self.args = [param.replace_table(current_table, new_table) for param in self.args]
 
     def get_special_params_sql(self, **kwargs: Any) -> Any:
         pass

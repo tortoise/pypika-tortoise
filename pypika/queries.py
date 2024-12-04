@@ -944,9 +944,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._wheres.replace_table(current_table, new_table) if self._wheres else None
         )
         self._prewheres = (
-            self._prewheres.replace_table(current_table, new_table)  # type:ignore[assignment]
-            if self._prewheres
-            else None
+            self._prewheres.replace_table(current_table, new_table) if self._prewheres else None
         )
         self._groupbys = [
             groupby.replace_table(current_table, new_table) for groupby in self._groupbys
@@ -1090,7 +1088,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         if self._prewheres:
             self._prewheres &= criterion
         else:
-            self._prewheres = criterion  # type:ignore[assignment]
+            self._prewheres = criterion
 
     @builder
     def where(self, criterion: Term | EmptyCriterion) -> "Self":  # type:ignore[return]
@@ -1100,7 +1098,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             if not self._validate_table(criterion):
                 self._foreign_table = True
             if self._wheres:
-                self._wheres &= criterion  # type:ignore[assignment,operator]
+                self._wheres &= criterion  # type: ignore
             else:
                 self._wheres = criterion
         else:
@@ -1122,18 +1120,18 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     @builder
     def having(self, criterion: Criterion) -> "Self":  # type:ignore[return]
         if self._havings:
-            self._havings &= criterion  # type:ignore[operator]
+            self._havings &= criterion
         else:
-            self._havings = criterion  # type:ignore[assignment]
+            self._havings = criterion
 
     @builder
     def groupby(self, *terms: str | int | Term) -> "Self":  # type:ignore[return]
         for term in terms:
             if isinstance(term, str):
-                term = Field(term, table=self._from[0])  # type:ignore[assignment]
+                term = Field(term, table=self._from[0])
             elif isinstance(term, int):
                 field = Field(str(term), table=self._from[0])
-                term = field.wrap_constant(term)  # type:ignore[assignment]
+                term = field.wrap_constant(term)
 
             self._groupbys.append(term)  # type:ignore[arg-type]
 
@@ -1167,7 +1165,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
 
         elif 0 < len(self._groupbys) and isinstance(self._groupbys[-1], Rollup):
             # If a rollup was added last, then append the new terms to the previous rollup
-            self._groupbys[-1].args += terms  # type:ignore[arg-type]
+            self._groupbys[-1].args += terms
 
         else:
             self._groupbys.append(Rollup(*terms))  # type:ignore[arg-type]
@@ -2201,7 +2199,7 @@ class CreateQueryBuilder:
         return "CREATE {table_type}TABLE {if_not_exists}{table}".format(
             table_type=table_type,
             if_not_exists=if_not_exists,
-            table=self._create_table.get_sql(**kwargs),  # type:ignore[attr-defined,union-attr]
+            table=self._create_table.get_sql(**kwargs),  # type: ignore
         )
 
     def _table_options_sql(self, **kwargs) -> str:

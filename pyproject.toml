@@ -41,6 +41,7 @@ target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
 pretty = true
 python_version = "3.8"
 ignore_missing_imports = true
+warn_unused_ignores = true
 
 [tool.ruff]
 line-length = 100
