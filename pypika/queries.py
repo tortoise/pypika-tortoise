@@ -16,6 +16,7 @@ from pypika.terms import (
     Index,
     Node,
     Order,
+    Parameterizer,
     PeriodCriterion,
     Rollup,
     Star,
@@ -1562,6 +1563,16 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             + clause.get_sql(subquery=False, with_alias=False, **kwargs)
             + ") "
             for clause in self._with
+        )
+
+    def get_parameterized_sql(self, **kwargs) -> tuple[str, list]:
+        """
+        Returns a tuple containing the query string and a list of parameters
+        """
+        parameterizer = kwargs.pop("parameterizer", Parameterizer())
+        return (
+            self.get_sql(parameterizer=parameterizer, **kwargs),
+            parameterizer.values,
         )
 
     def _distinct_sql(self, **kwargs: Any) -> str:

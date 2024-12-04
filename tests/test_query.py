@@ -11,7 +11,7 @@ from pypika.dialects import (
     SQLLiteQuery,
     SQLLiteQueryBuilder,
 )
-from pypika.queries import CreateQueryBuilder, DropQueryBuilder, QueryBuilder
+from pypika.queries import CreateQueryBuilder, DropQueryBuilder, QueryBuilder, Table
 
 
 class QueryTablesTests(unittest.TestCase):
@@ -209,3 +209,10 @@ class QueryBuilderTests(unittest.TestCase):
         self.assertIsNot(qb._on_conflict_fields, qb2._on_conflict_fields)
         self.assertEqual(qb._on_conflict_do_updates, qb2._on_conflict_do_updates)
         self.assertIsNot(qb._on_conflict_do_updates, qb2._on_conflict_do_updates)
+
+    def test_get_parameterized_sql(self):
+        table = Table("abc")
+        q = QueryBuilder().from_(table).select("foo").where(table.bar == 1)
+        sql, params = q.get_parameterized_sql()
+        self.assertEqual('SELECT "foo" FROM "abc" WHERE "bar"=?', sql)
+        self.assertEqual([1], params)

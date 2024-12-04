@@ -5,25 +5,20 @@
 [![image](https://github.com/tortoise/pypika-tortoise/workflows/pypi/badge.svg)](https://github.com/tortoise/pypika-tortoise/actions?query=workflow:pypi)
 [![image](https://github.com/tortoise/pypika-tortoise/workflows/ci/badge.svg)](https://github.com/tortoise/pypika-tortoise/actions?query=workflow:ci)
 
-Forked from [pypika](https://github.com/kayak/pypika) and streamline just for tortoise-orm.
+Forked from [pypika](https://github.com/kayak/pypika) and adapted just for tortoise-orm.
 
 ## Why forked?
 
-The original repo include many databases that tortoise-orm don't need, and which aims to be a perfect sql builder and
-should consider more compatibilities, but tortoise-orm is not, and we need add new features and update it ourselves.
+The original repository includes many databases that Tortoise ORM doesn’t require. It aims to be a comprehensive SQL builder with broad compatibility, but that’s not the goal for Tortoise ORM. Having it forked makes it easier to add new features for Tortoise.
 
-## What change?
+## What changed?
 
-Delete many codes that tortoise-orm don't need, and add features just tortoise-orm considers to.
-
-## What affect tortoise-orm?
-
-Nothing, because this repo keeps the original struct and code.
+Deleted unnecessary code that Tortoise ORM doesn’t require, and added features tailored specifically for Tortoise ORM.
 
 ## ThanksTo
 
-- [pypika](https://github.com/kayak/pypika), a python SQL query builder that exposes the full richness of the SQL
-  language using a syntax that reflects the resulting query.
+- [pypika](https://github.com/kayak/pypika), a Python SQL query builder that exposes the full expressiveness of SQL, 
+using a syntax that mirrors the resulting query structure.
 
 ## License
 
