@@ -138,7 +138,7 @@ class Term(Node):
         return self.isnull().negate()
 
     def bitwiseand(self, value: int) -> "BitwiseAndCriterion":
-        return BitwiseAndCriterion(self, self.wrap_constant(value))  # type:ignore[arg-type]
+        return BitwiseAndCriterion(self, self.wrap_constant(value))
 
     def gt(self, other: Any) -> "BasicCriterion":
         return self > other
@@ -156,54 +156,34 @@ class Term(Node):
         return self != other
 
     def glob(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.glob, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.glob, self, self.wrap_constant(expr))
 
     def like(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.like, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.like, self, self.wrap_constant(expr))
 
     def not_like(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.not_like, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.not_like, self, self.wrap_constant(expr))
 
     def ilike(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.ilike, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.ilike, self, self.wrap_constant(expr))
 
     def not_ilike(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.not_ilike, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.not_ilike, self, self.wrap_constant(expr))
 
     def rlike(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.rlike, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.rlike, self, self.wrap_constant(expr))
 
     def regex(self, pattern: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.regex, self, self.wrap_constant(pattern)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.regex, self, self.wrap_constant(pattern))
 
     def between(self, lower: Any, upper: Any) -> "BetweenCriterion":
-        return BetweenCriterion(
-            self, self.wrap_constant(lower), self.wrap_constant(upper)  # type:ignore[arg-type]
-        )
+        return BetweenCriterion(self, self.wrap_constant(lower), self.wrap_constant(upper))
 
     def from_to(self, start: Any, end: Any) -> "PeriodCriterion":
-        return PeriodCriterion(
-            self, self.wrap_constant(start), self.wrap_constant(end)  # type:ignore[arg-type]
-        )
+        return PeriodCriterion(self, self.wrap_constant(start), self.wrap_constant(end))
 
     def as_of(self, expr: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.as_of, self, self.wrap_constant(expr)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.as_of, self, self.wrap_constant(expr))
 
     def all_(self) -> "All":
         return All(self)
@@ -217,9 +197,7 @@ class Term(Node):
         return self.isin(arg).negate()
 
     def bin_regex(self, pattern: str) -> "BasicCriterion":
-        return BasicCriterion(
-            Matching.bin_regex, self, self.wrap_constant(pattern)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Matching.bin_regex, self, self.wrap_constant(pattern))
 
     def negate(self) -> "Not":
         return Not(self)
@@ -234,24 +212,16 @@ class Term(Node):
         return Negative(self)
 
     def __add__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.add, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.add, self, self.wrap_constant(other))
 
     def __sub__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.sub, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.sub, self, self.wrap_constant(other))
 
     def __mul__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.mul, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.mul, self, self.wrap_constant(other))
 
     def __truediv__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.div, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.div, self, self.wrap_constant(other))
 
     def __pow__(self, other: Any) -> "Pow":
         return Pow(self, other)
@@ -260,46 +230,34 @@ class Term(Node):
         return Mod(self, other)
 
     def __radd__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.add, self.wrap_constant(other), self  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.add, self.wrap_constant(other), self)
 
     def __rsub__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.sub, self.wrap_constant(other), self  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.sub, self.wrap_constant(other), self)
 
     def __rmul__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.mul, self.wrap_constant(other), self  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.mul, self.wrap_constant(other), self)
 
     def __rtruediv__(self, other: Any) -> "ArithmeticExpression":
-        return ArithmeticExpression(
-            Arithmetic.div, self.wrap_constant(other), self  # type:ignore[arg-type]
-        )
+        return ArithmeticExpression(Arithmetic.div, self.wrap_constant(other), self)
 
     def __eq__(self, other: Any) -> "BasicCriterion":  # type:ignore[override]
-        return BasicCriterion(Equality.eq, self, self.wrap_constant(other))  # type:ignore[arg-type]
+        return BasicCriterion(Equality.eq, self, self.wrap_constant(other))
 
     def __ne__(self, other: Any) -> "BasicCriterion":  # type:ignore[override]
-        return BasicCriterion(Equality.ne, self, self.wrap_constant(other))  # type:ignore[arg-type]
+        return BasicCriterion(Equality.ne, self, self.wrap_constant(other))
 
     def __gt__(self, other: Any) -> "BasicCriterion":
-        return BasicCriterion(Equality.gt, self, self.wrap_constant(other))  # type:ignore[arg-type]
+        return BasicCriterion(Equality.gt, self, self.wrap_constant(other))
 
     def __ge__(self, other: Any) -> "BasicCriterion":
-        return BasicCriterion(
-            Equality.gte, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Equality.gte, self, self.wrap_constant(other))
 
     def __lt__(self, other: Any) -> "BasicCriterion":
-        return BasicCriterion(Equality.lt, self, self.wrap_constant(other))  # type:ignore[arg-type]
+        return BasicCriterion(Equality.lt, self, self.wrap_constant(other))
 
     def __le__(self, other: Any) -> "BasicCriterion":
-        return BasicCriterion(
-            Equality.lte, self, self.wrap_constant(other)  # type:ignore[arg-type]
-        )
+        return BasicCriterion(Equality.lte, self, self.wrap_constant(other))
 
     def __getitem__(self, item: slice) -> "BetweenCriterion":
         if not isinstance(item, slice):
@@ -1295,7 +1253,7 @@ class Case(Term):
 
     @builder
     def else_(self, term: Any) -> "Self":
-        self._else = self.wrap_constant(term)  # type:ignore[assignment]
+        self._else = self.wrap_constant(term)
         return self
 
     def get_sql(self, with_alias: bool = False, **kwargs: Any) -> str:
