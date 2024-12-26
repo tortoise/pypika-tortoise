@@ -1,8 +1,8 @@
 import unittest
 
-from pypika import Case, Field, Table
-from pypika import functions as fn
-from pypika.terms import Negative, ValueWrapper
+from pypika_tortoise import Case, Field, Table
+from pypika_tortoise import functions as fn
+from pypika_tortoise.terms import Negative, ValueWrapper
 
 
 class IsAggregateTests(unittest.TestCase):

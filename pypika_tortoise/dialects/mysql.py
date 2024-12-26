@@ -4,10 +4,10 @@ import json
 from datetime import time
 from typing import Any, cast
 
-from pypika.enums import Dialects
-from pypika.queries import Query, QueryBuilder, Table
-from pypika.terms import ValueWrapper
-from pypika.utils import builder, format_alias_sql, format_quotes
+from ..enums import Dialects
+from ..queries import Query, QueryBuilder, Table
+from ..terms import ValueWrapper
+from ..utils import builder, format_alias_sql, format_quotes
 
 
 class MySQLQuery(Query):

@@ -1,6 +1,6 @@
 import unittest
 
-from pypika import MySQLQuery, Table
+from pypika_tortoise import MySQLQuery, Table
 
 
 class InsertTests(unittest.TestCase):

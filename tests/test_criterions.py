@@ -1,10 +1,10 @@
 import unittest
 from datetime import date, datetime
 
-from pypika import Criterion, EmptyCriterion, Field, Table
-from pypika import functions as fn
-from pypika.queries import QueryBuilder
-from pypika.terms import Mod
+from pypika_tortoise import Criterion, EmptyCriterion, Field, Table
+from pypika_tortoise import functions as fn
+from pypika_tortoise.queries import QueryBuilder
+from pypika_tortoise.terms import Mod
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"

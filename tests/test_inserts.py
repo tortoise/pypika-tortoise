@@ -1,12 +1,12 @@
 import unittest
 
-from pypika import AliasedQuery, Case
-from pypika import Field as F
-from pypika import MySQLQuery, PostgreSQLQuery, Query, Table, Tables
-from pypika import functions as fn
-from pypika.exceptions import QueryException
-from pypika.functions import Avg
-from pypika.terms import Values
+from pypika_tortoise import AliasedQuery, Case
+from pypika_tortoise import Field as F
+from pypika_tortoise import MySQLQuery, PostgreSQLQuery, Query, Table, Tables
+from pypika_tortoise import functions as fn
+from pypika_tortoise.exceptions import QueryException
+from pypika_tortoise.functions import Avg
+from pypika_tortoise.terms import Values
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"

@@ -1,7 +1,7 @@
 import unittest
 
-from pypika import Table
-from pypika.dialects import SQLLiteQuery
+from pypika_tortoise import Table
+from pypika_tortoise.dialects import SQLLiteQuery
 
 
 class SelectTests(unittest.TestCase):

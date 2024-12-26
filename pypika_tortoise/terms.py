@@ -9,7 +9,7 @@ from datetime import date, time
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, Sequence, Type, TypeVar, cast
 
-from pypika.enums import (
+from .enums import (
     Arithmetic,
     Boolean,
     Comparator,
@@ -20,11 +20,11 @@ from pypika.enums import (
     Matching,
     Order,
 )
-from pypika.exceptions import CaseException, FunctionException
-from pypika.utils import builder, format_alias_sql, format_quotes, ignore_copy, resolve_is_aggregate
+from .exceptions import CaseException, FunctionException
+from .utils import builder, format_alias_sql, format_quotes, ignore_copy, resolve_is_aggregate
 
 if TYPE_CHECKING:
-    from pypika.queries import QueryBuilder, Selectable, Table
+    from .queries import QueryBuilder, Selectable, Table
 
     if sys.version_info >= (3, 11):
         from typing import Self
@@ -59,7 +59,7 @@ class Term(Node):
 
     @property
     def tables_(self) -> set["Table"]:
-        from pypika import Table
+        from . import Table
 
         return set(self.find_(Table))
 

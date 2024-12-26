@@ -1,8 +1,8 @@
 import unittest
 
-from pypika import Field as F
-from pypika import Interval
-from pypika.enums import Dialects
+from pypika_tortoise import Field as F
+from pypika_tortoise import Interval
+from pypika_tortoise.enums import Dialects
 
 dt = F("dt")
 

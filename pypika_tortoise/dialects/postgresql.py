@@ -5,11 +5,11 @@ import sys
 from copy import copy
 from typing import TYPE_CHECKING, Any
 
-from pypika.enums import Dialects
-from pypika.exceptions import QueryException
-from pypika.queries import Query, QueryBuilder
-from pypika.terms import ArithmeticExpression, Field, Function, Star, Term
-from pypika.utils import builder
+from ..enums import Dialects
+from ..exceptions import QueryException
+from ..queries import Query, QueryBuilder
+from ..terms import ArithmeticExpression, Field, Function, Star, Term
+from ..utils import builder
 
 if TYPE_CHECKING:
     if sys.version_info >= (3, 11):

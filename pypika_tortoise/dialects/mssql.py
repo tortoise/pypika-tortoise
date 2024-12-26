@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pypika.enums import Dialects
-from pypika.exceptions import QueryException
-from pypika.queries import Query, QueryBuilder
-from pypika.terms import ValueWrapper
-from pypika.utils import builder
+from ..enums import Dialects
+from ..exceptions import QueryException
+from ..queries import Query, QueryBuilder
+from ..terms import ValueWrapper
+from ..utils import builder
 
 
 class MSSQLQuery(Query):

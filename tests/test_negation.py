@@ -1,8 +1,8 @@
 import unittest
 
-from pypika import Tables
-from pypika import functions as fn
-from pypika.terms import ValueWrapper
+from pypika_tortoise import Tables
+from pypika_tortoise import functions as fn
+from pypika_tortoise.terms import ValueWrapper
 
 
 class NegationTests(unittest.TestCase):

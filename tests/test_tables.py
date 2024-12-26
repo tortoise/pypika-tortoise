@@ -1,7 +1,16 @@
-# from pypika.terms import ValueWrapper, SystemTimeValue
+# from pypika_tortoise.terms import ValueWrapper, SystemTimeValue
 import unittest
 
-from pypika import SYSTEM_TIME, Database, Dialects, Query, Schema, SQLLiteQuery, Table, Tables
+from pypika_tortoise import (
+    SYSTEM_TIME,
+    Database,
+    Dialects,
+    Query,
+    Schema,
+    SQLLiteQuery,
+    Table,
+    Tables,
+)
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"

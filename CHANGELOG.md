@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 0.4
+
+### 0.4.0
+- Rename package name from `pypika` to `pypika_tortoise`
+
 ## 0.3
 
 ### 0.3.2

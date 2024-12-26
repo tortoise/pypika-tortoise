@@ -1,7 +1,7 @@
 import unittest
 
-from pypika import Column, Columns, Query, Tables
-from pypika.terms import ValueWrapper
+from pypika_tortoise import Column, Columns, Query, Tables
+from pypika_tortoise.terms import ValueWrapper
 
 
 class CreateTableTests(unittest.TestCase):

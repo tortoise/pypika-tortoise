@@ -1,4 +1,4 @@
-checkfiles = pypika/ tests/ conftest.py
+checkfiles = pypika_tortoise/ tests/ conftest.py
 black_opts = -l 100 -t py38
 py_warn = PYTHONDEVMODE=1
 

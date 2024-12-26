@@ -1,6 +1,6 @@
 import unittest
 
-from pypika import (
+from pypika_tortoise import (
     SYSTEM_TIME,
     AliasedQuery,
     MySQLQuery,
@@ -13,7 +13,7 @@ from pypika import (
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"
 
-from pypika.terms import Star
+from pypika_tortoise.terms import Star
 
 
 class UpdateTests(unittest.TestCase):
