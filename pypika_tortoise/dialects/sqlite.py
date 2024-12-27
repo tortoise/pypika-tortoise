@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from pypika.enums import Dialects
-from pypika.queries import Query, QueryBuilder
-from pypika.terms import ValueWrapper
+from ..enums import Dialects
+from ..queries import Query, QueryBuilder
+from ..terms import ValueWrapper
 
 
 class SQLLiteValueWrapper(ValueWrapper):

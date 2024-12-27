@@ -1,7 +1,7 @@
 import unittest
 import uuid
 
-from pypika.terms import ValueWrapper
+from pypika_tortoise.terms import ValueWrapper
 
 
 class StringTests(unittest.TestCase):

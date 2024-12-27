@@ -1,13 +1,13 @@
 import unittest
 
-from pypika import Case, CaseException, DatePart
-from pypika import Field as F
-from pypika import Query
-from pypika import Query as Q
-from pypika import Schema
-from pypika import Table as T
-from pypika import functions as fn
-from pypika.enums import Dialects, SqlTypes
+from pypika_tortoise import Case, CaseException, DatePart
+from pypika_tortoise import Field as F
+from pypika_tortoise import Query
+from pypika_tortoise import Query as Q
+from pypika_tortoise import Schema
+from pypika_tortoise import Table as T
+from pypika_tortoise import functions as fn
+from pypika_tortoise.enums import Dialects, SqlTypes
 
 
 class FunctionTests(unittest.TestCase):

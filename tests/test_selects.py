@@ -2,9 +2,9 @@ import unittest
 from datetime import date, time
 from enum import Enum
 
-from pypika import SYSTEM_TIME, AliasedQuery, Case, EmptyCriterion
-from pypika import Field as F
-from pypika import (
+from pypika_tortoise import SYSTEM_TIME, AliasedQuery, Case, EmptyCriterion
+from pypika_tortoise import Field as F
+from pypika_tortoise import (
     Index,
     MySQLQuery,
     NullValue,
@@ -16,8 +16,8 @@ from pypika import (
     Table,
     Tables,
 )
-from pypika import functions as fn
-from pypika.terms import Field, ValueWrapper
+from pypika_tortoise import functions as fn
+from pypika_tortoise.terms import Field, ValueWrapper
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"

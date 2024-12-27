@@ -1,8 +1,8 @@
 import unittest
 
-from pypika import Array, Bracket, PostgreSQLQuery, Query, Table, Tables, Tuple
-from pypika.functions import Coalesce, NullIf, Sum
-from pypika.terms import Field, Parameterizer, Star
+from pypika_tortoise import Array, Bracket, PostgreSQLQuery, Query, Table, Tables, Tuple
+from pypika_tortoise.functions import Coalesce, NullIf, Sum
+from pypika_tortoise.terms import Field, Parameterizer, Star
 
 
 class TupleTests(unittest.TestCase):

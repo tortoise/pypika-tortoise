@@ -8,9 +8,9 @@ import sys
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from pypika.enums import SqlTypes
-from pypika.terms import AggregateFunction, Function, Star, Term
-from pypika.utils import builder
+from .enums import SqlTypes
+from .terms import AggregateFunction, Function, Star, Term
+from .utils import builder
 
 if TYPE_CHECKING:
     if sys.version_info >= (3, 11):

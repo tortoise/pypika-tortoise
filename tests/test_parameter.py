@@ -1,13 +1,13 @@
 import unittest
 from datetime import date
 
-from pypika import Parameter, Query, Tables, ValueWrapper
-from pypika.dialects.mssql import MSSQLQuery
-from pypika.dialects.mysql import MySQLQuery
-from pypika.dialects.postgresql import PostgreSQLQuery
-from pypika.enums import Dialects
-from pypika.functions import Upper
-from pypika.terms import Case, Parameterizer
+from pypika_tortoise import Parameter, Query, Tables, ValueWrapper
+from pypika_tortoise.dialects.mssql import MSSQLQuery
+from pypika_tortoise.dialects.mysql import MySQLQuery
+from pypika_tortoise.dialects.postgresql import PostgreSQLQuery
+from pypika_tortoise.enums import Dialects
+from pypika_tortoise.functions import Upper
+from pypika_tortoise.terms import Case, Parameterizer
 
 
 class ParametrizedTests(unittest.TestCase):

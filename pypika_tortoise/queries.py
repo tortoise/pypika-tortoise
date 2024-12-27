@@ -5,9 +5,9 @@ from copy import copy
 from functools import reduce
 from typing import TYPE_CHECKING, Any, Sequence, Type, cast, overload
 
-from pypika.enums import Dialects, JoinType, SetOperation
-from pypika.exceptions import JoinException, QueryException, RollupException, SetOperationException
-from pypika.terms import (
+from .enums import Dialects, JoinType, SetOperation
+from .exceptions import JoinException, QueryException, RollupException, SetOperationException
+from .terms import (
     ArithmeticExpression,
     Criterion,
     EmptyCriterion,
@@ -24,7 +24,7 @@ from pypika.terms import (
     Tuple,
     ValueWrapper,
 )
-from pypika.utils import builder, format_alias_sql, format_quotes, ignore_copy
+from .utils import builder, format_alias_sql, format_quotes, ignore_copy
 
 if TYPE_CHECKING:
     if sys.version_info >= (3, 11):

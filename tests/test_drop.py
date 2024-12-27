@@ -1,6 +1,6 @@
 import unittest
 
-from pypika import Columns, Query, Tables
+from pypika_tortoise import Columns, Query, Tables
 
 
 class DropTableTests(unittest.TestCase):

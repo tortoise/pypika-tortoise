@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from pypika import Field, Query, Table
-from pypika.terms import AtTimezone, Parameterizer, ValueWrapper
+from pypika_tortoise import Field, Query, Table
+from pypika_tortoise.terms import AtTimezone, Parameterizer, ValueWrapper
 
 
 class FieldAliasTests(TestCase):

@@ -1,7 +1,7 @@
 import unittest
 
-from pypika import Query, Tables
-from pypika import functions as fn
+from pypika_tortoise import Query, Tables
+from pypika_tortoise import functions as fn
 
 
 class QuoteTests(unittest.TestCase):
