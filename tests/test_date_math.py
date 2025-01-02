@@ -3,9 +3,9 @@ import unittest
 from pypika_tortoise import Field as F
 from pypika_tortoise import Interval
 from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
-from pypika_tortoise.dialects.mysql import MySQLQueryBuilder
-from pypika_tortoise.dialects.oracle import OracleQueryBuilder
-from pypika_tortoise.dialects.postgresql import PostgreSQLQueryBuilder
+from pypika_tortoise.dialects.mysql import MySQLQuery
+from pypika_tortoise.dialects.oracle import OracleQuery
+from pypika_tortoise.dialects.postgresql import PostgreSQLQuery
 
 dt = F("dt")
 
@@ -126,15 +126,15 @@ class AddIntervalMultipleUnitsTests(unittest.TestCase):
 
 class DialectIntervalTests(unittest.TestCase):
     def test_mysql_dialect_uses_single_quotes_around_expression_in_an_interval(self):
-        c = Interval(days=1).get_sql(MySQLQueryBuilder.SQL_CONTEXT)
+        c = Interval(days=1).get_sql(MySQLQuery.SQL_CONTEXT)
         self.assertEqual("INTERVAL '1' DAY", c)
 
     def test_oracle_dialect_uses_single_quotes_around_expression_in_an_interval(self):
-        c = Interval(days=1).get_sql(OracleQueryBuilder.SQL_CONTEXT)
+        c = Interval(days=1).get_sql(OracleQuery.SQL_CONTEXT)
         self.assertEqual("INTERVAL '1' DAY", c)
 
     def test_postgresql_dialect_uses_single_quotes_around_interval(self):
-        c = Interval(days=1).get_sql(PostgreSQLQueryBuilder.SQL_CONTEXT)
+        c = Interval(days=1).get_sql(PostgreSQLQuery.SQL_CONTEXT)
         self.assertEqual("INTERVAL '1 DAY'", c)
 
 

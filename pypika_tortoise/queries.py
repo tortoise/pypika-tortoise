@@ -386,6 +386,8 @@ class Query:
     This class is immutable.
     """
 
+    SQL_CONTEXT: SqlContext = DEFAULT_SQL_CONTEXT
+
     @classmethod
     def _builder(cls, **kwargs: Any) -> "QueryBuilder":
         return QueryBuilder(**kwargs)
@@ -597,7 +599,7 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
         # Default to the base query's dialect and quote_char
         ctx = ctx.copy(
             dialect=self.base_query.dialect,
-            quote_char=self.base_query.SQL_CONTEXT.quote_char,
+            quote_char=self.base_query.QUERY_CLS.SQL_CONTEXT.quote_char,
             parameterizer=ctx.parameterizer,
         )
         set_ctx = ctx.copy(subquery=self.base_query.wrap_set_operation_queries)
@@ -680,7 +682,6 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     state to be branched immutably.
     """
 
-    SQL_CONTEXT: SqlContext = DEFAULT_SQL_CONTEXT
     QUERY_CLS = Query
 
     def __init__(
@@ -1372,7 +1373,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             )
 
     def __str__(self) -> str:
-        return self.get_sql(self.SQL_CONTEXT)
+        return self.get_sql(self.QUERY_CLS.SQL_CONTEXT)
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -1388,7 +1389,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
 
     def get_sql(self, ctx: SqlContext | None = None) -> str:
         if not ctx:
-            ctx = self.SQL_CONTEXT
+            ctx = self.QUERY_CLS.SQL_CONTEXT
 
         if not (self._selects or self._insert_table or self._delete_from or self._update_table):
             return ""
@@ -1549,7 +1550,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         Returns a tuple containing the query string and a list of parameters
         """
         if not ctx:
-            ctx = self.SQL_CONTEXT
+            ctx = self.QUERY_CLS.SQL_CONTEXT
 
         if not ctx.parameterizer:
             ctx = ctx.copy(parameterizer=Parameterizer())
@@ -1938,7 +1939,6 @@ class CreateQueryBuilder:
     Query builder used to build CREATE queries.
     """
 
-    SQL_CONTEXT: SqlContext = DEFAULT_SQL_CONTEXT
     QUERY_CLS = Query
 
     def __init__(self, dialect: Dialects | None = None) -> None:
@@ -2124,7 +2124,7 @@ class CreateQueryBuilder:
         :return: The create table statement.
         :rtype: str
         """
-        ctx = ctx or self.SQL_CONTEXT
+        ctx = ctx or self.QUERY_CLS.SQL_CONTEXT
 
         if not self._create_table:
             return ""
@@ -2206,7 +2206,7 @@ class CreateQueryBuilder:
         )
 
     def __str__(self) -> str:
-        return self.get_sql(self.SQL_CONTEXT)
+        return self.get_sql(self.QUERY_CLS.SQL_CONTEXT)
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -2254,7 +2254,7 @@ class DropQueryBuilder:
         )
 
     def __str__(self) -> str:
-        return self.get_sql(self.SQL_CONTEXT)
+        return self.get_sql(self.QUERY_CLS.SQL_CONTEXT)
 
     def __repr__(self) -> str:
         return self.__str__()

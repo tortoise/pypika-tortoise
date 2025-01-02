@@ -20,20 +20,21 @@ class SQLLiteQuery(Query):
     Defines a query class for use with Microsoft SQL Server.
     """
 
+    SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.SQLITE)
+
     @classmethod
     def _builder(cls, **kwargs: Any) -> "SQLLiteQueryBuilder":
         return SQLLiteQueryBuilder(**kwargs)
 
 
 class SQLLiteQueryBuilder(QueryBuilder):
-    SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.SQLITE)
     QUERY_CLS = SQLLiteQuery
 
     def __init__(self, **kwargs) -> None:
         super().__init__(wrapper_cls=SQLLiteValueWrapper, **kwargs)
 
     def get_sql(self, ctx: SqlContext | None = None) -> str:  # type:ignore[override]
-        ctx = ctx or self.SQL_CONTEXT
+        ctx = ctx or SQLLiteQuery.SQL_CONTEXT
         if not (self._selects or self._insert_table or self._delete_from or self._update_table):
             return ""
         if self._insert_table and not (self._selects or self._values):

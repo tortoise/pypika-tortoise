@@ -15,13 +15,14 @@ class MSSQLQuery(Query):
     Defines a query class for use with Microsoft SQL Server.
     """
 
+    SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.MSSQL)
+
     @classmethod
     def _builder(cls, **kwargs: Any) -> "MSSQLQueryBuilder":
         return MSSQLQueryBuilder(**kwargs)
 
 
 class MSSQLQueryBuilder(QueryBuilder):
-    SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.MSSQL)
     QUERY_CLS = MSSQLQuery
 
     def __init__(self, **kwargs: Any) -> None:
@@ -73,7 +74,7 @@ class MSSQLQueryBuilder(QueryBuilder):
 
     def get_sql(self, ctx: SqlContext | None = None) -> str:
         if not ctx:
-            ctx = self.SQL_CONTEXT
+            ctx = MSSQLQuery.SQL_CONTEXT
         # MSSQL does not support group by a field alias.
         # Note: set directly in kwargs as they are re-used down the tree in the case of subqueries!
         ctx = ctx.copy(groupby_alias=False)

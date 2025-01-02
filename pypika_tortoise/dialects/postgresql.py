@@ -24,13 +24,14 @@ class PostgreSQLQuery(Query):
     Defines a query class for use with PostgreSQL.
     """
 
+    SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.POSTGRESQL, alias_quote_char='"')
+
     @classmethod
     def _builder(cls, **kwargs) -> "PostgreSQLQueryBuilder":
         return PostgreSQLQueryBuilder(**kwargs)
 
 
 class PostgreSQLQueryBuilder(QueryBuilder):
-    SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.POSTGRESQL, alias_quote_char='"')
     QUERY_CLS = PostgreSQLQuery
 
     def __init__(self, **kwargs: Any) -> None:
@@ -155,7 +156,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         has_reference_to_foreign_table = self._foreign_table
         has_update_from = self._update_table and self._from
 
-        ctx = ctx or self.SQL_CONTEXT
+        ctx = ctx or PostgreSQLQuery.SQL_CONTEXT
         ctx = ctx.copy(
             with_namespace=any(
                 [

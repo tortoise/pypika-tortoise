@@ -172,36 +172,36 @@ class TableDialectTests(unittest.TestCase):
     def test_table_with_default_query_cls(self):
         table = Table("abc")
         q = table.select("1")
-        self.assertIs(q.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_table_with_dialect_query_cls(self):
         table = Table("abc", query_cls=SQLLiteQuery)
         q = table.select("1")
-        self.assertIs(q.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_table_factory_with_default_query_cls(self):
         table = Query.Table("abc")
         q = table.select("1")
-        self.assertIs(q.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_table_factory_with_dialect_query_cls(self):
         table = SQLLiteQuery.Table("abc")
         q = table.select("1")
-        self.assertIs(q.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_make_tables_factory_with_default_query_cls(self):
         t1, t2 = Query.Tables("abc", "def")
         q1 = t1.select("1")
         q2 = t2.select("2")
-        self.assertIs(q1.SQL_CONTEXT.dialect, Dialects.SQLITE)
-        self.assertIs(q2.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q1.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q2.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_make_tables_factory_with_dialect_query_cls(self):
         t1, t2 = SQLLiteQuery.Tables("abc", "def")
         q1 = t1.select("1")
         q2 = t2.select("2")
-        self.assertIs(q1.SQL_CONTEXT.dialect, Dialects.SQLITE)
-        self.assertIs(q2.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q1.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q2.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_table_with_bad_query_cls(self):
         with self.assertRaises(TypeError):

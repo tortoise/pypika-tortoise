@@ -8,16 +8,14 @@ from pypika_tortoise import Schema
 from pypika_tortoise import Table as T
 from pypika_tortoise import functions as fn
 from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
-from pypika_tortoise.dialects.postgresql import PostgreSQLQueryBuilder
+from pypika_tortoise.dialects.postgresql import PostgreSQLQuery
 from pypika_tortoise.enums import SqlTypes
 
 
 class FunctionTests(unittest.TestCase):
     def test_dialect_propagation(self):
         func = fn.Function("func", ["a"], ["b"])
-        self.assertEqual(
-            "func(ARRAY['a'],ARRAY['b'])", func.get_sql(PostgreSQLQueryBuilder.SQL_CONTEXT)
-        )
+        self.assertEqual("func(ARRAY['a'],ARRAY['b'])", func.get_sql(PostgreSQLQuery.SQL_CONTEXT))
 
     def test_is_aggregate_None_for_non_aggregate_function_or_function_with_no_aggregate_functions(
         self,

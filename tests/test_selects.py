@@ -655,7 +655,7 @@ class GroupByTests(unittest.TestCase):
         ]:
             q = query_cls.from_(self.t).select(fn.Sum(self.t.foo), bar).groupby(bar)
 
-            quote_char = query_cls._builder().SQL_CONTEXT.quote_char
+            quote_char = query_cls.SQL_CONTEXT.quote_char
 
             self.assertEqual(
                 "SELECT "

@@ -16,6 +16,8 @@ class MySQLQuery(Query):
     Defines a query class for use with MySQL.
     """
 
+    SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.MYSQL, quote_char="`")
+
     @classmethod
     def _builder(cls, **kwargs: Any) -> "MySQLQueryBuilder":
         return MySQLQueryBuilder(**kwargs)
@@ -42,7 +44,6 @@ class MySQLValueWrapper(ValueWrapper):
 
 
 class MySQLQueryBuilder(QueryBuilder):
-    SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.MYSQL, quote_char="`")
     QUERY_CLS = MySQLQuery
 
     def __init__(self, **kwargs: Any) -> None:
@@ -60,7 +61,7 @@ class MySQLQueryBuilder(QueryBuilder):
         return format_alias_sql("", self.alias, ctx)
 
     def get_sql(self, ctx: SqlContext | None = None) -> str:
-        ctx = ctx or self.SQL_CONTEXT
+        ctx = ctx or MySQLQuery.SQL_CONTEXT
         querystring = super().get_sql(ctx)
         if querystring and self._update_table:
             if self._orderbys:
@@ -140,7 +141,7 @@ class MySQLLoadQueryBuilder:
 
     def get_sql(self, ctx: SqlContext | None = None) -> str:
         if not ctx:
-            ctx = MySQLQueryBuilder.SQL_CONTEXT
+            ctx = MySQLQuery.SQL_CONTEXT
 
         querystring = ""
         if self._load_file and self._into_table:

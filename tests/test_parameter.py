@@ -3,11 +3,11 @@ from datetime import date
 
 from pypika_tortoise import Parameter, Query, Tables, ValueWrapper
 from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
-from pypika_tortoise.dialects.mssql import MSSQLQuery, MSSQLQueryBuilder
-from pypika_tortoise.dialects.mysql import MySQLQuery, MySQLQueryBuilder
-from pypika_tortoise.dialects.oracle import OracleQueryBuilder
-from pypika_tortoise.dialects.postgresql import PostgreSQLQuery, PostgreSQLQueryBuilder
-from pypika_tortoise.dialects.sqlite import SQLLiteQueryBuilder
+from pypika_tortoise.dialects.mssql import MSSQLQuery
+from pypika_tortoise.dialects.mysql import MySQLQuery
+from pypika_tortoise.dialects.oracle import OracleQuery
+from pypika_tortoise.dialects.postgresql import PostgreSQLQuery
+from pypika_tortoise.dialects.sqlite import SQLLiteQuery
 from pypika_tortoise.functions import Upper
 from pypika_tortoise.terms import Case, Parameterizer
 
@@ -87,24 +87,24 @@ class ParametrizedTests(unittest.TestCase):
         self.assertEqual("?", Parameter("?").get_sql(DEFAULT_SQL_CONTEXT))
 
     def test_oracle(self):
-        self.assertEqual("?", Parameter(idx=1).get_sql(OracleQueryBuilder.SQL_CONTEXT))
-        self.assertEqual("?", Parameter(idx=2).get_sql(OracleQueryBuilder.SQL_CONTEXT))
+        self.assertEqual("?", Parameter(idx=1).get_sql(OracleQuery.SQL_CONTEXT))
+        self.assertEqual("?", Parameter(idx=2).get_sql(OracleQuery.SQL_CONTEXT))
 
     def test_mssql(self):
-        self.assertEqual("?", Parameter(idx=1).get_sql(MSSQLQueryBuilder.SQL_CONTEXT))
-        self.assertEqual("?", Parameter(idx=2).get_sql(MSSQLQueryBuilder.SQL_CONTEXT))
+        self.assertEqual("?", Parameter(idx=1).get_sql(MSSQLQuery.SQL_CONTEXT))
+        self.assertEqual("?", Parameter(idx=2).get_sql(MSSQLQuery.SQL_CONTEXT))
 
     def test_mysql(self):
-        self.assertEqual("%s", Parameter(idx=1).get_sql(MySQLQueryBuilder.SQL_CONTEXT))
-        self.assertEqual("%s", Parameter(idx=2).get_sql(MySQLQueryBuilder.SQL_CONTEXT))
+        self.assertEqual("%s", Parameter(idx=1).get_sql(MySQLQuery.SQL_CONTEXT))
+        self.assertEqual("%s", Parameter(idx=2).get_sql(MySQLQuery.SQL_CONTEXT))
 
     def test_postgres(self):
-        self.assertEqual("$1", Parameter(idx=1).get_sql(PostgreSQLQueryBuilder.SQL_CONTEXT))
-        self.assertEqual("$2", Parameter(idx=2).get_sql(PostgreSQLQueryBuilder.SQL_CONTEXT))
+        self.assertEqual("$1", Parameter(idx=1).get_sql(PostgreSQLQuery.SQL_CONTEXT))
+        self.assertEqual("$2", Parameter(idx=2).get_sql(PostgreSQLQuery.SQL_CONTEXT))
 
     def test_sqlite(self):
-        self.assertEqual("?", Parameter(idx=1).get_sql(SQLLiteQueryBuilder.SQL_CONTEXT))
-        self.assertEqual("?", Parameter(idx=2).get_sql(SQLLiteQueryBuilder.SQL_CONTEXT))
+        self.assertEqual("?", Parameter(idx=1).get_sql(SQLLiteQuery.SQL_CONTEXT))
+        self.assertEqual("?", Parameter(idx=2).get_sql(SQLLiteQuery.SQL_CONTEXT))
 
 
 class ParameterizerTests(unittest.TestCase):
@@ -232,4 +232,4 @@ class ParameterizerTests(unittest.TestCase):
     def test_placeholder_factory(self):
         parameterizer = Parameterizer(placeholder_factory=lambda _: "%s")
         param = parameterizer.create_param(1)
-        self.assertEqual("%s", param.get_sql(PostgreSQLQueryBuilder.SQL_CONTEXT))
+        self.assertEqual("%s", param.get_sql(PostgreSQLQuery.SQL_CONTEXT))
