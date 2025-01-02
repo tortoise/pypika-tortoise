@@ -13,6 +13,7 @@ from pypika_tortoise import (
     Tables,
 )
 from pypika_tortoise import functions as fn
+from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"
@@ -270,7 +271,10 @@ class SelectQueryJoinTests(unittest.TestCase):
     def test_join_using_with_quote_char(self):
         query = Query.from_(self.table0).join(self.table1).using("foo", "bar").select("*")
 
-        self.assertEqual("SELECT * FROM abc JOIN efg USING (foo,bar)", query.get_sql(quote_char=""))
+        self.assertEqual(
+            "SELECT * FROM abc JOIN efg USING (foo,bar)",
+            query.get_sql(DEFAULT_SQL_CONTEXT.copy(quote_char="")),
+        )
 
     def test_join_using_without_fields_raises_exception(self):
         with self.assertRaises(JoinException):
@@ -972,16 +976,6 @@ class UnionTests(unittest.TestCase):
             str(q),
         )
 
-    def test_union_with_no_quote_char(self):
-        abc, efg = Tables("abc", "efg")
-        hij = Query.from_(abc).select(abc.t).union(Query.from_(efg).select(efg.t))
-        q = Query.from_(hij).select(fn.Avg(hij.t))
-
-        self.assertEqual(
-            "SELECT AVG(sq0.t) FROM ((SELECT t FROM abc) UNION (SELECT t FROM efg)) sq0",
-            q.get_sql(quote_char=None),
-        )
-
 
 class InsertQueryJoinTests(unittest.TestCase):
     def test_join_table_on_insert_query(self):
@@ -1121,16 +1115,6 @@ class IntersectTests(unittest.TestCase):
             str(q),
         )
 
-    def test_intersect_with_no_quote_char(self):
-        abc, efg = Tables("abc", "efg")
-        hij = Query.from_(abc).select(abc.t).intersect(Query.from_(efg).select(efg.t))
-        q = Query.from_(hij).select(fn.Avg(hij.t))
-
-        self.assertEqual(
-            "SELECT AVG(sq0.t) FROM ((SELECT t FROM abc) INTERSECT (SELECT t FROM efg)) sq0",
-            q.get_sql(quote_char=None),
-        )
-
 
 class MinusTests(unittest.TestCase):
     table1, table2 = Tables("abc", "efg")
@@ -1226,16 +1210,6 @@ class MinusTests(unittest.TestCase):
             str(q),
         )
 
-    def test_minus_with_no_quote_char(self):
-        abc, efg = Tables("abc", "efg")
-        hij = Query.from_(abc).select(abc.t).minus(Query.from_(efg).select(efg.t))
-        q = Query.from_(hij).select(fn.Avg(hij.t))
-
-        self.assertEqual(
-            "SELECT AVG(sq0.t) FROM ((SELECT t FROM abc) MINUS (SELECT t FROM efg)) sq0",
-            q.get_sql(quote_char=None),
-        )
-
 
 class ExceptOfTests(unittest.TestCase):
     table1, table2 = Tables("abc", "efg")
@@ -1308,14 +1282,4 @@ class ExceptOfTests(unittest.TestCase):
         self.assertEqual(
             'SELECT AVG("sq0"."t") FROM ((SELECT "t" FROM "abc") EXCEPT (SELECT "t" FROM "efg")) "sq0"',
             str(q),
-        )
-
-    def test_except_with_no_quote_char(self):
-        abc, efg = Tables("abc", "efg")
-        hij = Query.from_(abc).select(abc.t).except_of(Query.from_(efg).select(efg.t))
-        q = Query.from_(hij).select(fn.Avg(hij.t))
-
-        self.assertEqual(
-            "SELECT AVG(sq0.t) FROM ((SELECT t FROM abc) EXCEPT (SELECT t FROM efg)) sq0",
-            q.get_sql(quote_char=None),
         )

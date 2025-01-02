@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Type, TypeVar
 
+from .context import SqlContext
+
 T_Retval = TypeVar("T_Retval")
 T_Self = TypeVar("T_Self")
 
@@ -78,17 +80,14 @@ def format_quotes(value: Any, quote_char: str | None) -> str:
 def format_alias_sql(
     sql: str,
     alias: str | None,
-    quote_char: str | None = None,
-    alias_quote_char: str | None = None,
-    as_keyword: bool = False,
-    **kwargs: Any,
+    ctx: SqlContext,
 ) -> str:
     if alias is None:
         return sql
     return "{sql}{_as}{alias}".format(
         sql=sql,
-        _as=" AS " if as_keyword else " ",
-        alias=format_quotes(alias, alias_quote_char or quote_char),
+        _as=" AS " if ctx.as_keyword else " ",
+        alias=format_quotes(alias, ctx.alias_quote_char or ctx.quote_char),
     )
 
 

@@ -5,6 +5,7 @@ import sys
 from copy import copy
 from typing import TYPE_CHECKING, Any
 
+from ..context import DEFAULT_SQL_CONTEXT, SqlContext
 from ..enums import Dialects
 from ..exceptions import QueryException
 from ..queries import Query, QueryBuilder
@@ -29,11 +30,11 @@ class PostgreSQLQuery(Query):
 
 
 class PostgreSQLQueryBuilder(QueryBuilder):
-    ALIAS_QUOTE_CHAR = '"'
+    SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.POSTGRESQL, alias_quote_char='"')
     QUERY_CLS = PostgreSQLQuery
 
     def __init__(self, **kwargs: Any) -> None:
-        super().__init__(dialect=Dialects.POSTGRESQL, **kwargs)
+        super().__init__(**kwargs)
         self._returns: list[Term] = []
         self._return_star = False
 
@@ -53,14 +54,13 @@ class PostgreSQLQueryBuilder(QueryBuilder):
             elif isinstance(field, Term):
                 self._distinct_on.append(field)
 
-    def _distinct_sql(self, **kwargs: Any) -> str:
+    def _distinct_sql(self, ctx: SqlContext) -> str:
+        distinct_ctx = ctx.copy(with_alias=True)
         if self._distinct_on:
             return "DISTINCT ON({distinct_on}) ".format(
-                distinct_on=",".join(
-                    term.get_sql(with_alias=True, **kwargs) for term in self._distinct_on
-                )
+                distinct_on=",".join(term.get_sql(distinct_ctx) for term in self._distinct_on)
             )
-        return super()._distinct_sql(**kwargs)
+        return super()._distinct_sql(distinct_ctx)
 
     @builder
     def returning(self, *terms: Any) -> "PostgreSQLQueryBuilder":  # type:ignore[return]
@@ -135,13 +135,13 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         self._validate_returning_term(function)
         self._returns.append(function)
 
-    def _returning_sql(self, **kwargs: Any) -> str:
+    def _returning_sql(self, ctx: SqlContext) -> str:
+        returning_ctx = ctx.copy(with_alias=True)
         return " RETURNING {returning}".format(
-            returning=",".join(term.get_sql(with_alias=True, **kwargs) for term in self._returns),
+            returning=",".join(term.get_sql(returning_ctx) for term in self._returns),
         )
 
-    def get_sql(self, with_alias: bool = False, subquery: bool = False, **kwargs: Any) -> str:
-        self._set_kwargs_defaults(kwargs)
+    def get_sql(self, ctx: SqlContext | None = None) -> str:
         if not (self._selects or self._insert_table or self._delete_from or self._update_table):
             return ""
         if self._insert_table and not (self._selects or self._values):
@@ -155,43 +155,46 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         has_reference_to_foreign_table = self._foreign_table
         has_update_from = self._update_table and self._from
 
-        kwargs["with_namespace"] = any(
-            [
-                has_joins,
-                has_multiple_from_clauses,
-                has_subquery_from_clause,
-                has_reference_to_foreign_table,
-                has_update_from,
-            ]
+        ctx = ctx or self.SQL_CONTEXT
+        ctx = ctx.copy(
+            with_namespace=any(
+                [
+                    has_joins,
+                    has_multiple_from_clauses,
+                    has_subquery_from_clause,
+                    has_reference_to_foreign_table,
+                    has_update_from,
+                ]
+            ),
         )
         if self._update_table:
             if self._with:
-                querystring = self._with_sql(**kwargs)
+                querystring = self._with_sql(ctx)
             else:
                 querystring = ""
 
-            querystring += self._update_sql(**kwargs)
+            querystring += self._update_sql(ctx)
 
-            querystring += self._set_sql(**kwargs)
+            querystring += self._set_sql(ctx)
 
             if self._joins:
                 self._from.append(self._update_table.as_(self._update_table.get_table_name() + "_"))
 
             if self._from:
-                querystring += self._from_sql(**kwargs)
+                querystring += self._from_sql(ctx)
             if self._joins:
-                querystring += " " + " ".join(join.get_sql(**kwargs) for join in self._joins)
+                querystring += " " + " ".join(join.get_sql(ctx) for join in self._joins)
 
             if self._wheres:
-                querystring += self._where_sql(**kwargs)
+                querystring += self._where_sql(ctx)
 
             if self._orderbys:
-                querystring += self._orderby_sql(**kwargs)
+                querystring += self._orderby_sql(ctx)
             if self._limit:
-                querystring += self._limit_sql()
+                querystring += self._limit_sql(ctx)
         else:
-            querystring = super().get_sql(with_alias, subquery, **kwargs)
+            querystring = super().get_sql(ctx)
         if self._returns:
-            kwargs["with_namespace"] = self._update_table and self.from_
-            querystring += self._returning_sql(**kwargs)
+            returning_ctx = ctx.copy(with_namespace=self._update_table and self.from_)
+            querystring += self._returning_sql(returning_ctx)
         return querystring

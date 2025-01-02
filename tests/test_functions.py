@@ -7,13 +7,17 @@ from pypika_tortoise import Query as Q
 from pypika_tortoise import Schema
 from pypika_tortoise import Table as T
 from pypika_tortoise import functions as fn
-from pypika_tortoise.enums import Dialects, SqlTypes
+from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
+from pypika_tortoise.dialects.postgresql import PostgreSQLQueryBuilder
+from pypika_tortoise.enums import SqlTypes
 
 
 class FunctionTests(unittest.TestCase):
     def test_dialect_propagation(self):
         func = fn.Function("func", ["a"], ["b"])
-        self.assertEqual("func(ARRAY['a'],ARRAY['b'])", func.get_sql(dialect=Dialects.POSTGRESQL))
+        self.assertEqual(
+            "func(ARRAY['a'],ARRAY['b'])", func.get_sql(PostgreSQLQueryBuilder.SQL_CONTEXT)
+        )
 
     def test_is_aggregate_None_for_non_aggregate_function_or_function_with_no_aggregate_functions(
         self,
@@ -31,13 +35,15 @@ class SchemaTests(unittest.TestCase):
     def test_schema_no_schema_in_sql_when_none_set(self):
         func = fn.Function("my_proc", 1, 2, 3)
 
-        self.assertEqual("my_proc(1,2,3)", func.get_sql(quote_char='"'))
+        self.assertEqual("my_proc(1,2,3)", func.get_sql(DEFAULT_SQL_CONTEXT.copy(quote_char='"')))
 
     def test_schema_included_in_function_sql(self):
         a = Schema("a")
         func = fn.Function("my_proc", 1, 2, 3, schema=a)
 
-        self.assertEqual('"a".my_proc(1,2,3)', func.get_sql(quote_char='"'))
+        self.assertEqual(
+            '"a".my_proc(1,2,3)', func.get_sql(DEFAULT_SQL_CONTEXT.copy(quote_char='"'))
+        )
 
 
 class ArithmeticTests(unittest.TestCase):

@@ -1,3 +1,4 @@
+from .context import SqlContext
 from .dialects import MSSQLQuery, MySQLQuery, OracleQuery, PostgreSQLQuery, SQLLiteQuery
 from .enums import DatePart, Dialects, JoinType, Order
 from .exceptions import (

@@ -2,6 +2,7 @@ import unittest
 
 from pypika_tortoise import Query, Tables
 from pypika_tortoise import functions as fn
+from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
 
 
 class QuoteTests(unittest.TestCase):
@@ -47,7 +48,7 @@ class QuoteTests(unittest.TestCase):
             "`foo` `foo_two`,`bar` "
             "FROM `efg`"
             ") `sq1` ON `sq0`.`foo`=`sq1`.`foo_two`",
-            self.query.get_sql(quote_char="`"),
+            self.query.get_sql(DEFAULT_SQL_CONTEXT.copy(quote_char="`")),
         )
 
     def test_no_quote_char_in_complex_query(self):
@@ -65,5 +66,5 @@ class QuoteTests(unittest.TestCase):
             "foo foo_two,bar "
             "FROM efg"
             ") sq1 ON sq0.foo=sq1.foo_two",
-            self.query.get_sql(quote_char=None),
+            self.query.get_sql(DEFAULT_SQL_CONTEXT.copy(quote_char=None)),
         )
