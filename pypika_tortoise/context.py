@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class SqlContext:
+    """Represents the context for get_sql() methods to determine how to render SQL."""
+
     quote_char: str
     secondary_quote_char: str
     alias_quote_char: str
