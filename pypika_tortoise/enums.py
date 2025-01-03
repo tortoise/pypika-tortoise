@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Any
 
 
 class Arithmetic(Enum):
@@ -86,7 +85,7 @@ class SqlType:
     def __call__(self, length: int) -> "SqlTypeLength":
         return SqlTypeLength(self.name, length)
 
-    def get_sql(self, **kwargs: Any) -> str:
+    def get_sql(self, ctx: "SqlContext") -> str:
         return "{name}".format(name=self.name)
 
 
@@ -95,7 +94,7 @@ class SqlTypeLength:
         self.name = name
         self.length = length
 
-    def get_sql(self, **kwargs: Any) -> str:
+    def get_sql(self, ctx: "SqlContext") -> str:
         return "{name}({length})".format(name=self.name, length=self.length)
 
 
@@ -141,3 +140,6 @@ class JSONOperators(Enum):
     GET_TEXT_VALUE = "->>"
     GET_PATH_JSON_VALUE = "#>"
     GET_PATH_TEXT_VALUE = "#>>"
+
+
+from .context import SqlContext  # noqa: E402

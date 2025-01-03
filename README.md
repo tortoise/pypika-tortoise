@@ -13,11 +13,12 @@ The original repository includes many databases that Tortoise ORM doesn’t requ
 
 ## What changed?
 
-Deleted unnecessary code that Tortoise ORM doesn’t require, and added features tailored specifically for Tortoise ORM.
+Deleted unnecessary code that Tortoise ORM doesn’t require, added features tailored specifically for Tortoise ORM,
+and modified to improve query generation performance.
 
 ## ThanksTo
 
-- [pypika](https://github.com/kayak/pypika), a Python SQL query builder that exposes the full expressiveness of SQL, 
+- [pypika](https://github.com/kayak/pypika), a Python SQL query builder that exposes the full expressiveness of SQL,
 using a syntax that mirrors the resulting query structure.
 
 ## License

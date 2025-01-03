@@ -8,6 +8,7 @@ import sys
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from .context import SqlContext
 from .enums import SqlTypes
 from .terms import AggregateFunction, Function, Star, Term
 from .utils import builder
@@ -25,8 +26,8 @@ class DistinctOptionFunction(AggregateFunction):
         super().__init__(name, *args, alias=alias)
         self._distinct = False
 
-    def get_function_sql(self, **kwargs) -> str:
-        s = super().get_function_sql(**kwargs)
+    def get_function_sql(self, ctx: SqlContext) -> str:
+        s = super().get_function_sql(ctx)
 
         n = len(self.name) + 1
         if self._distinct:
@@ -105,7 +106,7 @@ class ApproximatePercentile(AggregateFunction):
         super().__init__("APPROXIMATE_PERCENTILE", term, alias=alias)
         self.percentile = float(percentile)
 
-    def get_special_params_sql(self, **kwargs) -> str:
+    def get_special_params_sql(self, ctx: SqlContext) -> str:
         return f"USING PARAMETERS percentile={self.percentile}"
 
 
@@ -115,9 +116,9 @@ class Cast(Function):
         super().__init__("CAST", term, alias=alias)
         self.as_type = as_type
 
-    def get_special_params_sql(self, **kwargs) -> str:
+    def get_special_params_sql(self, ctx: SqlContext) -> str:
         type_sql = (
-            self.as_type.get_sql(**kwargs)
+            self.as_type.get_sql(ctx)
             if hasattr(self.as_type, "get_sql")
             else str(self.as_type).upper()
         )
@@ -130,7 +131,7 @@ class Convert(Function):
         super().__init__("CONVERT", term, alias=alias)
         self.encoding = encoding
 
-    def get_special_params_sql(self, **kwargs) -> str:
+    def get_special_params_sql(self, ctx: SqlContext) -> str:
         return "USING {type}".format(type=self.encoding.value)
 
 
@@ -275,7 +276,7 @@ class CurTimestamp(Function):
     def __init__(self, alias: str | None = None) -> None:
         super().__init__("CURRENT_TIMESTAMP", alias=alias)
 
-    def get_function_sql(self, **kwargs) -> str:
+    def get_function_sql(self, ctx: SqlContext) -> str:
         # CURRENT_TIMESTAMP takes no arguments, so the SQL to generate is quite
         # simple.  Note that empty parentheses have been omitted intentionally.
         return "CURRENT_TIMESTAMP"
@@ -296,8 +297,8 @@ class Extract(Function):
         super().__init__("EXTRACT", date_part, alias=alias)
         self.field = field
 
-    def get_special_params_sql(self, **kwargs) -> str:
-        return "FROM {field}".format(field=self.field.get_sql(**kwargs))
+    def get_special_params_sql(self, ctx: SqlContext) -> str:
+        return "FROM {field}".format(field=self.field.get_sql(ctx))
 
 
 # Null Functions

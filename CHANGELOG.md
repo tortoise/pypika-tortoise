@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 0.5
+
+### 0.5.0
+
+- Replace `get_sql` kwargs with `SqlContext` to improve performance
+
 ## 0.4
 
 ### 0.4.0
