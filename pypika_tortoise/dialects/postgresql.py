@@ -75,9 +75,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
             elif isinstance(term, Function):
                 raise QueryException("Aggregate functions are not allowed in returning")
             else:
-                self._return_other(
-                    self.wrap_constant(term, self._wrapper_cls)  # type:ignore[arg-type]
-                )
+                self._return_other(self.wrap_constant(term, self._wrapper_cls))
 
     def _validate_returning_term(self, term: Term) -> None:
         for field in term.fields_():

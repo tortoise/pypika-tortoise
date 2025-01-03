@@ -40,7 +40,7 @@ from .enums import Dialects  # noqa: E402
 DEFAULT_SQL_CONTEXT = SqlContext(
     quote_char='"',
     secondary_quote_char="'",
-    alias_quote_char=None,
+    alias_quote_char="",
     as_keyword=False,
     dialect=Dialects.SQLITE,
 )

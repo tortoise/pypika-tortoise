@@ -33,7 +33,7 @@ class SQLLiteQueryBuilder(QueryBuilder):
     def __init__(self, **kwargs) -> None:
         super().__init__(wrapper_cls=SQLLiteValueWrapper, **kwargs)
 
-    def get_sql(self, ctx: SqlContext | None = None) -> str:  # type:ignore[override]
+    def get_sql(self, ctx: SqlContext | None = None) -> str:
         ctx = ctx or SQLLiteQuery.SQL_CONTEXT
         if not (self._selects or self._insert_table or self._delete_from or self._update_table):
             return ""
