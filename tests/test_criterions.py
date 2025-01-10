@@ -3,6 +3,7 @@ from datetime import date, datetime
 
 from pypika_tortoise import Criterion, EmptyCriterion, Field, Table
 from pypika_tortoise import functions as fn
+from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
 from pypika_tortoise.queries import QueryBuilder
 from pypika_tortoise.terms import Mod
 
@@ -19,7 +20,7 @@ class CriterionTests(unittest.TestCase):
         self.assertEqual('"foo"="bar"', str(c1))
         self.assertEqual(
             '"foo"="bar" "criterion"',
-            c1.get_sql(with_alias=True, quote_char='"', alias_quote_char='"'),
+            c1.get_sql(DEFAULT_SQL_CONTEXT.copy(with_alias=True)),
         )
 
     def test__criterion_eq_number(self):

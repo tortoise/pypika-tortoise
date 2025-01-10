@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from pypika_tortoise import Field, Query, Table
+from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
 from pypika_tortoise.terms import AtTimezone, Parameterizer, ValueWrapper
 
 
@@ -47,17 +48,21 @@ class AtTimezoneTests(TestCase):
         self.assertEqual(
             'SELECT "customers"."date" AT TIME ZONE \'US/Eastern\' "alias1" '
             'FROM "customers" JOIN "accounts" ON "customers"."account_id"="accounts"."account_id"',
-            query.get_sql(with_namespace=True),
+            query.get_sql(DEFAULT_SQL_CONTEXT.copy(with_namespace=True)),
         )
 
 
 class ValueWrapperTests(TestCase):
     def test_allow_parametrize(self):
         value = ValueWrapper("foo")
-        self.assertEqual("'foo'", value.get_sql())
+        self.assertEqual("'foo'", value.get_sql(DEFAULT_SQL_CONTEXT))
 
         value = ValueWrapper("foo")
-        self.assertEqual("?", value.get_sql(parameterizer=Parameterizer()))
+        self.assertEqual(
+            "?", value.get_sql(DEFAULT_SQL_CONTEXT.copy(parameterizer=Parameterizer()))
+        )
 
         value = ValueWrapper("foo", allow_parametrize=False)
-        self.assertEqual("'foo'", value.get_sql(parameterizer=Parameterizer()))
+        self.assertEqual(
+            "'foo'", value.get_sql(DEFAULT_SQL_CONTEXT.copy(parameterizer=Parameterizer()))
+        )
