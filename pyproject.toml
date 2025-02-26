@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypika-tortoise"
-version = "0.5.0"
+version = "0.6.0"
 description = "Forked from pypika and streamline just for tortoise-orm"
 authors = ["long2ice <long2ice@gmail.com>"]
 license = "Apache-2.0"
@@ -15,9 +15,9 @@ packages = [
 include = ["CHANGELOG.md", "LICENSE", "README.md"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 ruff = "*"
 mypy = "*"
 isort = "*"
@@ -35,11 +35,11 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
 
 [tool.mypy]
 pretty = true
-python_version = "3.8"
+python_version = "3.9"
 ignore_missing_imports = true
 warn_unused_ignores = true
 
