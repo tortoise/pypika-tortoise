@@ -15,7 +15,7 @@ class OracleQuery(Query):
     SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.ORACLE, alias_quote_char='"')
 
     @classmethod
-    def _builder(cls, **kwargs: Any) -> "OracleQueryBuilder":
+    def _builder(cls, **kwargs: Any) -> OracleQueryBuilder:
         return OracleQueryBuilder(**kwargs)
 
 
@@ -35,9 +35,11 @@ class OracleQueryBuilder(QueryBuilder):
     def _offset_sql(self, ctx: SqlContext) -> str:
         if self._offset is None:
             return ""
-        return " OFFSET {offset} ROWS".format(offset=self._offset.get_sql(ctx))
+        offset = self._offset.get_sql(ctx)
+        return f" OFFSET {offset} ROWS"
 
     def _limit_sql(self, ctx: SqlContext) -> str:
         if self._limit is None:
             return ""
-        return " FETCH NEXT {limit} ROWS ONLY".format(limit=self._limit.get_sql(ctx))
+        limit = self._limit.get_sql(ctx)
+        return f" FETCH NEXT {limit} ROWS ONLY"
