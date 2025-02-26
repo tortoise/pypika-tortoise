@@ -546,7 +546,7 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
     def orderby(self, *fields: Field, **kwargs: Any) -> "Self":  # type:ignore[return]
         for field in fields:
             field = (
-                Field(field, table=self.base_query._from[0])  # type:ignore[arg-type,assignment]
+                Field(field, table=self.base_query._from[0])  # type:ignore[assignment]
                 if isinstance(field, str)
                 else self.base_query.wrap_constant(field)
             )
@@ -1776,11 +1776,7 @@ class Joiner:
         criterion = None
         for field in fields:
             consituent = Field(field, table=self.query._from[0]) == Field(field, table=self.item)
-            criterion = (
-                consituent
-                if criterion is None
-                else (criterion & consituent)  # type:ignore[operator]
-            )
+            criterion = consituent if criterion is None else (criterion & consituent)
 
         self.query.do_join(JoinOn(self.item, self.how, criterion))  # type:ignore[arg-type]
         return self.query

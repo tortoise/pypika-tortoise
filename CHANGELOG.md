@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 0.6
+
+### 0.6.0
+
+- Drop support for Python3.8 (#25)
+
 ## 0.5
 
 ### 0.5.0
