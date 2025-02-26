@@ -19,11 +19,11 @@ class MySQLQuery(Query):
     SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.MYSQL, quote_char="`")
 
     @classmethod
-    def _builder(cls, **kwargs: Any) -> "MySQLQueryBuilder":
+    def _builder(cls, **kwargs: Any) -> MySQLQueryBuilder:
         return MySQLQueryBuilder(**kwargs)
 
     @classmethod
-    def load(cls, fp: str) -> "MySQLLoadQueryBuilder":
+    def load(cls, fp: str) -> MySQLLoadQueryBuilder:
         return MySQLLoadQueryBuilder().load(fp)
 
 
@@ -73,23 +73,15 @@ class MySQLQueryBuilder(QueryBuilder):
     def _on_conflict_action_sql(self, ctx: SqlContext) -> str:
         on_conflict_ctx = ctx.copy(with_namespace=False)
         if len(self._on_conflict_do_updates) > 0:
-            updates = []
-            for field, value in self._on_conflict_do_updates:
-                if value:
-                    updates.append(
-                        "{field}={value}".format(
-                            field=field.get_sql(on_conflict_ctx),
-                            value=value.get_sql(on_conflict_ctx),
-                        )
-                    )
+            updates: list[str] = []
+            for field_obj, value_obj in self._on_conflict_do_updates:
+                field = field_obj.get_sql(on_conflict_ctx)
+                if value_obj:
+                    value = value_obj.get_sql(on_conflict_ctx)
+                    updates.append(f"{field}={value}")
                 else:
-                    updates.append(
-                        "{field}={alias}.{value}".format(
-                            field=field.get_sql(on_conflict_ctx),
-                            alias=format_quotes(self.alias, ctx.quote_char),
-                            value=field.get_sql(on_conflict_ctx),
-                        )
-                    )
+                    alias = format_quotes(self.alias, ctx.quote_char)
+                    updates.append(f"{field}={alias}.{field}")
             action_sql = " ON DUPLICATE KEY UPDATE {updates}".format(updates=",".join(updates))
             return action_sql
         return ""
@@ -152,11 +144,12 @@ class MySQLLoadQueryBuilder:
         return querystring
 
     def _load_file_sql(self, ctx: SqlContext) -> str:
-        return "LOAD DATA LOCAL INFILE '{}'".format(self._load_file)
+        return f"LOAD DATA LOCAL INFILE '{self._load_file}'"
 
     def _into_table_sql(self, ctx: SqlContext) -> str:
-        table = cast(Table, self._into_table)
-        return " INTO TABLE {}".format(table.get_sql(ctx))
+        table_obj = cast(Table, self._into_table)
+        table = table_obj.get_sql(ctx)
+        return f" INTO TABLE {table}"
 
     def _options_sql(self, ctx: SqlContext) -> str:
         return " FIELDS TERMINATED BY ','"
