@@ -1,5 +1,12 @@
 # ChangeLog
 
+## 0.6
+
+### 0.6.0 (Unreleased)
+
+- Drop support for Python3.8 (#25)
+- fix: failed to run poetry add pypika-tortoise with 'poetry>=2.0' (#26)
+
 ## 0.5
 
 ### 0.5.0
