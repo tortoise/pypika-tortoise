@@ -35,7 +35,7 @@ class DistinctOptionFunction(AggregateFunction):
         return s
 
     @builder
-    def distinct(self) -> "Self":  # type:ignore[return]
+    def distinct(self) -> Self:  # type:ignore[return]
         self._distinct = True
 
 
@@ -123,7 +123,7 @@ class Cast(Function):
             else str(self.as_type).upper()
         )
 
-        return "AS {type}".format(type=type_sql)
+        return f"AS {type_sql}"
 
 
 class Convert(Function):
@@ -132,7 +132,7 @@ class Convert(Function):
         self.encoding = encoding
 
     def get_special_params_sql(self, ctx: SqlContext) -> str:
-        return "USING {type}".format(type=self.encoding.value)
+        return f"USING {self.encoding.value}"
 
 
 class ToChar(Function):
@@ -212,7 +212,7 @@ class Insert(Function):
     def __init__(
         self, term: Any, start: Any, stop: Any, subterm: Any, alias: str | None = None
     ) -> None:
-        term, start, stop, subterm = [term for term in (term, start, stop, subterm)]
+        term, start, stop, subterm = (term for term in (term, start, stop, subterm))
         super().__init__("INSERT", term, start, stop, subterm, alias=alias)
 
 
@@ -298,7 +298,8 @@ class Extract(Function):
         self.field = field
 
     def get_special_params_sql(self, ctx: SqlContext) -> str:
-        return "FROM {field}".format(field=self.field.get_sql(ctx))
+        field = self.field.get_sql(ctx)
+        return f"FROM {field}"
 
 
 # Null Functions
