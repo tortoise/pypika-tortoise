@@ -5,7 +5,7 @@
 ### 0.6.0 (Unreleased)
 
 - Drop support for Python3.8 (#25)
-- fix: failed to run poetry add pypika-tortoise with 'poetry>=2.0' (#26)
+- fix: failed to run `poetry add pypika-tortoise` with poetry v2 (#26)
 
 ## 0.5
 
