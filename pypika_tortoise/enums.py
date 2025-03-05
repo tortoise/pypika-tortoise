@@ -86,7 +86,7 @@ class SqlType:
         return SqlTypeLength(self.name, length)
 
     def get_sql(self, ctx: "SqlContext") -> str:
-        return "{name}".format(name=self.name)
+        return f"{self.name}"
 
 
 class SqlTypeLength:
@@ -95,7 +95,7 @@ class SqlTypeLength:
         self.length = length
 
     def get_sql(self, ctx: "SqlContext") -> str:
-        return "{name}({length})".format(name=self.name, length=self.length)
+        return f"{self.name}({self.length})"
 
 
 class SqlTypes:

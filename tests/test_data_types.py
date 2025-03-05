@@ -13,4 +13,4 @@ class StringTests(unittest.TestCase):
 class UuidTests(unittest.TestCase):
     def test_uuid_string_generation(self):
         id = uuid.uuid4()
-        self.assertEqual("'{}'".format(id), ValueWrapper(id).get_sql(DEFAULT_SQL_CONTEXT))
+        self.assertEqual(f"'{id}'", ValueWrapper(id).get_sql(DEFAULT_SQL_CONTEXT))

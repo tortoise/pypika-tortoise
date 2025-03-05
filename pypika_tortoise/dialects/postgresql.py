@@ -27,7 +27,7 @@ class PostgreSQLQuery(Query):
     SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.POSTGRESQL, alias_quote_char='"')
 
     @classmethod
-    def _builder(cls, **kwargs) -> "PostgreSQLQueryBuilder":
+    def _builder(cls, **kwargs) -> PostgreSQLQueryBuilder:
         return PostgreSQLQueryBuilder(**kwargs)
 
 
@@ -41,14 +41,14 @@ class PostgreSQLQueryBuilder(QueryBuilder):
 
         self._distinct_on: list[Field | Term] = []
 
-    def __copy__(self) -> "Self":
+    def __copy__(self) -> Self:
         newone = super().__copy__()
         newone._returns = copy(self._returns)
         newone._on_conflict_do_updates = copy(self._on_conflict_do_updates)
         return newone
 
     @builder
-    def distinct_on(self, *fields: str | Term) -> "PostgreSQLQueryBuilder":  # type:ignore[return]
+    def distinct_on(self, *fields: str | Term) -> PostgreSQLQueryBuilder:  # type:ignore[return]
         for field in fields:
             if isinstance(field, str):
                 self._distinct_on.append(Field(field))
@@ -64,7 +64,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         return super()._distinct_sql(distinct_ctx)
 
     @builder
-    def returning(self, *terms: Any) -> "PostgreSQLQueryBuilder":  # type:ignore[return]
+    def returning(self, *terms: Any) -> PostgreSQLQueryBuilder:  # type:ignore[return]
         for term in terms:
             if isinstance(term, Field):
                 self._return_field(term)
