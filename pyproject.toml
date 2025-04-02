@@ -15,7 +15,6 @@ repository = "https://github.com/tortoise/pypika-tortoise.git"
 documentation = "https://github.com/tortoise/pypika-tortoise"
 
 [tool.poetry]
-requires-poetry = ">=2.0"
 packages = [
     { include = "pypika_tortoise" }
 ]
