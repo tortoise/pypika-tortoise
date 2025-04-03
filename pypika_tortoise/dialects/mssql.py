@@ -18,7 +18,7 @@ class MSSQLQuery(Query):
     SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.MSSQL)
 
     @classmethod
-    def _builder(cls, **kwargs: Any) -> "MSSQLQueryBuilder":
+    def _builder(cls, **kwargs: Any) -> MSSQLQueryBuilder:
         return MSSQLQueryBuilder(**kwargs)
 
 
@@ -52,14 +52,14 @@ class MSSQLQueryBuilder(QueryBuilder):
         order_by = ""
         if not self._orderbys:
             order_by = " ORDER BY (SELECT 0)"
-        return order_by + " OFFSET {offset} ROWS".format(
-            offset=self._offset.get_sql(ctx) if self._offset is not None else 0
-        )
+        offset = self._offset.get_sql(ctx) if self._offset is not None else 0
+        return order_by + f" OFFSET {offset} ROWS"
 
     def _limit_sql(self, ctx: SqlContext) -> str:
         if self._limit is None:
             return ""
-        return " FETCH NEXT {limit} ROWS ONLY".format(limit=self._limit.get_sql(ctx))
+        limit = self._limit.get_sql(ctx)
+        return f" FETCH NEXT {limit} ROWS ONLY"
 
     def _apply_pagination(self, querystring: str, ctx: SqlContext) -> str:
         # Note: Overridden as MSSQL specifies offset before the fetch next limit
@@ -81,7 +81,7 @@ class MSSQLQueryBuilder(QueryBuilder):
         return super().get_sql(ctx)
 
     def _top_sql(self) -> str:
-        return "TOP ({}) ".format(self._top) if self._top else ""
+        return f"TOP ({self._top}) " if self._top else ""
 
     def _select_sql(self, ctx: SqlContext) -> str:
         ctx = ctx.copy(with_alias=True, subquery=True)
