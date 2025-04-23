@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Type, TypeVar
+from typing import Any, Callable, TypeVar
 
 from .context import SqlContext
 
@@ -91,7 +91,7 @@ def format_alias_sql(
     )
 
 
-def validate(*args: Any, exc: Exception | None = None, type: Type | None = None) -> None:
+def validate(*args: Any, exc: Exception | None = None, type: type | None = None) -> None:
     if type is not None:
         for arg in args:
             if not isinstance(arg, type):
