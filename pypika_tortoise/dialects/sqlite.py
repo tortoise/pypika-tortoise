@@ -23,7 +23,7 @@ class SQLLiteQuery(Query):
     SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.SQLITE)
 
     @classmethod
-    def _builder(cls, **kwargs: Any) -> "SQLLiteQueryBuilder":
+    def _builder(cls, **kwargs: Any) -> SQLLiteQueryBuilder:
         return SQLLiteQueryBuilder(**kwargs)
 
 
