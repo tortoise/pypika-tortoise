@@ -197,3 +197,8 @@ class PostgreSQLQueryBuilder(QueryBuilder):
             returning_ctx = ctx.copy(with_namespace=self._update_table and self.from_)
             querystring += self._returning_sql(returning_ctx)
         return querystring
+
+    def _for_update_sql(self, ctx: SqlContext, lock_strength="UPDATE") -> str:
+        if self._for_update and self._for_update_no_key:
+            lock_strength = "NO KEY UPDATE"
+        return super()._for_update_sql(ctx, lock_strength=lock_strength)
