@@ -6,6 +6,7 @@
 
 - Drop support for Python3.8 (#25)
 - fix: failed to run `poetry add pypika-tortoise` with poetry v2 (#26)
+- Add `no_key` parameter to `QueryBuilder.for_update` for PostgreSQL
 
 ## 0.5
 

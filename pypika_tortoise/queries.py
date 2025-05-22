@@ -710,6 +710,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self._for_update_nowait = False
         self._for_update_skip_locked = False
         self._for_update_of: set[str] = set()
+        self._for_update_no_key = False
 
         self._wheres: QueryBuilder | Term | None = None
         self._prewheres: Criterion | None = None
@@ -1054,11 +1055,13 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         nowait: bool = False,
         skip_locked: bool = False,
         of: tuple[str, ...] = (),
+        no_key: bool = False,
     ) -> "Self":
         self._for_update = True
         self._for_update_skip_locked = skip_locked
         self._for_update_nowait = nowait
         self._for_update_of = set(of)
+        self._for_update_no_key = no_key
 
     @builder
     def do_nothing(self) -> "Self":  # type:ignore[return]
@@ -1561,9 +1564,9 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     def _distinct_sql(self, ctx: SqlContext) -> str:
         return "DISTINCT " if self._distinct else ""
 
-    def _for_update_sql(self, ctx: SqlContext) -> str:
+    def _for_update_sql(self, ctx: SqlContext, lock_strength="UPDATE") -> str:
         if self._for_update:
-            for_update = " FOR UPDATE"
+            for_update = f" FOR {lock_strength}"
             if self._for_update_of:
                 for_update += (
                     f' OF {", ".join([Table(item).get_sql(ctx) for item in self._for_update_of])}'
