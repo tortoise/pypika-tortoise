@@ -53,3 +53,12 @@ line-length = 100
 
 [tool.bandit]
 exclude_dirs = ["tests", "conftest.py"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@overload",
+    'if __name == "__main__":',
+]
