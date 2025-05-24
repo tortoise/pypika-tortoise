@@ -35,7 +35,7 @@ class DistinctOptionFunction(AggregateFunction):
         return s
 
     @builder
-    def distinct(self) -> "Self":  # type:ignore[return]
+    def distinct(self) -> Self:  # type:ignore[return]
         self._distinct = True
 
 

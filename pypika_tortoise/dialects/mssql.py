@@ -18,7 +18,7 @@ class MSSQLQuery(Query):
     SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.MSSQL)
 
     @classmethod
-    def _builder(cls, **kwargs: Any) -> "MSSQLQueryBuilder":
+    def _builder(cls, **kwargs: Any) -> MSSQLQueryBuilder:
         return MSSQLQueryBuilder(**kwargs)
 
 

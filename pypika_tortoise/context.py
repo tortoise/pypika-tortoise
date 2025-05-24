@@ -10,13 +10,13 @@ class SqlContext:
     quote_char: str
     secondary_quote_char: str
     alias_quote_char: str
-    dialect: "Dialects"
+    dialect: Dialects
     as_keyword: bool = False
     subquery: bool = False
     with_alias: bool = False
     with_namespace: bool = False
     subcriterion: bool = False
-    parameterizer: "Parameterizer" | None = None
+    parameterizer: Parameterizer | None = None
     groupby_alias: bool = True
     orderby_alias: bool = True
 

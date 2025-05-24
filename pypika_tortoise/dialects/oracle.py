@@ -15,7 +15,7 @@ class OracleQuery(Query):
     SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.ORACLE, alias_quote_char='"')
 
     @classmethod
-    def _builder(cls, **kwargs: Any) -> "OracleQueryBuilder":
+    def _builder(cls, **kwargs: Any) -> OracleQueryBuilder:
         return OracleQueryBuilder(**kwargs)
 
 
