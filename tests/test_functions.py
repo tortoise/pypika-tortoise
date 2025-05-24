@@ -303,8 +303,8 @@ class ArithmeticTests(unittest.TestCase):
         self.assertEqual('SELECT FLOOR("a"/("b"/2)) FROM "abc"', str(q4))
 
     def test__complex_op_nested_parentheses(self):
-        q1 = Q.from_("abc").select(F("a") / (F("b") / (F("c") / 2)))
-        q2 = Q.from_("abc").select(self.t.a / (self.t.b / (self.t.c / 2)))
+        q1 = Q.from_("abc").select(F("a") / (F("b") / ((F("c") / 2))))
+        q2 = Q.from_("abc").select(self.t.a / (self.t.b / ((self.t.c / 2))))
 
         self.assertEqual('SELECT "a"/("b"/("c"/2)) FROM "abc"', str(q1))
         self.assertEqual('SELECT "a"/("b"/("c"/2)) FROM "abc"', str(q2))
