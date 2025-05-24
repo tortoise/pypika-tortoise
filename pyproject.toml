@@ -61,3 +61,12 @@ ignore = ["UP031", "UP032"] # https://docs.astral.sh/ruff/rules/printf-string-fo
 
 [tool.bandit]
 exclude_dirs = ["tests", "conftest.py"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@overload",
+    'if __name == "__main__":',
+]
