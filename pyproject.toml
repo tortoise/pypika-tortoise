@@ -1,21 +1,23 @@
-[tool.poetry]
+[project]
 name = "pypika-tortoise"
 version = "0.6.0"
 description = "Forked from pypika and streamline just for tortoise-orm"
-authors = ["long2ice <long2ice@gmail.com>"]
-license = "Apache-2.0"
+authors = [{name="long2ice", email="long2ice@gmail.com"}]
+license = {text="Apache-2.0"}
 readme = "README.md"
+keywords = ["postgresql", "Tortoise-ORM", "mysql", "sqlite", "sql"]
+include = ["CHANGELOG.md", "LICENSE", "README.md"]
+requires-python = ">=3.9"
+
+[project.urls]
 homepage = "https://github.com/tortoise/pypika-tortoise"
 repository = "https://github.com/tortoise/pypika-tortoise.git"
 documentation = "https://github.com/tortoise/pypika-tortoise"
-keywords = ["postgresql", "Tortoise-ORM", "mysql", "sqlite", "sql"]
+
+[tool.poetry]
 packages = [
     { include = "pypika_tortoise" }
 ]
-include = ["CHANGELOG.md", "LICENSE", "README.md"]
-
-[tool.poetry.dependencies]
-python = "^3.9"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"
@@ -30,7 +32,7 @@ twine = "*"
 typing-extensions = {version = "*", python = "<3.11"}
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
@@ -40,7 +42,6 @@ target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
 [tool.mypy]
 pretty = true
 python_version = "3.9"
-ignore_missing_imports = true
 warn_unused_ignores = true
 
 [tool.ruff]
