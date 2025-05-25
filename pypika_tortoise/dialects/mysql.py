@@ -19,11 +19,11 @@ class MySQLQuery(Query):
     SQL_CONTEXT = DEFAULT_SQL_CONTEXT.copy(dialect=Dialects.MYSQL, quote_char="`")
 
     @classmethod
-    def _builder(cls, **kwargs: Any) -> "MySQLQueryBuilder":
+    def _builder(cls, **kwargs: Any) -> MySQLQueryBuilder:
         return MySQLQueryBuilder(**kwargs)
 
     @classmethod
-    def load(cls, fp: str) -> "MySQLLoadQueryBuilder":
+    def load(cls, fp: str) -> MySQLLoadQueryBuilder:
         return MySQLLoadQueryBuilder().load(fp)
 
 
