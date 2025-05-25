@@ -1,8 +1,8 @@
 import unittest
 from collections import OrderedDict
 
-from pypika import JSON, Array, Field, QueryException, Table
-from pypika.dialects import PostgreSQLQuery
+from pypika_tortoise import JSON, Array, Field, QueryException, Table
+from pypika_tortoise.dialects import PostgreSQLQuery
 
 
 class InsertTests(unittest.TestCase):
@@ -303,3 +303,11 @@ class ReturningClauseTests(unittest.TestCase):
             'ON "xyz"."id"="abc"."xyz" WHERE "abc"."foo"=0 RETURNING "xyz"."a"',
             str(q),
         )
+
+
+class SelectForUpdateTests(unittest.TestCase):
+    table_abc = Table("abc")
+
+    def test_for_no_key_update(self):
+        q = PostgreSQLQuery.from_("abc").select("*").for_update(no_key=True)
+        self.assertEqual('SELECT * FROM "abc" FOR NO KEY UPDATE', str(q))

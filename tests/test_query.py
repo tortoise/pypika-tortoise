@@ -1,8 +1,8 @@
 import unittest
 from copy import copy
 
-from pypika import Case, Query, Tables, Tuple, functions
-from pypika.dialects import (
+from pypika_tortoise import Case, Query, Tables, Tuple, functions
+from pypika_tortoise.dialects import (
     MySQLLoadQueryBuilder,
     MySQLQuery,
     MySQLQueryBuilder,
@@ -11,7 +11,7 @@ from pypika.dialects import (
     SQLLiteQuery,
     SQLLiteQueryBuilder,
 )
-from pypika.queries import CreateQueryBuilder, DropQueryBuilder, QueryBuilder, Table
+from pypika_tortoise.queries import CreateQueryBuilder, DropQueryBuilder, QueryBuilder, Table
 
 
 class QueryTablesTests(unittest.TestCase):

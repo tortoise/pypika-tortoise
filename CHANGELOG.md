@@ -1,5 +1,24 @@
 # ChangeLog
 
+## 0.6
+
+### 0.6.0
+
+- Drop support for Python3.8 (#25)
+- fix: failed to run `poetry add pypika-tortoise` with poetry v2 (#26)
+- Add `no_key` parameter to `QueryBuilder.for_update` for PostgreSQL
+
+## 0.5
+
+### 0.5.0
+
+- Replace `get_sql` kwargs with `SqlContext` to improve performance
+
+## 0.4
+
+### 0.4.0
+- Rename package name from `pypika` to `pypika_tortoise`
+
 ## 0.3
 
 ### 0.3.2

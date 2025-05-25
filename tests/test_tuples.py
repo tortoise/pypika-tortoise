@@ -1,8 +1,8 @@
 import unittest
 
-from pypika import Array, Bracket, PostgreSQLQuery, Query, Table, Tables, Tuple
-from pypika.functions import Coalesce, NullIf, Sum
-from pypika.terms import Field, Parameterizer, Star
+from pypika_tortoise import Array, Bracket, PostgreSQLQuery, Query, Table, Tables, Tuple
+from pypika_tortoise.functions import Coalesce, NullIf, Sum
+from pypika_tortoise.terms import Field, Star
 
 
 class TupleTests(unittest.TestCase):
@@ -152,8 +152,7 @@ class ArrayTests(unittest.TestCase):
     def test_parametrization(self):
         q = Query.from_(self.table_abc).select(Star()).where(self.table_abc.f == Array(1, 2, 3))
 
-        parameterizer = Parameterizer()
-        sql = q.get_sql(parameterizer=parameterizer)
+        sql, _ = q.get_parameterized_sql()
         self.assertEqual('SELECT * FROM "abc" WHERE "f"=?', sql)
 
 

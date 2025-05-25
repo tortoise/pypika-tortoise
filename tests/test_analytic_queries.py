@@ -1,8 +1,8 @@
 import unittest
 
-from pypika import Criterion, JoinType, Order, Query, Tables
-from pypika import analytics as an
-from pypika.analytics import Lag, Lead
+from pypika_tortoise import Criterion, JoinType, Order, Query, Tables
+from pypika_tortoise import analytics as an
+from pypika_tortoise.analytics import Lag, Lead
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"

@@ -1,7 +1,7 @@
 import unittest
 
-from pypika import Case, Field, Table
-from pypika.terms import Star
+from pypika_tortoise import Case, Field, Table
+from pypika_tortoise.terms import Star
 
 
 class TablesTests(unittest.TestCase):

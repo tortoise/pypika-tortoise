@@ -1,8 +1,11 @@
 import unittest
 
-from pypika import Field as F
-from pypika import Interval
-from pypika.enums import Dialects
+from pypika_tortoise import Field as F
+from pypika_tortoise import Interval
+from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
+from pypika_tortoise.dialects.mysql import MySQLQuery
+from pypika_tortoise.dialects.oracle import OracleQuery
+from pypika_tortoise.dialects.postgresql import PostgreSQLQuery
 
 dt = F("dt")
 
@@ -123,45 +126,37 @@ class AddIntervalMultipleUnitsTests(unittest.TestCase):
 
 class DialectIntervalTests(unittest.TestCase):
     def test_mysql_dialect_uses_single_quotes_around_expression_in_an_interval(self):
-        c = Interval(days=1).get_sql(dialect=Dialects.MYSQL)
+        c = Interval(days=1).get_sql(MySQLQuery.SQL_CONTEXT)
         self.assertEqual("INTERVAL '1' DAY", c)
 
     def test_oracle_dialect_uses_single_quotes_around_expression_in_an_interval(self):
-        c = Interval(days=1).get_sql(dialect=Dialects.ORACLE)
+        c = Interval(days=1).get_sql(OracleQuery.SQL_CONTEXT)
         self.assertEqual("INTERVAL '1' DAY", c)
 
-    def test_vertica_dialect_uses_single_quotes_around_interval(self):
-        c = Interval(days=1).get_sql(dialect=Dialects.VERTICA)
-        self.assertEqual("INTERVAL '1 DAY'", c)
-
-    def test_redshift_dialect_uses_single_quotes_around_interval(self):
-        c = Interval(days=1).get_sql(dialect=Dialects.REDSHIFT)
-        self.assertEqual("INTERVAL '1 DAY'", c)
-
     def test_postgresql_dialect_uses_single_quotes_around_interval(self):
-        c = Interval(days=1).get_sql(dialect=Dialects.POSTGRESQL)
+        c = Interval(days=1).get_sql(PostgreSQLQuery.SQL_CONTEXT)
         self.assertEqual("INTERVAL '1 DAY'", c)
 
 
 class TestNegativeIntervals(unittest.TestCase):
     def test_day(self):
-        c = Interval(days=-1).get_sql()
+        c = Interval(days=-1).get_sql(DEFAULT_SQL_CONTEXT)
         self.assertEqual("INTERVAL '-1 DAY'", c)
 
     def test_week(self):
-        c = Interval(weeks=-1).get_sql()
+        c = Interval(weeks=-1).get_sql(DEFAULT_SQL_CONTEXT)
         self.assertEqual("INTERVAL '-1 WEEK'", c)
 
     def test_month(self):
-        c = Interval(months=-1).get_sql()
+        c = Interval(months=-1).get_sql(DEFAULT_SQL_CONTEXT)
         self.assertEqual("INTERVAL '-1 MONTH'", c)
 
     def test_year(self):
-        c = Interval(years=-1).get_sql()
+        c = Interval(years=-1).get_sql(DEFAULT_SQL_CONTEXT)
         self.assertEqual("INTERVAL '-1 YEAR'", c)
 
     def test_year_month(self):
-        c = Interval(years=-1, months=-4).get_sql()
+        c = Interval(years=-1, months=-4).get_sql(DEFAULT_SQL_CONTEXT)
         self.assertEqual("INTERVAL '-1-4 YEAR_MONTH'", c)
 
 

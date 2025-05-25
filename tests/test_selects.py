@@ -2,9 +2,9 @@ import unittest
 from datetime import date, time
 from enum import Enum
 
-from pypika import SYSTEM_TIME, AliasedQuery, Case, EmptyCriterion
-from pypika import Field as F
-from pypika import (
+from pypika_tortoise import SYSTEM_TIME, AliasedQuery, Case, EmptyCriterion
+from pypika_tortoise import Field as F
+from pypika_tortoise import (
     Index,
     MySQLQuery,
     NullValue,
@@ -16,8 +16,9 @@ from pypika import (
     Table,
     Tables,
 )
-from pypika import functions as fn
-from pypika.terms import Field, ValueWrapper
+from pypika_tortoise import functions as fn
+from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
+from pypika_tortoise.terms import Field, ValueWrapper
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"
@@ -641,7 +642,7 @@ class GroupByTests(unittest.TestCase):
 
         self.assertEqual(
             'SELECT SUM("foo"),"bar" "bar01" FROM "abc" GROUP BY "bar"',
-            q.get_sql(groupby_alias=False),
+            q.get_sql(DEFAULT_SQL_CONTEXT.copy(groupby_alias=False)),
         )
 
     def test_groupby__alias_platforms(self):
@@ -654,11 +655,7 @@ class GroupByTests(unittest.TestCase):
         ]:
             q = query_cls.from_(self.t).select(fn.Sum(self.t.foo), bar).groupby(bar)
 
-            quote_char = (
-                query_cls._builder().QUOTE_CHAR
-                if isinstance(query_cls._builder().QUOTE_CHAR, str)
-                else '"'
-            )
+            quote_char = query_cls.SQL_CONTEXT.quote_char
 
             self.assertEqual(
                 "SELECT "
@@ -844,7 +841,7 @@ class OrderByTests(unittest.TestCase):
 
         self.assertEqual(
             'SELECT SUM("foo"),"bar" "bar01" FROM "abc" ORDER BY "bar"',
-            q.get_sql(orderby_alias=False),
+            q.get_sql(DEFAULT_SQL_CONTEXT.copy(orderby_alias=False)),
         )
 
     def test_orderby_alias(self):
@@ -1240,5 +1237,5 @@ class QuoteTests(unittest.TestCase):
             "SELECT t1.value FROM table1 t1 "
             "JOIN table2 t2 ON t1.Value "
             "BETWEEN t2.start AND t2.end",
-            query.get_sql(quote_char=None),
+            query.get_sql(DEFAULT_SQL_CONTEXT.copy(quote_char="")),
         )

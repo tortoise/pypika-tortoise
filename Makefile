@@ -1,6 +1,8 @@
-checkfiles = pypika/ tests/ conftest.py
-black_opts = -l 100 -t py38
+src_dir = pypika_tortoise
+checkfiles = $(src_dir) tests/ conftest.py
+black_opts = -l 100 -t py39
 py_warn = PYTHONDEVMODE=1
+pytest_opts = -n auto --cov=$(src_dir) --cov-append --cov-branch --tb=native -q
 
 up:
 	@poetry update
@@ -20,7 +22,7 @@ endif
 
 test: deps _test
 _test:
-	$(py_warn) pytest
+	$(py_warn) pytest $(pytest_opts)
 
 ci: build _check _test
 
@@ -29,9 +31,16 @@ _style:
 	isort -src $(checkfiles)
 	black $(black_opts) $(checkfiles)
 
+lint: build
+	isort -src $(checkfiles)
+	black $(black_opts) $(checkfiles)
+	ruff check --fix $(checkfiles)
+	mypy $(checkfiles)
+	bandit -c pyproject.toml -r $(checkfiles)
+	twine check dist/*
+
 build: deps
-	rm -fR dist/
-	poetry build
+	poetry build --clean
 
 publish: build
 	twine upload dist/*

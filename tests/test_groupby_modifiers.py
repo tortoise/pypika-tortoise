@@ -1,7 +1,7 @@
 import unittest
 
-from pypika import Query, Rollup, RollupException, Table
-from pypika import functions as fn
+from pypika_tortoise import Query, Rollup, RollupException, Table
+from pypika_tortoise import functions as fn
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"

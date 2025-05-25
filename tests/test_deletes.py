@@ -1,11 +1,11 @@
 import unittest
 
-from pypika import SYSTEM_TIME, MySQLQuery, PostgreSQLQuery, Query, SQLLiteQuery, Table
+from pypika_tortoise import SYSTEM_TIME, MySQLQuery, PostgreSQLQuery, Query, SQLLiteQuery, Table
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"
 
-from pypika.terms import Star
+from pypika_tortoise.terms import Star
 
 
 class DeleteTests(unittest.TestCase):

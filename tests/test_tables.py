@@ -1,7 +1,17 @@
-# from pypika.terms import ValueWrapper, SystemTimeValue
+# from pypika_tortoise.terms import ValueWrapper, SystemTimeValue
 import unittest
 
-from pypika import SYSTEM_TIME, Database, Dialects, Query, Schema, SQLLiteQuery, Table, Tables
+from pypika_tortoise import (
+    SYSTEM_TIME,
+    Database,
+    Dialects,
+    Query,
+    Schema,
+    SQLLiteQuery,
+    Table,
+    Tables,
+)
+from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
 
 __author__ = "Timothy Heys"
 __email__ = "theys@kayak.com"
@@ -16,7 +26,10 @@ class TableStructureTests(unittest.TestCase):
     def test_table_with_alias(self):
         table = Table("test_table").as_("my_table")
 
-        self.assertEqual('"test_table" "my_table"', table.get_sql(with_alias=True, quote_char='"'))
+        self.assertEqual(
+            '"test_table" "my_table"',
+            table.get_sql(DEFAULT_SQL_CONTEXT.copy(with_alias=True, quote_char='"')),
+        )
 
     def test_schema_table_attr(self):
         table = Schema("x_schema").test_table
@@ -159,36 +172,36 @@ class TableDialectTests(unittest.TestCase):
     def test_table_with_default_query_cls(self):
         table = Table("abc")
         q = table.select("1")
-        self.assertIs(q.dialect, None)
+        self.assertIs(q.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_table_with_dialect_query_cls(self):
         table = Table("abc", query_cls=SQLLiteQuery)
         q = table.select("1")
-        self.assertIs(q.dialect, Dialects.SQLITE)
+        self.assertIs(q.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_table_factory_with_default_query_cls(self):
         table = Query.Table("abc")
         q = table.select("1")
-        self.assertIs(q.dialect, None)
+        self.assertIs(q.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_table_factory_with_dialect_query_cls(self):
         table = SQLLiteQuery.Table("abc")
         q = table.select("1")
-        self.assertIs(q.dialect, Dialects.SQLITE)
+        self.assertIs(q.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_make_tables_factory_with_default_query_cls(self):
         t1, t2 = Query.Tables("abc", "def")
         q1 = t1.select("1")
         q2 = t2.select("2")
-        self.assertIs(q1.dialect, None)
-        self.assertIs(q2.dialect, None)
+        self.assertIs(q1.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q2.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_make_tables_factory_with_dialect_query_cls(self):
         t1, t2 = SQLLiteQuery.Tables("abc", "def")
         q1 = t1.select("1")
         q2 = t2.select("2")
-        self.assertIs(q1.dialect, Dialects.SQLITE)
-        self.assertIs(q2.dialect, Dialects.SQLITE)
+        self.assertIs(q1.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
+        self.assertIs(q2.QUERY_CLS.SQL_CONTEXT.dialect, Dialects.SQLITE)
 
     def test_table_with_bad_query_cls(self):
         with self.assertRaises(TypeError):

@@ -1,6 +1,6 @@
 import unittest
 
-from pypika import Query, Tables
+from pypika_tortoise import Query, Tables
 
 
 class ImmutabilityTests(unittest.TestCase):

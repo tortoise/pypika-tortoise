@@ -1,6 +1,6 @@
 import unittest
 
-from pypika import CustomFunction, FunctionException, Query, Table
+from pypika_tortoise import CustomFunction, FunctionException, Query, Table
 
 __author__ = "Airton Zanon"
 __email__ = "me@airton.dev"

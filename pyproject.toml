@@ -1,23 +1,25 @@
-[tool.poetry]
+[project]
 name = "pypika-tortoise"
-version = "0.3.2"
+version = "0.6.0"
 description = "Forked from pypika and streamline just for tortoise-orm"
-authors = ["long2ice <long2ice@gmail.com>"]
-license = "Apache-2.0"
+authors = [{name="long2ice", email="long2ice@gmail.com"}]
+license = {text="Apache-2.0"}
 readme = "README.md"
+keywords = ["postgresql", "Tortoise-ORM", "mysql", "sqlite", "sql"]
+include = ["CHANGELOG.md", "LICENSE", "README.md"]
+requires-python = ">=3.9"
+
+[project.urls]
 homepage = "https://github.com/tortoise/pypika-tortoise"
 repository = "https://github.com/tortoise/pypika-tortoise.git"
 documentation = "https://github.com/tortoise/pypika-tortoise"
-keywords = ["postgresql", "Tortoise-ORM", "mysql", "sqlite", "sql"]
+
+[tool.poetry]
 packages = [
-    { include = "pypika" }
+    { include = "pypika_tortoise" }
 ]
-include = ["CHANGELOG.md", "LICENSE", "README.md"]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 ruff = "*"
 mypy = "*"
 isort = "*"
@@ -30,25 +32,43 @@ twine = "*"
 typing-extensions = {version = "*", python = "<3.11"}
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
 
 [tool.mypy]
 pretty = true
-python_version = "3.8"
-ignore_missing_imports = true
+python_version = "3.9"
 warn_unused_ignores = true
 
 [tool.ruff]
 line-length = 100
 
+[tool.ruff.lint]
+extend-select = [
+    "FA",     # https://docs.astral.sh/ruff/rules/#flake8-future-annotations-fa
+    "UP",     # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    "RUF100", # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
+]
+ignore = ["UP031", "UP032"] # https://docs.astral.sh/ruff/rules/printf-string-formatting/
+
 [tool.ruff.lint.per-file-ignores]
-'pypika/__init__.py' = ['F401']
-'pypika/dialects/__init__.py' = ['F401']
+'pypika_tortoise/__init__.py' = ['F401']
+'pypika_tortoise/dialects/__init__.py' = ['F401']
+'tests/test_functions.py' = ['UP034']
+'tests/dialects/test_postgresql.py' = ['RUF100']
 
 [tool.bandit]
 exclude_dirs = ["tests", "conftest.py"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@overload",
+    'if __name == "__main__":',
+]
