@@ -864,7 +864,7 @@ class BasicCriterion(Criterion):
         return sql
 
 
-class JSONAttributeCriterion(BasicCriterion):
+class JSONAttributeCriterion(Criterion):
     """
     A specialized criterion for accessing JSON column attributes/paths.
 
@@ -882,7 +882,7 @@ class JSONAttributeCriterion(BasicCriterion):
         :param path: The path to the attribute as a list of keys/indices
         :param alias: Optional alias for the expression
         """
-        super().__init__(JSONOperators.GET_TEXT_VALUE, json_column, json_column, alias)
+        super().__init__(alias)
 
         self.json_column = json_column
         self.path = path
