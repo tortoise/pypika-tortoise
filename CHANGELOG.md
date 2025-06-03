@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.1
+
+- Add `JSONAttributeCriterion` (#33)
+
 ### 0.6.0
 
 - Drop support for Python3.8 (#25)
