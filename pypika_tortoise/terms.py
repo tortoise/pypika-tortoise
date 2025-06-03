@@ -1695,6 +1695,11 @@ class Pow(Function):
     def __init__(self, term: Term, exponent: float, alias: str | None = None) -> None:
         super().__init__("POW", term, exponent, alias=alias)
 
+    def get_function_sql(self, ctx: SqlContext) -> str:
+        if ctx.dialect == Dialects.MSSQL:
+            self.name == "POWER"
+        return super().get_function_sql(ctx)
+
 
 class Mod(Function):
     def __init__(self, term: Term, modulus: float, alias: str | None = None) -> None:
