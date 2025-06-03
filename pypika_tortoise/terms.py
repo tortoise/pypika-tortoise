@@ -864,6 +864,79 @@ class BasicCriterion(Criterion):
         return sql
 
 
+class JSONAttributeCriterion(BasicCriterion):
+    """
+    A specialized criterion for accessing JSON column attributes/paths.
+
+    Generates database-specific SQL for accessing nested JSON attributes:
+    - PostgreSQL: data->'user'->'details'->>'age' or data->'tags'->>0
+    - MySQL and SQLite: data->>'$.user.details.age' or data->>'$.tags[0]'
+    - MS SQL: JSON_VALUE(data, '$.user.details.age') or JSON_VALUE(data, '$.tags[0]')
+    """
+
+    def __init__(self, json_column: Term, path: list[str | int], alias: str | None = None) -> None:
+        """
+        Initialize a JSON attribute access criterion.
+
+        :param json_column: The JSON column/field to access
+        :param path: The path to the attribute as a list of keys/indices
+        :param alias: Optional alias for the expression
+        """
+        super().__init__(JSONOperators.GET_TEXT_VALUE, json_column, json_column, alias)
+
+        self.json_column = json_column
+        self.path = path
+
+    def get_sql(self, ctx: SqlContext) -> str:
+        """Generate database-specific SQL for JSON attribute access."""
+        if ctx.dialect == Dialects.MYSQL or ctx.dialect == Dialects.SQLITE:
+            sql = self._get_mysql_sql(ctx)
+        elif ctx.dialect == Dialects.MSSQL:
+            sql = self._get_mssql_sql(ctx)
+        else:
+            # Fallback to PostgreSQL syntax for unsupported dialects
+            sql = self._get_postgres_sql(ctx)
+
+        if ctx.with_alias:
+            return format_alias_sql(sql, self.alias, ctx)
+        return sql
+
+    def _get_postgres_sql(self, ctx: SqlContext) -> str:
+        # PostgreSQL: data->'user'->'details'->>'age' or data->'tags'->>0
+        sql = self.json_column.get_sql(ctx)
+        for i, part in enumerate(self.path):
+            is_last = i == len(self.path) - 1
+            operator = "->>" if is_last else "->"
+
+            if isinstance(part, int):
+                sql += f"{operator}{part}"
+            else:
+                sql += f"{operator}'{part}'"
+        return sql
+
+    def _get_mysql_sql(self, ctx: SqlContext) -> str:
+        # MySQL: data->'$.user.details.age' or data->'$.tags[0]'
+        path_parts = []
+        for part in self.path:
+            path_parts.append(f"[{part}]" if isinstance(part, int) else f".{part}")
+        path_str = "$" + "".join(path_parts)
+        return f"{self.json_column.get_sql(ctx)}->>'{path_str}'"
+
+    def _get_mssql_sql(self, ctx: SqlContext) -> str:
+        # MS SQL: JSON_VALUE(data, '$.user.details.age') or JSON_VALUE(data, '$.tags[0]')
+        path_parts = []
+        for part in self.path:
+            path_parts.append(f"[{part}]" if isinstance(part, int) else f".{part}")
+        path_str = "$" + "".join(path_parts)
+        return f"JSON_VALUE({self.json_column.get_sql(ctx)}, '{path_str}')"
+
+    @builder
+    def replace_table(  # type:ignore[return]
+        self, current_table: Table | None, new_table: Table | None
+    ) -> Self:
+        self.json_column = self.json_column.replace_table(current_table, new_table)
+
+
 class ContainsCriterion(Criterion):
     def __init__(self, term: Any, container: Term, alias: str | None = None) -> None:
         """
