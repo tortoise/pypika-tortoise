@@ -70,7 +70,7 @@ class Term(Node):
 
     @staticmethod
     def wrap_constant(
-        val, wrapper_cls: type[Term] | None = None
+        val: Any, wrapper_cls: type[Term] | None = None
     ) -> NodeT | LiteralValue | Array | Tuple | ValueWrapper:
         """
         Used for wrapping raw inputs such as numbers in Criterions and Operator.
@@ -102,11 +102,12 @@ class Term(Node):
 
     @staticmethod
     def wrap_json(
-        val: Term | QueryBuilder | Interval | None | str | int | bool, wrapper_cls=None
-    ) -> Term | QueryBuilder | Interval | NullValue | ValueWrapper | JSON:
+        val: Term | QueryBuilder | str | int | bool | None,
+        wrapper_cls: type[ValueWrapper] | None = None,
+    ) -> Term | QueryBuilder | NullValue | ValueWrapper | JSON:
         from .queries import QueryBuilder
 
-        if isinstance(val, (Term, QueryBuilder, Interval)):
+        if isinstance(val, (Term, QueryBuilder)):
             return val
         if val is None:
             return NullValue()
@@ -485,35 +486,35 @@ class JSON(Term):
         return BasicCriterion(
             JSONOperators.GET_PATH_JSON_VALUE,
             self,
-            self.wrap_json(path_json),  # type:ignore[arg-type]
+            self.wrap_json(path_json),
         )
 
     def get_path_text_value(self, path_json: str) -> BasicCriterion:
         return BasicCriterion(
             JSONOperators.GET_PATH_TEXT_VALUE,
             self,
-            self.wrap_json(path_json),  # type:ignore[arg-type]
+            self.wrap_json(path_json),
         )
 
     def has_key(self, other: Any) -> BasicCriterion:
         return BasicCriterion(
             JSONOperators.HAS_KEY,
             self,
-            self.wrap_json(other),  # type:ignore[arg-type]
+            self.wrap_json(other),
         )
 
     def contains(self, other: Any) -> BasicCriterion:
         return BasicCriterion(
             JSONOperators.CONTAINS,
             self,
-            self.wrap_json(other),  # type:ignore[arg-type]
+            self.wrap_json(other),
         )
 
     def contained_by(self, other: Any) -> BasicCriterion:
         return BasicCriterion(
             JSONOperators.CONTAINED_BY,
             self,
-            self.wrap_json(other),  # type:ignore[arg-type]
+            self.wrap_json(other),
         )
 
     def has_keys(self, other: Iterable) -> BasicCriterion:
@@ -1118,7 +1119,7 @@ class ArithmeticExpression(Term):
         self.left = self.left.replace_table(current_table, new_table)
         self.right = self.right.replace_table(current_table, new_table)
 
-    def left_needs_parens(self, curr_op, left_op) -> bool:
+    def left_needs_parens(self, curr_op: Arithmetic, left_op: Arithmetic | None) -> bool:
         """
         Returns true if the expression on the left of the current operator needs to be enclosed in parentheses.
 
@@ -1139,7 +1140,7 @@ class ArithmeticExpression(Term):
         # e.g. A * B / ..., A / B / ...
         return left_op in self.add_order
 
-    def right_needs_parens(self, curr_op, right_op) -> bool:
+    def right_needs_parens(self, curr_op: Arithmetic, right_op: Arithmetic | None) -> bool:
         """
         Returns true if the expression on the right of the current operator needs to be enclosed in parentheses.
 
@@ -1281,7 +1282,7 @@ class Not(Criterion):
         if not inspect.ismethod(item_func):
             return item_func
 
-        def inner(inner_self, *args, **kwargs) -> Not | T:
+        def inner(inner_self: Any, *args: Any, **kwargs: Any) -> Not | T:
             result = item_func(inner_self, *args, **kwargs)
             if isinstance(result, (Term,)):
                 return Not(result)
@@ -1343,7 +1344,7 @@ class CustomFunction:
     def _has_params(self) -> bool:
         return self.params is not None
 
-    def _is_valid_function_call(self, *args) -> bool:
+    def _is_valid_function_call(self, *args: Any) -> bool:
         return len(args) == len(cast(Sequence, self.params))
 
 
@@ -1389,7 +1390,7 @@ class Function(Criterion):
         pass
 
     @staticmethod
-    def get_arg_sql(arg, ctx: SqlContext) -> str:
+    def get_arg_sql(arg: Any, ctx: SqlContext) -> str:
         arg_ctx = ctx.copy(with_alias=False)
         return arg.get_sql(arg_ctx) if hasattr(arg, "get_sql") else str(arg)
 
@@ -1591,7 +1592,7 @@ class IgnoreNullsAnalyticFunction(AnalyticFunction):
         return None
 
 
-class Interval(Node):
+class Interval(Term):
     templates = {
         # PostgreSQL, Redshift and Vertica require quotes around the expr and unit e.g. INTERVAL '1 week'
         Dialects.POSTGRESQL: "INTERVAL '{expr} {unit}'",
@@ -1729,7 +1730,9 @@ class AtTimezone(Term):
 
     is_aggregate: bool | None = None
 
-    def __init__(self, field, zone, interval=False, alias=None) -> None:
+    def __init__(
+        self, field: str | Field, zone: str, interval: bool = False, alias: str | None = None
+    ) -> None:
         super().__init__(alias)
         self.field = Field(field) if not isinstance(field, Field) else field
         self.zone = zone
