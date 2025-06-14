@@ -1697,7 +1697,7 @@ class Pow(Function):
 
     def get_function_sql(self, ctx: SqlContext) -> str:
         if ctx.dialect == Dialects.MSSQL:
-            self.name == "POWER"
+            self.name = "POWER"
         return super().get_function_sql(ctx)
 
 
