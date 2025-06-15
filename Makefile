@@ -1,6 +1,5 @@
 src_dir = pypika_tortoise
 checkfiles = $(src_dir) tests/ conftest.py
-black_opts = -l 100 -t py39
 py_warn = PYTHONDEVMODE=1
 pytest_opts = -n auto --cov=$(src_dir) --cov-append --cov-branch --tb=native -q
 
@@ -8,17 +7,18 @@ up:
 	@poetry update
 
 deps:
-	@poetry install
+	poetry install --all-groups
+
+typehints:
+	mypy $(checkfiles)
+	bandit -c pyproject.toml -r $(checkfiles)
+	twine check dist/*
 
 check: build _check
 _check:
-ifneq ($(shell which black),)
-	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
-endif
+	ruff format --check $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
 	ruff check $(checkfiles)
-	bandit -c pyproject.toml -r $(checkfiles)
-	mypy $(checkfiles)
-	twine check dist/*
+	$(MAKE) typehints
 
 test: deps _test
 _test:
@@ -28,16 +28,11 @@ ci: build _check _test
 
 style: deps _style
 _style:
-	isort -src $(checkfiles)
-	black $(black_opts) $(checkfiles)
-
-lint: build
-	isort -src $(checkfiles)
-	black $(black_opts) $(checkfiles)
+	ruff format $(checkfiles)
 	ruff check --fix $(checkfiles)
-	mypy $(checkfiles)
-	bandit -c pyproject.toml -r $(checkfiles)
-	twine check dist/*
+
+lint: build _style
+	$(MAKE) typehints
 
 build: deps
 	poetry build --clean

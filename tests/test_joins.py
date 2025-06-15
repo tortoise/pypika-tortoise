@@ -237,8 +237,7 @@ class SelectQueryJoinTests(unittest.TestCase):
     def test_join_on_field_multi(self):
         query = Query.from_(self.table0).join(self.table1).on_field("foo", "bar").select("*")
         self.assertEqual(
-            'SELECT * FROM "abc" JOIN "efg" ON "abc"."foo"="efg"."foo" '
-            'AND "abc"."bar"="efg"."bar"',
+            'SELECT * FROM "abc" JOIN "efg" ON "abc"."foo"="efg"."foo" AND "abc"."bar"="efg"."bar"',
             str(query),
         )
 
@@ -293,7 +292,7 @@ class SelectQueryJoinTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            'SELECT * FROM "abc" ' 'JOIN "efg" ON "abc"."dt"="efg"."dt"-INTERVAL \'1 WEEK\'',
+            'SELECT * FROM "abc" JOIN "efg" ON "abc"."dt"="efg"."dt"-INTERVAL \'1 WEEK\'',
             str(q),
         )
 
@@ -361,7 +360,7 @@ class SelectQueryJoinTests(unittest.TestCase):
             .on(table_b.c_id == table_c.id)
         )
 
-        self.assertEqual("SELECT * " 'FROM "a","b" ' 'JOIN "c" ON "b"."c_id"="c"."id"', str(q))
+        self.assertEqual('SELECT * FROM "a","b" JOIN "c" ON "b"."c_id"="c"."id"', str(q))
 
     def test_cross_join_on_table(self):
         table_a, table_b = Tables("a", "b")
@@ -532,7 +531,7 @@ class JoinBehaviorTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            'SELECT "x"."foo","y"."buz" FROM "abc" "x" ' 'JOIN "abc" "y" ON "x"."foo"="y"."bar"',
+            'SELECT "x"."foo","y"."buz" FROM "abc" "x" JOIN "abc" "y" ON "x"."foo"="y"."bar"',
             str(q),
         )
 
@@ -582,7 +581,7 @@ class JoinBehaviorTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            'SELECT "abc"."foo","efg"."buz" FROM "abc" ' 'JOIN "efg" ON "abc"."foo"="efg"."bar"',
+            'SELECT "abc"."foo","efg"."buz" FROM "abc" JOIN "efg" ON "abc"."foo"="efg"."bar"',
             str(query2),
         )
         self.assertEqual('SELECT "foo" FROM "abc"', str(query1))
@@ -866,18 +865,12 @@ class UnionTests(unittest.TestCase):
         union_all_query = str((query1 * query2).orderby(query1.field("a")))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "UNION "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "a"',
+            '(SELECT "foo" "a" FROM "abc") UNION (SELECT "bar" "a" FROM "efg") ORDER BY "a"',
             union_query,
         )
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "UNION ALL "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "a"',
+            '(SELECT "foo" "a" FROM "abc") UNION ALL (SELECT "bar" "a" FROM "efg") ORDER BY "a"',
             union_all_query,
         )
 
@@ -891,17 +884,11 @@ class UnionTests(unittest.TestCase):
         union_all_query = str(union_all_query.orderby(union_all_query.field("a")))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "UNION "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "a"',
+            '(SELECT "foo" "a" FROM "abc") UNION (SELECT "bar" "a" FROM "efg") ORDER BY "a"',
             union_query,
         )
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "UNION ALL "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "a"',
+            '(SELECT "foo" "a" FROM "abc") UNION ALL (SELECT "bar" "a" FROM "efg") ORDER BY "a"',
             union_all_query,
         )
 
@@ -936,10 +923,7 @@ class UnionTests(unittest.TestCase):
         union_all_query = union_all_query.orderby(union_all_query.field("a"))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "UNION "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "x"."a"',
+            '(SELECT "foo" "a" FROM "abc") UNION (SELECT "bar" "a" FROM "efg") ORDER BY "x"."a"',
             str(union_query),
         )
         self.assertEqual(
@@ -1054,10 +1038,7 @@ class IntersectTests(unittest.TestCase):
         intersect_query = str((query1.intersect(query2)).orderby(query1.field("a")))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "INTERSECT "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "a"',
+            '(SELECT "foo" "a" FROM "abc") INTERSECT (SELECT "bar" "a" FROM "efg") ORDER BY "a"',
             intersect_query,
         )
 
@@ -1068,10 +1049,7 @@ class IntersectTests(unittest.TestCase):
         intersect_query = str((query1.intersect(query2)).limit(10))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "INTERSECT "
-            '(SELECT "bar" "a" FROM "efg") '
-            "LIMIT 10",
+            '(SELECT "foo" "a" FROM "abc") INTERSECT (SELECT "bar" "a" FROM "efg") LIMIT 10',
             intersect_query,
         )
 
@@ -1082,10 +1060,7 @@ class IntersectTests(unittest.TestCase):
         intersect_query = str((query1.intersect(query2)).offset(10))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "INTERSECT "
-            '(SELECT "bar" "a" FROM "efg") '
-            "OFFSET 10",
+            '(SELECT "foo" "a" FROM "abc") INTERSECT (SELECT "bar" "a" FROM "efg") OFFSET 10',
             intersect_query,
         )
 
@@ -1162,10 +1137,7 @@ class MinusTests(unittest.TestCase):
         minus_query = str(query1.minus(query2).orderby(query1.field("a")))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "MINUS "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "a"',
+            '(SELECT "foo" "a" FROM "abc") MINUS (SELECT "bar" "a" FROM "efg") ORDER BY "a"',
             minus_query,
         )
 
@@ -1177,10 +1149,7 @@ class MinusTests(unittest.TestCase):
         minus_query = str(minus_query.orderby(minus_query.field("b")))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "MINUS "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "b"',
+            '(SELECT "foo" "a" FROM "abc") MINUS (SELECT "bar" "a" FROM "efg") ORDER BY "b"',
             minus_query,
         )
 
@@ -1245,10 +1214,7 @@ class ExceptOfTests(unittest.TestCase):
         except_query = str(query1.except_of(query2).orderby(query1.field("a")))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "EXCEPT "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "a"',
+            '(SELECT "foo" "a" FROM "abc") EXCEPT (SELECT "bar" "a" FROM "efg") ORDER BY "a"',
             except_query,
         )
 
@@ -1260,10 +1226,7 @@ class ExceptOfTests(unittest.TestCase):
         except_query = str(except_query.orderby(except_query.field("b")))
 
         self.assertEqual(
-            '(SELECT "foo" "a" FROM "abc") '
-            "EXCEPT "
-            '(SELECT "bar" "a" FROM "efg") '
-            'ORDER BY "b"',
+            '(SELECT "foo" "a" FROM "abc") EXCEPT (SELECT "bar" "a" FROM "efg") ORDER BY "b"',
             except_query,
         )
 

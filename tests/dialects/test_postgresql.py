@@ -147,7 +147,7 @@ class JSONBOperatorsTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            "SELECT * " 'FROM "abc" ' 'WHERE "json"@>\'{"dates":"2018-07-10 - 2018-07-17"}\'',
+            'SELECT * FROM "abc" WHERE "json"@>\'{"dates":"2018-07-10 - 2018-07-17"}\'',
             str(q),
         )
 
