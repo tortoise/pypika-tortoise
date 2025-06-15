@@ -21,9 +21,20 @@ class SqlContext:
     orderby_alias: bool = True
 
     def copy(self, **kwargs) -> SqlContext:
-        cls = self.__class__
-        fields = cls.__dataclass_fields__
-        return cls(**{f: kwargs.get(f, getattr(self, f)) for f in fields})
+        return SqlContext(
+            quote_char=kwargs.get("quote_char", self.quote_char),
+            secondary_quote_char=kwargs.get("secondary_quote_char", self.secondary_quote_char),
+            alias_quote_char=kwargs.get("alias_quote_char", self.alias_quote_char),
+            dialect=kwargs.get("dialect", self.dialect),
+            as_keyword=kwargs.get("as_keyword", self.as_keyword),
+            subquery=kwargs.get("subquery", self.subquery),
+            with_alias=kwargs.get("with_alias", self.with_alias),
+            with_namespace=kwargs.get("with_namespace", self.with_namespace),
+            subcriterion=kwargs.get("subcriterion", self.subcriterion),
+            parameterizer=kwargs.get("parameterizer", self.parameterizer),
+            groupby_alias=kwargs.get("groupby_alias", self.groupby_alias),
+            orderby_alias=kwargs.get("orderby_alias", self.orderby_alias),
+        )
 
 
 from .enums import Dialects  # noqa: E402
