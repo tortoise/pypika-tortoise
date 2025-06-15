@@ -1467,12 +1467,15 @@ class Function(Criterion):
         arg_ctx = ctx.copy(with_alias=False)
         return arg.get_sql(arg_ctx) if hasattr(arg, "get_sql") else str(arg)
 
+    def get_dialect_special_name(self, dialect: Dialects) -> str:
+        return ""
+
     def get_function_sql(self, ctx: SqlContext) -> str:
         # pylint: disable=E1111
         special_params_sql = self.get_special_params_sql(ctx)
 
         return "{name}({args}{special})".format(
-            name=self.name,
+            name=self.get_dialect_special_name(ctx.dialect) or self.name,
             args=",".join(self.get_arg_sql(arg, ctx) for arg in self.args),
             special=(" " + special_params_sql) if special_params_sql else "",
         )
@@ -1767,6 +1770,9 @@ class Interval(Term):
 class Pow(Function):
     def __init__(self, term: Term, exponent: float, alias: str | None = None) -> None:
         super().__init__("POW", term, exponent, alias=alias)
+
+    def get_dialect_special_name(self, dialect: Dialects) -> str:
+        return "POWER" if dialect == Dialects.MSSQL else ""
 
 
 class Mod(Function):
