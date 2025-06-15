@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.2 (Unreleased)
+
+- fix: `** (power)` does not get translated to POWER in MSSQL (#34)
+
 ### 0.6.1
 
 - Add `JSONAttributeCriterion` (#33)

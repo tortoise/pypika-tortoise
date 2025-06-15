@@ -14,7 +14,6 @@ from .queries import AliasedQuery, Column, Database, Query, Schema, Table
 from .queries import make_columns as Columns
 from .queries import make_tables as Tables
 from .terms import (
-    JSONAttributeCriterion,
     JSON,
     Array,
     Bracket,
@@ -25,6 +24,7 @@ from .terms import (
     Field,
     Index,
     Interval,
+    JSONAttributeCriterion,
     Not,
     NullValue,
     Parameter,
