@@ -42,13 +42,13 @@ def ignore_copy(func: Callable[[T_Self, str], T_Retval]) -> Callable[[T_Self, st
     """
 
     def _getattr(self: T_Self, name: str) -> T_Retval:
-        if name in [
+        if name in (
             "__copy__",
             "__deepcopy__",
             "__getstate__",
             "__setstate__",
             "__getnewargs__",
-        ]:
+        ):
             raise AttributeError(
                 "'%s' object has no attribute '%s'" % (self.__class__.__name__, name)
             )
