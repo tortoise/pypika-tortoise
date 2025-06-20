@@ -46,7 +46,6 @@ line-length = 100
 [tool.ruff.lint]
 extend-select = [
     "I",      # https://docs.astral.sh/ruff/rules/#isort-i
-    "SIM",    # https://docs.astral.sh/ruff/rules/#flake8-simplify-sim
     "FA",     # https://docs.astral.sh/ruff/rules/#flake8-future-annotations-fa
     "UP",     # https://docs.astral.sh/ruff/rules/#pyupgrade-up
     "RUF100", # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
@@ -58,8 +57,6 @@ ignore = ["UP031", "UP032"] # https://docs.astral.sh/ruff/rules/printf-string-fo
 'pypika_tortoise/dialects/__init__.py' = ['F401']
 'tests/test_functions.py' = ['UP034']
 'tests/dialects/test_postgresql.py' = ['RUF100']
-'tests/test_*.py' = ['SIM117', 'SIM300']
-'pypika_tortoise/terms.py' = ['SIM103', 'SIM201']
 
 [tool.bandit]
 exclude_dirs = ["tests", "conftest.py"]
