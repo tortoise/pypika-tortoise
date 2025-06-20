@@ -1,10 +1,8 @@
 import unittest
 
-from pypika_tortoise import Case, CaseException, DatePart
+from pypika_tortoise import Case, CaseException, DatePart, Query, Schema
 from pypika_tortoise import Field as F
-from pypika_tortoise import Query
 from pypika_tortoise import Query as Q
-from pypika_tortoise import Schema
 from pypika_tortoise import Table as T
 from pypika_tortoise import functions as fn
 from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
@@ -303,8 +301,8 @@ class ArithmeticTests(unittest.TestCase):
         self.assertEqual('SELECT FLOOR("a"/("b"/2)) FROM "abc"', str(q4))
 
     def test__complex_op_nested_parentheses(self):
-        q1 = Q.from_("abc").select(F("a") / (F("b") / ((F("c") / 2))))
-        q2 = Q.from_("abc").select(self.t.a / (self.t.b / ((self.t.c / 2))))
+        q1 = Q.from_("abc").select(F("a") / (F("b") / (F("c") / 2)))
+        q2 = Q.from_("abc").select(self.t.a / (self.t.b / (self.t.c / 2)))
 
         self.assertEqual('SELECT "a"/("b"/("c"/2)) FROM "abc"', str(q1))
         self.assertEqual('SELECT "a"/("b"/("c"/2)) FROM "abc"', str(q2))

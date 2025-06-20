@@ -2,9 +2,11 @@ import unittest
 from datetime import date, time
 from enum import Enum
 
-from pypika_tortoise import SYSTEM_TIME, AliasedQuery, Case, EmptyCriterion
-from pypika_tortoise import Field as F
 from pypika_tortoise import (
+    SYSTEM_TIME,
+    AliasedQuery,
+    Case,
+    EmptyCriterion,
     Index,
     MySQLQuery,
     NullValue,
@@ -16,6 +18,7 @@ from pypika_tortoise import (
     Table,
     Tables,
 )
+from pypika_tortoise import Field as F
 from pypika_tortoise import functions as fn
 from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
 from pypika_tortoise.terms import Field, ValueWrapper
@@ -130,9 +133,7 @@ class SelectTests(unittest.TestCase):
         subquery = Query.from_(self.table_abc).select("*")
         q = Query.from_(subquery).select(subquery.foo, subquery.bar)
 
-        self.assertEqual(
-            'SELECT "sq0"."foo","sq0"."bar" ' 'FROM (SELECT * FROM "abc") "sq0"', str(q)
-        )
+        self.assertEqual('SELECT "sq0"."foo","sq0"."bar" FROM (SELECT * FROM "abc") "sq0"', str(q))
 
     def test_select__multiple_subqueries(self):
         subquery0 = Query.from_(self.table_abc).select("foo")
@@ -1030,7 +1031,7 @@ class SubqueryTests(unittest.TestCase):
         q = Query.from_(self.table_abc).select("foo", "bar").select(subq)
 
         self.assertEqual(
-            'SELECT "foo","bar",(SELECT "fizzbuzz" FROM "efg" WHERE "id"=1) ' 'FROM "abc"',
+            'SELECT "foo","bar",(SELECT "fizzbuzz" FROM "efg" WHERE "id"=1) FROM "abc"',
             str(q),
         )
 
@@ -1040,7 +1041,7 @@ class SubqueryTests(unittest.TestCase):
         q = Query.from_(self.table_abc).select("foo", "bar").select(subq.as_("sq"))
 
         self.assertEqual(
-            'SELECT "foo","bar",(SELECT "fizzbuzz" FROM "efg" WHERE "id"=1) "sq" ' 'FROM "abc"',
+            'SELECT "foo","bar",(SELECT "fizzbuzz" FROM "efg" WHERE "id"=1) "sq" FROM "abc"',
             str(q),
         )
 
@@ -1053,7 +1054,7 @@ class SubqueryTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            'SELECT "foo","bar" FROM "abc" ' 'WHERE "bar"=(SELECT "fiz" FROM "efg" WHERE "buz"=0)',
+            'SELECT "foo","bar" FROM "abc" WHERE "bar"=(SELECT "fiz" FROM "efg" WHERE "buz"=0)',
             str(query),
         )
 
@@ -1234,8 +1235,6 @@ class QuoteTests(unittest.TestCase):
         query = Query.from_(t1).join(t2).on(t1.Value.between(t2.start, t2.end)).select(t1.value)
 
         self.assertEqual(
-            "SELECT t1.value FROM table1 t1 "
-            "JOIN table2 t2 ON t1.Value "
-            "BETWEEN t2.start AND t2.end",
+            "SELECT t1.value FROM table1 t1 JOIN table2 t2 ON t1.Value BETWEEN t2.start AND t2.end",
             query.get_sql(DEFAULT_SQL_CONTEXT.copy(quote_char="")),
         )

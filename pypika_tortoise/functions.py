@@ -41,7 +41,7 @@ class DistinctOptionFunction(AggregateFunction):
 
 class Count(DistinctOptionFunction):
     def __init__(self, param: Any, alias: str | None = None) -> None:
-        is_star = isinstance(param, str) and "*" == param
+        is_star = isinstance(param, str) and param == "*"
         super().__init__("COUNT", Star() if is_star else param, alias=alias)
 
 
