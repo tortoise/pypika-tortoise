@@ -54,9 +54,6 @@ ignore = ["UP031", "UP032"] # https://docs.astral.sh/ruff/rules/printf-string-fo
 
 [tool.ruff.lint.per-file-ignores]
 'pypika_tortoise/__init__.py' = ['F401']
-'pypika_tortoise/dialects/__init__.py' = ['F401']
-'tests/test_functions.py' = ['UP034']
-'tests/dialects/test_postgresql.py' = ['RUF100']
 
 [tool.bandit]
 exclude_dirs = ["tests", "conftest.py"]
