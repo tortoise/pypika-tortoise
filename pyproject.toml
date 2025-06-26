@@ -1,6 +1,6 @@
 [project]
 name = "pypika-tortoise"
-version = "0.6.1"
+version = "0.6.2"
 description = "Forked from pypika and streamline just for tortoise-orm"
 authors = [{name="long2ice", email="long2ice@gmail.com"}]
 license = {text="Apache-2.0"}

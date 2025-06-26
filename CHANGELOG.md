@@ -2,7 +2,7 @@
 
 ## 0.6
 
-### 0.6.2 (Unreleased)
+### 0.6.2
 
 - fix: `** (power)` does not get translated to POWER in MSSQL (#34)
 
