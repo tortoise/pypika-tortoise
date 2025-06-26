@@ -22,22 +22,18 @@ packages = [
 [tool.poetry.group.dev.dependencies]
 ruff = "*"
 mypy = "*"
-isort = "*"
-black = "*"
-pytest = "*"
 bandit = "*"
-pytest-xdist = "*"
-pytest-cov = "*"
 twine = "*"
 typing-extensions = {version = "*", python = "<3.11"}
+
+[tool.poetry.group.test.dependencies]
+pytest = "*"
+pytest-cov = "*"
+pytest-xdist = "*"
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.black]
-line-length = 100
-target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
 
 [tool.mypy]
 pretty = true
@@ -49,6 +45,7 @@ line-length = 100
 
 [tool.ruff.lint]
 extend-select = [
+    "I",      # https://docs.astral.sh/ruff/rules/#isort-i
     "FA",     # https://docs.astral.sh/ruff/rules/#flake8-future-annotations-fa
     "UP",     # https://docs.astral.sh/ruff/rules/#pyupgrade-up
     "RUF100", # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
@@ -57,9 +54,6 @@ ignore = ["UP031", "UP032"] # https://docs.astral.sh/ruff/rules/printf-string-fo
 
 [tool.ruff.lint.per-file-ignores]
 'pypika_tortoise/__init__.py' = ['F401']
-'pypika_tortoise/dialects/__init__.py' = ['F401']
-'tests/test_functions.py' = ['UP034']
-'tests/dialects/test_postgresql.py' = ['RUF100']
 
 [tool.bandit]
 exclude_dirs = ["tests", "conftest.py"]

@@ -43,8 +43,8 @@ class SQLLiteQueryBuilder(QueryBuilder):
             return ""
 
         has_joins = bool(self._joins)
-        has_multiple_from_clauses = 1 < len(self._from)
-        has_subquery_from_clause = 0 < len(self._from) and isinstance(self._from[0], QueryBuilder)
+        has_multiple_from_clauses = len(self._from) > 1
+        has_subquery_from_clause = len(self._from) > 0 and isinstance(self._from[0], QueryBuilder)
         has_reference_to_foreign_table = self._foreign_table
         has_update_from = self._update_table and self._from
 
@@ -60,13 +60,9 @@ class SQLLiteQueryBuilder(QueryBuilder):
             ),
         )
         if self._update_table:
-            if self._with:
-                querystring = self._with_sql(ctx)
-            else:
-                querystring = ""
+            querystring = self._with_sql(ctx) if self._with else ""
 
             querystring += self._update_sql(ctx)
-
             querystring += self._set_sql(ctx)
 
             if self._joins:

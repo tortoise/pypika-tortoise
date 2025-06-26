@@ -98,10 +98,7 @@ class QueryTablesTests(unittest.TestCase):
         query = query.replace_table(self.table_a, self.table_b)
 
         self.assertEqual(
-            'SELECT SUM("revenue") '
-            'FROM "b" '
-            'GROUP BY "customer" '
-            'HAVING SUM("revenue")>=1000',
+            'SELECT SUM("revenue") FROM "b" GROUP BY "customer" HAVING SUM("revenue")>=1000',
             str(query),
         )
 

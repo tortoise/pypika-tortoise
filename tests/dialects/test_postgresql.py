@@ -147,7 +147,7 @@ class JSONBOperatorsTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            "SELECT * " 'FROM "abc" ' 'WHERE "json"@>\'{"dates":"2018-07-10 - 2018-07-17"}\'',
+            'SELECT * FROM "abc" WHERE "json"@>\'{"dates":"2018-07-10 - 2018-07-17"}\'',
             str(q),
         )
 
@@ -200,7 +200,7 @@ class JSONBOperatorsTests(unittest.TestCase):
         q = (
             PostgreSQLQuery.from_(self.table_abc)
             .select("*")
-            .where(self.table_abc.json.has_key("dates"))  # noqa: W601
+            .where(self.table_abc.json.has_key("dates"))
         )
 
         self.assertEqual('SELECT * FROM "abc" WHERE "json"?\'dates\'', str(q))

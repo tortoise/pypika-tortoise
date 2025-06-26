@@ -876,9 +876,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         """
 
         self._from.append(
-            Table(selectable)
-            if isinstance(selectable, str)
-            else selectable  # type:ignore[arg-type]
+            Table(selectable) if isinstance(selectable, str) else selectable  # type:ignore[arg-type]
         )
 
         if isinstance(selectable, (QueryBuilder, _SetOperation)) and selectable.alias is None:
@@ -1131,7 +1129,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     def rollup(  # type:ignore[return]
         self, *terms: list | tuple | set | Term, **kwargs: Any
     ) -> Self:
-        for_mysql = "mysql" == kwargs.get("vendor")
+        for_mysql = kwargs.get("vendor") == "mysql"
 
         if self._mysql_rollup:
             raise AttributeError("'Query' object has no attribute '%s'" % "rollup")
@@ -1151,7 +1149,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._mysql_rollup = True
             self._groupbys += terms  # type:ignore[arg-type]
 
-        elif 0 < len(self._groupbys) and isinstance(self._groupbys[-1], Rollup):
+        elif len(self._groupbys) > 0 and isinstance(self._groupbys[-1], Rollup):
             # If a rollup was added last, then append the new terms to the previous rollup
             self._groupbys[-1].args += terms
 
@@ -1278,7 +1276,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         return [field.alias or field.get_sql(ctx) for field in field_set]
 
     def _select_field_str(self, term: str) -> None:
-        if 0 == len(self._from):
+        if len(self._from) == 0:
             raise QueryException(f"Cannot select {term}, no FROM table specified.")  # nosec:B608
 
         if term == "*":
@@ -1399,8 +1397,8 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             return ""
 
         has_joins = bool(self._joins)
-        has_multiple_from_clauses = 1 < len(self._from)
-        has_subquery_from_clause = 0 < len(self._from) and isinstance(self._from[0], QueryBuilder)
+        has_multiple_from_clauses = len(self._from) > 1
+        has_subquery_from_clause = len(self._from) > 0 and isinstance(self._from[0], QueryBuilder)
         has_reference_to_foreign_table = self._foreign_table
         has_update_from = self._update_table and self._from
 
@@ -1417,11 +1415,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         )
 
         if self._update_table:
-            if self._with:
-                querystring = self._with_sql(ctx)
-            else:
-                querystring = ""
-
+            querystring = self._with_sql(ctx) if self._with else ""
             querystring += self._update_sql(ctx)
 
             if self._joins:
@@ -1441,10 +1435,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             querystring = self._delete_sql(ctx)
 
         elif not self._select_into and self._insert_table:
-            if self._with:
-                querystring = self._with_sql(ctx)
-            else:
-                querystring = ""
+            querystring = self._with_sql(ctx) if self._with else ""
 
             if self._replace:
                 querystring += self._replace_sql(ctx)
@@ -1464,11 +1455,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 querystring += " " + self._select_sql(ctx)
 
         else:
-            if self._with:
-                querystring = self._with_sql(ctx)
-            else:
-                querystring = ""
-
+            querystring = self._with_sql(ctx) if self._with else ""
             querystring += self._select_sql(ctx)
 
             if self._insert_table:
@@ -1568,7 +1555,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             for_update = f" FOR {lock_strength}"
             if self._for_update_of:
                 for_update += (
-                    f' OF {", ".join([Table(item).get_sql(ctx) for item in self._for_update_of])}'
+                    f" OF {', '.join([Table(item).get_sql(ctx) for item in self._for_update_of])}"
                 )
             if self._for_update_nowait:
                 for_update += " NOWAIT"
@@ -1761,8 +1748,9 @@ class Joiner:
     def on(self, criterion: Criterion | None, collate: str | None = None) -> QueryBuilder:
         if criterion is None:
             raise JoinException(
-                "Parameter 'criterion' is required for a "
-                "{type} JOIN but was not supplied.".format(type=self.type_label)
+                "Parameter 'criterion' is required for a {type} JOIN but was not supplied.".format(
+                    type=self.type_label
+                )
             )
 
         self.query.do_join(JoinOn(self.item, self.how, criterion, collate))  # type:ignore[arg-type]
@@ -1771,8 +1759,9 @@ class Joiner:
     def on_field(self, *fields: Any) -> QueryBuilder:
         if not fields:
             raise JoinException(
-                "Parameter 'fields' is required for a "
-                "{type} JOIN but was not supplied.".format(type=self.type_label)
+                "Parameter 'fields' is required for a {type} JOIN but was not supplied.".format(
+                    type=self.type_label
+                )
             )
 
         criterion = None
@@ -2181,7 +2170,8 @@ class CreateQueryBuilder:
 
     def _primary_key_clause(self, ctx: SqlContext) -> str:
         columns = ",".join(
-            column.get_name_sql(ctx) for column in self._primary_key  # type:ignore[union-attr]
+            column.get_name_sql(ctx)
+            for column in self._primary_key  # type:ignore[union-attr]
         )
         return f"PRIMARY KEY ({columns})"
 
