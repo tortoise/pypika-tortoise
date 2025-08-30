@@ -4,6 +4,7 @@
 
 ### 0.6.2
 
+- feat: migrate from poetry to uv
 - fix: `** (power)` does not get translated to POWER in MSSQL (#34)
 
 ### 0.6.1

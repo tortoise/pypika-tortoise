@@ -1,12 +1,11 @@
 [project]
 name = "pypika-tortoise"
-version = "0.6.2"
+dynamic = ["version"]
 description = "Forked from pypika and streamline just for tortoise-orm"
 authors = [{name="long2ice", email="long2ice@gmail.com"}]
 license = {text="Apache-2.0"}
 readme = "README.md"
 keywords = ["postgresql", "Tortoise-ORM", "mysql", "sqlite", "sql"]
-include = ["CHANGELOG.md", "LICENSE", "README.md"]
 requires-python = ">=3.9"
 
 [project.urls]
@@ -18,22 +17,32 @@ documentation = "https://github.com/tortoise/pypika-tortoise"
 packages = [
     { include = "pypika_tortoise" }
 ]
+version = "0.0.0"
 
-[tool.poetry.group.dev.dependencies]
-ruff = "*"
-mypy = "*"
-bandit = "*"
-twine = "*"
-typing-extensions = {version = "*", python = "<3.11"}
+[tool.pdm]
+version = {source="file", path="pypika_tortoise/__init__.py"}
 
-[tool.poetry.group.test.dependencies]
-pytest = "*"
-pytest-cov = "*"
-pytest-xdist = "*"
+[dependency-groups]
+dev = [
+    "ruff",
+    "mypy",
+    "bandit",
+    "twine",
+    "typing-extensions; python_version < '3.11'",
+]
+test=[
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+]
 
 [build-system]
-requires = ["poetry-core>=2.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.build]
+excludes = ["./**/.git", "./**/.*_cache"]
+include = ["CHANGELOG.md", "LICENSE", "README.md"]
 
 [tool.mypy]
 pretty = true
