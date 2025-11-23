@@ -1662,7 +1662,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                             clauses.append(select.get_sql(ctx))
                             break
             else:
-                clauses.append(field.get_sql(ctx))
+                clauses.append(field.get_sql(ctx.copy(with_alias=False)))
 
         sql = " GROUP BY {groupby}".format(groupby=",".join(clauses))
 
