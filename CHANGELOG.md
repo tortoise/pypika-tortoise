@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.3
+
+- Fix: do not add alias to group by columns in the case if the column not selected (#37)
+
 ### 0.6.2
 
 - feat: migrate from poetry to uv

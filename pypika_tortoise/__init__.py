@@ -38,4 +38,4 @@ from .terms import (
 NULL = NullValue()
 SYSTEM_TIME = SystemTimeValue()
 
-__version__ = "0.6.2"
+__version__ = "0.6.3"
