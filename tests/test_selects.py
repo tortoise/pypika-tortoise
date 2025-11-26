@@ -740,6 +740,18 @@ class GroupByTests(unittest.TestCase):
 
         self.assertEqual('SELECT "foo","bar" FROM "abc" GROUP BY "foo","bar" WITH TOTALS', str(q))
 
+    def test_groupby_field_alias_ignored_in_subquery(self):
+        # When a query with a GROUP BY on a field that has an alias is used as a
+        # subquery in a FROM clause, the GROUP BY should not include the field
+        # alias (it should render the field expression only).
+        inner = Query.from_(self.t).select(self.t.foo).groupby(self.t.bar.as_("bar_alias"))
+        parent = Query.from_(inner).select("*")
+
+        self.assertEqual(
+            'SELECT * FROM (SELECT "foo" FROM "abc" GROUP BY "bar") "sq0"',
+            str(parent),
+        )
+
 
 class HavingTests(unittest.TestCase):
     table_abc, table_efg = Tables("abc", "efg")
