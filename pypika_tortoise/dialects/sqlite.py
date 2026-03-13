@@ -122,7 +122,7 @@ class SQLLiteQueryBuilder(QueryBuilder):
         ctx = ctx or SQLLiteQuery.SQL_CONTEXT
         if not (self._selects or self._insert_table or self._delete_from or self._update_table):
             return ""
-        if self._insert_table and not (self._selects or self._values):
+        if self._insert_table and not (self._selects or self._values or self._default_values):
             return ""
         if self._update_table and not self._updates:
             return ""

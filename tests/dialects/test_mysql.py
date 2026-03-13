@@ -23,6 +23,13 @@ class InsertTests(unittest.TestCase):
             str(q),
         )
 
+    def test_default_values_upsert_with_alias(self):
+        q = MySQLQuery.into("abc").default_values().as_("aaa").on_conflict().do_update("abc")
+        self.assertEqual(
+            "INSERT INTO `abc` () VALUES () AS `aaa` ON DUPLICATE KEY UPDATE `abc`=`aaa`.`abc`",
+            str(q),
+        )
+
 
 class SelectTests(unittest.TestCase):
     table_abc = Table("abc")

@@ -22,3 +22,9 @@ class PowerTests(unittest.TestCase):
         self.assertEqual('SELECT POWER("a","b"/2) FROM "abc"', str(q4))
         self.assertEqual('SELECT POWER(POWER("a","b"),2) FROM "abc"', str(q5))
         self.assertEqual('SELECT POWER(POWER("a","b"),2) FROM "abc"', str(q6))
+
+
+class InsertTests(unittest.TestCase):
+    def test_insert_default_values(self):
+        q = MSSQLQuery.into("abc").default_values()
+        self.assertEqual('INSERT INTO "abc" DEFAULT VALUES', str(q))

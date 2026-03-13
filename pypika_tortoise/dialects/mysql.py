@@ -123,6 +123,10 @@ class MySQLQueryBuilder(QueryBuilder):
             ignore="IGNORE " if self._on_conflict_do_nothing else "",
         )
 
+    @staticmethod
+    def _default_values_sql(ctx: SqlContext) -> str:
+        return " () VALUES ()"
+
 
 class MySQLLoadQueryBuilder:
     QUERY_CLS = MySQLQuery
