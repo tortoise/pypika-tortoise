@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.4
+
+- Add RETURNING support to SQLite query builder
+
 ### 0.6.3
 
 - Fix: do not add alias to group by columns in the case if the column not selected (#37)

@@ -2,6 +2,9 @@ import unittest
 
 from pypika_tortoise import Table
 from pypika_tortoise.dialects import SQLLiteQuery
+from pypika_tortoise.exceptions import QueryException
+from pypika_tortoise.functions import Avg
+from pypika_tortoise.terms import Field
 
 
 class SelectTests(unittest.TestCase):
@@ -37,3 +40,47 @@ class InsertTests(unittest.TestCase):
             'INSERT INTO "abc" VALUES (1,\'b\',false) ON CONFLICT ("id") DO UPDATE SET "abc"=EXCLUDED."abc"',
             str(q),
         )
+
+
+class ReturningClauseTests(unittest.TestCase):
+    table_abc = Table("abc")
+
+    def test_insert_returning_one_field(self):
+        query = SQLLiteQuery.into(self.table_abc).insert(1).returning(self.table_abc.id)
+        self.assertEqual('INSERT INTO "abc" VALUES (1) RETURNING "id"', str(query))
+
+    def test_update_returning(self):
+        query = (
+            SQLLiteQuery.update(self.table_abc)
+            .where(self.table_abc.foo == 0)
+            .set("foo", "bar")
+            .returning("id")
+        )
+        self.assertEqual(
+            'UPDATE "abc" SET "foo"=\'bar\' WHERE "foo"=0 RETURNING "abc"."id"', str(query)
+        )
+
+    def test_delete_returning(self):
+        query = (
+            SQLLiteQuery.from_(self.table_abc)
+            .where(self.table_abc.foo == self.table_abc.bar)
+            .delete()
+            .returning(self.table_abc.id)
+        )
+        self.assertEqual('DELETE FROM "abc" WHERE "foo"="bar" RETURNING "id"', str(query))
+
+    def test_returning_from_missing_table_raises_queryexception(self):
+        field_from_diff_table = Field("xyz", table=Table("other"))
+        with self.assertRaisesRegex(QueryException, "You can't return from other tables"):
+            (
+                SQLLiteQuery.from_(self.table_abc)
+                .where(self.table_abc.foo == self.table_abc.bar)
+                .delete()
+                .returning(field_from_diff_table)
+            )
+
+    def test_insert_returning_aggregate(self):
+        with self.assertRaisesRegex(
+            QueryException, "Aggregate functions are not allowed in returning"
+        ):
+            SQLLiteQuery.into(self.table_abc).insert(1).returning(Avg(self.table_abc.views))
