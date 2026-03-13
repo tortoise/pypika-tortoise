@@ -50,10 +50,15 @@ class ReturningClauseTests(unittest.TestCase):
         self.assertEqual('INSERT INTO "abc" VALUES (1) RETURNING "id"', str(query))
 
     def test_update_returning(self):
-        query = SQLLiteQuery.update(self.table_abc).where(self.table_abc.foo == 0).set("foo", "bar").returning(
-            "id"
+        query = (
+            SQLLiteQuery.update(self.table_abc)
+            .where(self.table_abc.foo == 0)
+            .set("foo", "bar")
+            .returning("id")
         )
-        self.assertEqual('UPDATE "abc" SET "foo"=\'bar\' WHERE "foo"=0 RETURNING "abc"."id"', str(query))
+        self.assertEqual(
+            'UPDATE "abc" SET "foo"=\'bar\' WHERE "foo"=0 RETURNING "abc"."id"', str(query)
+        )
 
     def test_delete_returning(self):
         query = (
@@ -75,5 +80,7 @@ class ReturningClauseTests(unittest.TestCase):
             )
 
     def test_insert_returning_aggregate(self):
-        with self.assertRaisesRegex(QueryException, "Aggregate functions are not allowed in returning"):
+        with self.assertRaisesRegex(
+            QueryException, "Aggregate functions are not allowed in returning"
+        ):
             SQLLiteQuery.into(self.table_abc).insert(1).returning(Avg(self.table_abc.views))
