@@ -703,6 +703,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self._use_indexes: list[Index] = []
         self._columns: list[Field] = []
         self._values: list[list] = []
+        self._default_values = False
         self._distinct = False
 
         self._for_update = False
@@ -995,6 +996,8 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     def columns(self, *terms: Any) -> Self:  # type:ignore[return]
         if self._insert_table is None:
             raise AttributeError("'Query' object has no attribute '%s'" % "insert")
+        if self._default_values:
+            raise QueryException("Can not use columns with default_values")
 
         if terms and isinstance(terms[0], (list, tuple)):
             terms = terms[0]  # type:ignore[assignment]
@@ -1008,10 +1011,20 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
     def insert(self, *terms: Any) -> Self:  # type:ignore[return]
         if self._insert_table is None:
             raise AttributeError("'Query' object has no attribute '%s'" % "insert")
+        if self._default_values:
+            raise QueryException("Can not use insert with default_values")
 
         if terms:
             self._validate_terms_and_append(*terms)
             self._replace = False
+
+    @builder
+    def default_values(self) -> Self:  # type:ignore[return]
+        if self._insert_table is None:
+            raise AttributeError("'Query' object has no attribute '%s'" % "insert")
+        if self._columns or self._values:
+            raise QueryException("Can not use default_values with columns or insert")
+        self._default_values = True
 
     @builder
     def replace(self, *terms: Any) -> Self:  # type:ignore[return]
@@ -1391,7 +1404,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
 
         if not (self._selects or self._insert_table or self._delete_from or self._update_table):
             return ""
-        if self._insert_table and not (self._selects or self._values):
+        if self._insert_table and not (self._selects or self._values or self._default_values):
             return ""
         if self._update_table and not self._updates:
             return ""
@@ -1444,6 +1457,13 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
 
             if self._columns:
                 querystring += self._columns_sql(ctx)
+
+            if self._default_values:
+                querystring += self._default_values_sql(ctx)
+                if self._on_conflict:
+                    querystring += self._on_conflict_sql(ctx)
+                    querystring += self._on_conflict_action_sql(ctx)
+                return querystring
 
             if self._values:
                 querystring += self._values_sql(ctx)
@@ -1604,6 +1624,10 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 ",".join(term.get_sql(values_ctx) for term in row) for row in self._values
             )
         )
+
+    @staticmethod
+    def _default_values_sql(ctx: SqlContext) -> str:
+        return " DEFAULT VALUES"
 
     def _into_sql(self, ctx: SqlContext) -> str:
         into_ctx = ctx.copy(with_alias=False)

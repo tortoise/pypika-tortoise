@@ -41,6 +41,10 @@ class InsertTests(unittest.TestCase):
             str(q),
         )
 
+    def test_insert_default_values(self):
+        q = SQLLiteQuery.into("abc").default_values()
+        self.assertEqual('INSERT INTO "abc" DEFAULT VALUES', str(q))
+
 
 class ReturningClauseTests(unittest.TestCase):
     table_abc = Table("abc")
@@ -48,6 +52,10 @@ class ReturningClauseTests(unittest.TestCase):
     def test_insert_returning_one_field(self):
         query = SQLLiteQuery.into(self.table_abc).insert(1).returning(self.table_abc.id)
         self.assertEqual('INSERT INTO "abc" VALUES (1) RETURNING "id"', str(query))
+
+    def test_insert_default_values_returning_one_field(self):
+        query = SQLLiteQuery.into(self.table_abc).default_values().returning(self.table_abc.id)
+        self.assertEqual('INSERT INTO "abc" DEFAULT VALUES RETURNING "id"', str(query))
 
     def test_update_returning(self):
         query = (

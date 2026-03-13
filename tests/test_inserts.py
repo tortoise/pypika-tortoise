@@ -134,6 +134,23 @@ class InsertIntoTests(unittest.TestCase):
 
         self.assertEqual("", str(query))
 
+    def test_insert_default_values(self):
+        query = Query.into(self.table_abc).default_values()
+
+        self.assertEqual('INSERT INTO "abc" DEFAULT VALUES', str(query))
+
+    def test_insert_default_values_with_insert_raises(self):
+        with self.assertRaises(QueryException):
+            Query.into(self.table_abc).default_values().insert(1)
+
+    def test_insert_default_values_with_columns_raises(self):
+        with self.assertRaises(QueryException):
+            Query.into(self.table_abc).default_values().columns(self.table_abc.foo)
+
+    def test_insert_with_values_then_default_values_raises(self):
+        with self.assertRaises(QueryException):
+            Query.into(self.table_abc).insert(1).default_values()
+
     def test_insert_null(self):
         query = Query.into(self.table_abc).insert(None)
 
@@ -511,6 +528,14 @@ class PostgresInsertIntoReturningTests(unittest.TestCase):
 
         self.assertEqual('INSERT INTO "abc" VALUES (1) RETURNING "id"', str(query))
 
+    def test_insert_default_values_returning_fields(self):
+        query = PostgreSQLQuery.into(self.table_abc).default_values().returning("id", "created_at")
+
+        self.assertEqual(
+            'INSERT INTO "abc" DEFAULT VALUES RETURNING "id","created_at"',
+            str(query),
+        )
+
     def test_insert_returning_one_field_str(self):
         query = PostgreSQLQuery.into(self.table_abc).insert(1).returning("id")
 
@@ -625,6 +650,11 @@ class InsertIntoOnDuplicateTests(unittest.TestCase):
             "INSERT INTO `abc` VALUES (1) ON DUPLICATE KEY UPDATE `foo`=`foo`",
             str(query),
         )
+
+    def test_insert_default_values(self):
+        query = MySQLQuery.into(self.table_abc).default_values()
+
+        self.assertEqual("INSERT INTO `abc` () VALUES ()", str(query))
 
     def test_insert_one_column_using_values(self):
         query = (
