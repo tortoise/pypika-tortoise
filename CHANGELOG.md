@@ -4,7 +4,7 @@
 
 ### 0.6.4
 
-- Add RETURNING support to SQLLiteQueryBuilder
+- Add RETURNING support to SQLite query builder
 
 ### 0.6.3
 
