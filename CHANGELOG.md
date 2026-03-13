@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.5
+
+- Add `default_values()` API for default-only inserts with dialect-aware SQL rendering
+
 ### 0.6.4
 
 - Add RETURNING support to SQLite query builder
