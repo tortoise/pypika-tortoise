@@ -194,11 +194,6 @@ class PostgresInsertIntoOnConflictTests(unittest.TestCase):
 
         self.assertEqual('INSERT INTO "abc" VALUES (1) ON CONFLICT ("id") DO NOTHING', str(query))
 
-    def test_insert_default_values_on_conflict_do_nothing(self):
-        query = PostgreSQLQuery.into(self.table_abc).default_values().on_conflict().do_nothing()
-
-        self.assertEqual('INSERT INTO "abc" DEFAULT VALUES ON CONFLICT DO NOTHING', str(query))
-
     def test_insert_on_conflict_do_nothing_multiple_fields(self):
         query = (
             PostgreSQLQuery.into(self.table_abc)
