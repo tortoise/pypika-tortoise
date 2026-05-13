@@ -9,8 +9,9 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from .context import SqlContext
-from .enums import SqlTypes
-from .terms import AggregateFunction, Function, Star, Term
+from .enums import Dialects, SqlTypes
+from .exceptions import DialectNotSupported
+from .terms import AggregateFunction, Function, Star, Term, ValueWrapper
 from .utils import builder
 
 if TYPE_CHECKING:
@@ -242,8 +243,77 @@ class Reverse(Function):
 
 
 class Trim(Function):
+    def __init__(self, term: Any, trim_chars: str = " ", alias: str | None = None) -> None:
+        args = [term]
+        if trim_chars != " ":
+            args.append(ValueWrapper(trim_chars, allow_parametrize=False))
+
+        super().__init__("TRIM", *args, alias=alias)
+
+    def get_function_sql(self, ctx: SqlContext) -> str:
+        if len(self.args) == 1:
+            return super().get_function_sql(ctx)
+
+        args_sql = [self.get_arg_sql(arg, ctx) for arg in self.args]
+        if ctx.dialect == Dialects.SQLITE:
+            args = ",".join(args_sql)
+        else:
+            args = f"BOTH {args_sql[1]} FROM {args_sql[0]}"
+
+        return "{name}({args})".format(
+            name=self.get_dialect_special_name(ctx.dialect) or self.name,
+            args=args,
+        )
+
+
+class LTrim(Function):
     def __init__(self, term: Any, alias: str | None = None) -> None:
-        super().__init__("TRIM", term, alias=alias)
+        super().__init__("LTRIM", term, alias=alias)
+
+
+class RTrim(Function):
+    def __init__(self, term: Any, alias: str | None = None) -> None:
+        super().__init__("RTRIM", term, alias=alias)
+
+
+class _Pad(Function):
+    db_function: str
+
+    def __init__(
+        self, term: Any, length: int, fill_text: str = " ", alias: str | None = None
+    ) -> None:
+        super().__init__(
+            self.db_function,
+            term,
+            ValueWrapper(length, allow_parametrize=False),
+            ValueWrapper(fill_text, allow_parametrize=False),
+            alias=alias,
+        )
+
+    def get_sql(self, ctx: SqlContext) -> str:
+        if ctx.dialect == Dialects.SQLITE:
+            raise DialectNotSupported(f"{self.db_function} is not supported in SQLite.")
+
+        return super().get_sql(ctx)
+
+
+class LPad(_Pad):
+    db_function = "LPAD"
+
+
+class RPad(_Pad):
+    db_function = "RPAD"
+
+
+class Replace(Function):
+    def __init__(self, term: Any, search: str, replacement: str, alias: str | None = None) -> None:
+        super().__init__(
+            "REPLACE",
+            term,
+            ValueWrapper(search, allow_parametrize=False),
+            ValueWrapper(replacement, allow_parametrize=False),
+            alias=alias,
+        )
 
 
 class SplitPart(Function):
