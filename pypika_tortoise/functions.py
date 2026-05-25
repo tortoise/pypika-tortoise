@@ -291,8 +291,8 @@ class _Pad(Function):
         )
 
     def get_sql(self, ctx: SqlContext) -> str:
-        if ctx.dialect == Dialects.SQLITE:
-            raise DialectNotSupported(f"{self.db_function} is not supported in SQLite.")
+        if ctx.dialect in [Dialects.SQLITE, Dialects.MSSQL]:
+            raise DialectNotSupported(f"{self.db_function} is not supported in {ctx.dialect}.")
 
         return super().get_sql(ctx)
 

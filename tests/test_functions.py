@@ -6,6 +6,7 @@ from pypika_tortoise import Query as Q
 from pypika_tortoise import Table as T
 from pypika_tortoise import functions as fn
 from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
+from pypika_tortoise.dialects.mssql import MSSQLQuery
 from pypika_tortoise.dialects.postgresql import PostgreSQLQuery
 from pypika_tortoise.dialects.sqlite import SQLLiteQuery
 from pypika_tortoise.enums import SqlTypes
@@ -594,11 +595,12 @@ class StringTests(unittest.TestCase):
             'SELECT LPAD("foo",10,\'-\') FROM "abc"', q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
         )
 
-    def test__lpad__sqlite_raises(self):
+    def test__lpad__sqlite__mssql__raises(self):
         q = Q.select(fn.LPad("abc", 5))
 
-        with self.assertRaises(DialectNotSupported):
-            q.get_sql(SQLLiteQuery.SQL_CONTEXT)
+        for dialect in [SQLLiteQuery.SQL_CONTEXT, MSSQLQuery.SQL_CONTEXT]:
+            with self.subTest(dialect=dialect), self.assertRaises(DialectNotSupported):
+                q.get_sql(dialect)
 
     def test__rpad__str(self):
         q = Q.select(fn.RPad("abc", 5))
