@@ -619,11 +619,12 @@ class StringTests(unittest.TestCase):
             'SELECT RPAD("foo",10,\'-\') FROM "abc"', q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
         )
 
-    def test__rpad__sqlite_raises(self):
-        q = Q.select(fn.RPad("abc", 5))
+    def test__rpad__sqlite__mssql__raises(self):
+        q = Q.select(fn.LPad("abc", 5))
 
-        with self.assertRaises(DialectNotSupported):
-            q.get_sql(SQLLiteQuery.SQL_CONTEXT)
+        for dialect in [SQLLiteQuery.SQL_CONTEXT, MSSQLQuery.SQL_CONTEXT]:
+            with self.subTest(dialect=dialect), self.assertRaises(DialectNotSupported):
+                q.get_sql(dialect)
 
     def test__replace__str(self):
         q = Q.select(fn.Replace("abcde", "cd", "xx"))
