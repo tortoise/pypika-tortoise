@@ -246,12 +246,12 @@ class Trim(Function):
     def __init__(
         self,
         term: Any,
-        alias: str | None = None,
         trim_chars: str = " ",
+        alias: str | None = None,
     ) -> None:
         args = [term]
         if trim_chars != " ":
-            args.append(ValueWrapper(trim_chars, allow_parametrize=False))
+            args.append(ValueWrapper(trim_chars))
 
         super().__init__("TRIM", *args, alias=alias)
 
@@ -290,8 +290,8 @@ class _Pad(Function):
         super().__init__(
             self.db_function,
             term,
-            ValueWrapper(length, allow_parametrize=False),
-            ValueWrapper(fill_text, allow_parametrize=False),
+            ValueWrapper(length),
+            ValueWrapper(fill_text),
             alias=alias,
         )
 
@@ -315,8 +315,8 @@ class Replace(Function):
         super().__init__(
             "REPLACE",
             term,
-            ValueWrapper(search, allow_parametrize=False),
-            ValueWrapper(replacement, allow_parametrize=False),
+            ValueWrapper(search),
+            ValueWrapper(replacement),
             alias=alias,
         )
 
