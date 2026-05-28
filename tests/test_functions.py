@@ -530,14 +530,14 @@ class StringTests(unittest.TestCase):
         self.assertEqual('SELECT TRIM("foo") FROM "abc"', str(q))
 
     def test__trim__field__chars(self):
-        q = Q.from_(self.t).select(fn.Trim(self.t.foo, "x"))
+        q = Q.from_(self.t).select(fn.Trim(self.t.foo, trim_chars="x"))
 
         self.assertEqual(
             'SELECT TRIM(BOTH \'x\' FROM "foo") FROM "abc"', q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
         )
 
     def test__trim__field__chars__sqlite(self):
-        q = Q.from_(self.t).select(fn.Trim(self.t.foo, "x"))
+        q = Q.from_(self.t).select(fn.Trim(self.t.foo, trim_chars="x"))
 
         self.assertEqual('SELECT TRIM("foo",\'x\') FROM "abc"', str(q))
 
@@ -547,14 +547,14 @@ class StringTests(unittest.TestCase):
         self.assertEqual("SELECT TRIM('  abc  ')", str(q))
 
     def test__trim__str__chars(self):
-        q = Q.select(fn.Trim("xxabcxx", "x"))
+        q = Q.select(fn.Trim("xxabcxx", trim_chars="x"))
 
         self.assertEqual(
             "SELECT TRIM(BOTH 'x' FROM 'xxabcxx')", q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
         )
 
     def test__trim__str__chars__sqlite(self):
-        q = Q.select(fn.Trim("xxabcxx", "x"))
+        q = Q.select(fn.Trim("xxabcxx", trim_chars="x"))
 
         self.assertEqual("SELECT TRIM('xxabcxx','x')", str(q))
 
@@ -620,7 +620,7 @@ class StringTests(unittest.TestCase):
         )
 
     def test__rpad__sqlite__mssql__raises(self):
-        q = Q.select(fn.LPad("abc", 5))
+        q = Q.select(fn.RPad("abc", 5))
 
         for dialect in [SQLLiteQuery.SQL_CONTEXT, MSSQLQuery.SQL_CONTEXT]:
             with self.subTest(dialect=dialect), self.assertRaises(DialectNotSupported):

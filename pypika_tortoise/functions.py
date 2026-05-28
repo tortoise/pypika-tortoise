@@ -243,7 +243,12 @@ class Reverse(Function):
 
 
 class Trim(Function):
-    def __init__(self, term: Any, trim_chars: str = " ", alias: str | None = None) -> None:
+    def __init__(
+        self,
+        term: Any,
+        alias: str | None = None,
+        trim_chars: str = " ",
+    ) -> None:
         args = [term]
         if trim_chars != " ":
             args.append(ValueWrapper(trim_chars, allow_parametrize=False))
