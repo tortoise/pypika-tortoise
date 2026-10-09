@@ -37,7 +37,7 @@ class MySQLValueWrapper(ValueWrapper):
         elif isinstance(value, time):
             value = value.replace(tzinfo=None)
             return format_quotes(value.isoformat(), quote_char)
-        elif isinstance(value, (dict, list)):
+        elif isinstance(value, dict | list):
             value = format_quotes(json.dumps(value), quote_char)
             return value.replace("\\", "\\\\")
         return super().get_value_sql(ctx)

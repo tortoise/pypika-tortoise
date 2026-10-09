@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, overload
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 from .context import SqlContext
 
@@ -11,7 +12,9 @@ if TYPE_CHECKING:
     if sys.version_info >= (3, 11):
         from typing import Concatenate, ParamSpec
     else:
-        from typing_extensions import Concatenate, ParamSpec
+        from typing import Concatenate
+
+        from typing_extensions import ParamSpec
 
     P = ParamSpec("P")
 
