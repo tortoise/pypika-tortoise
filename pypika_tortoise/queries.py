@@ -449,7 +449,7 @@ class Query:
 
     @classmethod
     def with_(cls, table: str | Selectable, name: str, *terms: Term, **kwargs: Any) -> QueryBuilder:
-        return cls._builder(**kwargs).with_(table, name, *terms)
+        return cls._builder(**kwargs).with_(table, name, *terms)  # type:ignore[arg-type]
 
     @classmethod
     def select(cls, *terms: int | float | str | bool | Term, **kwargs: Any) -> QueryBuilder:
