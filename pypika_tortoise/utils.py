@@ -1,14 +1,40 @@
 from __future__ import annotations
 
-from typing import Any, Callable, TypeVar
+from functools import wraps
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, overload
 
 from .context import SqlContext
+
+if TYPE_CHECKING:
+    import sys
+
+    if sys.version_info >= (3, 11):
+        from typing import Concatenate, ParamSpec
+    else:
+        from typing_extensions import Concatenate, ParamSpec
+
+    P = ParamSpec("P")
+
 
 T_Retval = TypeVar("T_Retval")
 T_Self = TypeVar("T_Self")
 
 
-def builder(func: Callable[..., T_Retval]) -> Callable[..., T_Self | T_Retval]:
+@overload
+def builder(
+    func: Callable[Concatenate[T_Self, P], None],
+) -> Callable[Concatenate[T_Self, P], T_Self]: ...
+
+
+@overload
+def builder(
+    func: Callable[Concatenate[T_Self, P], T_Retval],
+) -> Callable[Concatenate[T_Self, P], T_Retval]: ...
+
+
+def builder(
+    func: Callable[Concatenate[T_Self, P], T_Retval | None],
+) -> Callable[Concatenate[T_Self, P], T_Retval | T_Self]:
     """
     Decorator for wrapper "builder" functions.  These are functions on the Query class or other classes used for
     building queries which mutate the query and return self.  To make the build functions immutable, this decorator is
@@ -17,7 +43,8 @@ def builder(func: Callable[..., T_Retval]) -> Callable[..., T_Self | T_Retval]:
     """
     import copy
 
-    def _copy(self: T_Self, *args, **kwargs) -> T_Self | T_Retval:
+    @wraps(func)
+    def _copy(self: T_Self, *args: P.args, **kwargs: P.kwargs) -> T_Retval | T_Self:
         self_copy = copy.copy(self) if getattr(self, "immutable", True) else self
         result = func(self_copy, *args, **kwargs)
 
