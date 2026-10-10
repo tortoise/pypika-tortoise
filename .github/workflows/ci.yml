@@ -5,15 +5,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, "3.10", 3.11, 3.12, 3.13]
+        python-version: ["3.10", 3.11, 3.12, 3.13, 3.14]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
       - name: Run CI
-        run: uv run make ci
+        run: uv run --frozen make ci

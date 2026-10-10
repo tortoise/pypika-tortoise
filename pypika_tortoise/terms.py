@@ -5,10 +5,10 @@ import json
 import re
 import sys
 import uuid
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from datetime import date, time
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from .context import DEFAULT_SQL_CONTEXT, SqlContext
 from .enums import (
@@ -107,11 +107,11 @@ class Term(Node):
     ) -> Term | QueryBuilder | NullValue | ValueWrapper | JSON:
         from .queries import QueryBuilder
 
-        if isinstance(val, (Term, QueryBuilder)):
+        if isinstance(val, Term | QueryBuilder):
             return val
         if val is None:
             return NullValue()
-        if isinstance(val, (str, int, bool)):
+        if isinstance(val, str | int | bool):
             wrapper_cls = wrapper_cls or ValueWrapper
             return wrapper_cls(val)
 
@@ -192,7 +192,7 @@ class Term(Node):
         return All(self)
 
     def isin(self, arg: list | tuple | set | Term) -> ContainsCriterion:
-        if isinstance(arg, (list, tuple, set)):
+        if isinstance(arg, list | tuple | set):
             return ContainsCriterion(self, Tuple(*arg))
         return ContainsCriterion(self, arg)
 
@@ -399,7 +399,7 @@ class ValueWrapper(Term):
             if isinstance(value, DatePart):
                 return value.value
             return cls.get_formatted_value(value.value, ctx)
-        if isinstance(value, (date, time)):
+        if isinstance(value, date | time):
             return cls.get_formatted_value(value.isoformat(), ctx)
         if isinstance(value, str):
             value = value.replace(quote_char, quote_char * 2)
@@ -408,7 +408,7 @@ class ValueWrapper(Term):
             return str(value).lower()
         if isinstance(value, uuid.UUID):
             return cls.get_formatted_value(str(value), ctx)
-        if isinstance(value, (dict, list)):
+        if isinstance(value, dict | list):
             return format_quotes(json.dumps(value), quote_char)
         if value is None:
             return "null"
@@ -1357,7 +1357,7 @@ class Not(Criterion):
 
         def inner(inner_self: Any, *args: Any, **kwargs: Any) -> Not | T:
             result = item_func(inner_self, *args, **kwargs)
-            if isinstance(result, (Term,)):
+            if isinstance(result, Term):
                 return Not(result)
             return result
 
