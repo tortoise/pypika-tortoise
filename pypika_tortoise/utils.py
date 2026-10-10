@@ -2,23 +2,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Concatenate, TypeVar, overload
+from typing import Any, Concatenate, ParamSpec, TypeVar, overload
 
 from .context import SqlContext
 
-if TYPE_CHECKING:
-    import sys
-
-    if sys.version_info >= (3, 11):
-        from typing import ParamSpec
-    else:
-        from typing_extensions import ParamSpec
-
-    P = ParamSpec("P")
-
-
 T_Retval = TypeVar("T_Retval")
 T_Self = TypeVar("T_Self")
+P = ParamSpec("P")
 
 
 @overload
