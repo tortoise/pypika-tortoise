@@ -153,7 +153,7 @@ class Table(Selectable):
         # the next major release. Schema is accepted as a string, list/tuple, Schema instance, or None
         if isinstance(schema, Schema):
             return schema
-        if isinstance(schema, (list, tuple)):
+        if isinstance(schema, list | tuple):
             return reduce(lambda obj, s: Schema(s, parent=obj), schema[1:], Schema(schema[0]))
         if schema is not None:
             return Schema(schema)
@@ -880,7 +880,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             Table(selectable) if isinstance(selectable, str) else selectable  # type:ignore[arg-type]
         )
 
-        if isinstance(selectable, (QueryBuilder, _SetOperation)) and selectable.alias is None:
+        if isinstance(selectable, QueryBuilder | _SetOperation) and selectable.alias is None:
             if isinstance(selectable, QueryBuilder):
                 sub_query_count = selectable._subquery_count
             else:
@@ -971,7 +971,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 self._select_field(term)
             elif isinstance(term, str):
                 self._select_field_str(term)
-            elif isinstance(term, (Function, ArithmeticExpression)):
+            elif isinstance(term, Function | ArithmeticExpression):
                 self._select_other(term)  # type:ignore[arg-type]
             else:
                 self._select_other(
@@ -999,7 +999,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         if self._default_values:
             raise QueryException("Can not use columns with default_values")
 
-        if terms and isinstance(terms[0], (list, tuple)):
+        if terms and isinstance(terms[0], list | tuple):
             terms = terms[0]  # type:ignore[assignment]
 
         for term in terms:
@@ -1148,7 +1148,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             raise AttributeError("'Query' object has no attribute '%s'" % "rollup")
 
         terms = [  # type:ignore[assignment]
-            Tuple(*term) if isinstance(term, (list, tuple, set)) else term for term in terms
+            Tuple(*term) if isinstance(term, list | tuple | set) else term for term in terms
         ]
 
         if for_mysql:
@@ -1372,7 +1372,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         Handy function for INSERT and REPLACE statements in order to check if
         terms are introduced and how append them to `self._values`
         """
-        if not isinstance(terms[0], (list, tuple, set)):
+        if not isinstance(terms[0], list | tuple | set):
             terms = [terms]  # type:ignore[assignment]
 
         for values in terms:

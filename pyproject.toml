@@ -6,7 +6,8 @@ authors = [{name="long2ice", email="long2ice@gmail.com"}]
 license = {text="Apache-2.0"}
 readme = "README.md"
 keywords = ["postgresql", "Tortoise-ORM", "mysql", "sqlite", "sql"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
+dependencies = []
 
 [project.urls]
 homepage = "https://github.com/tortoise/pypika-tortoise"
@@ -46,7 +47,7 @@ include = ["CHANGELOG.md", "LICENSE", "README.md"]
 
 [tool.mypy]
 pretty = true
-python_version = "3.9"
+python_version = "3.10"
 warn_unused_ignores = true
 
 [tool.ruff]
