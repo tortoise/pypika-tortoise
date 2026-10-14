@@ -169,7 +169,7 @@ class RankTests(unittest.TestCase):
     def test_filter(self):
         expr = (
             an.LastValue(self.table_abc.fizz)
-            .filter(Criterion.all([self.table_abc.bar == True]))  # noqa: E712
+            .filter(Criterion.all([self.table_abc.bar == True]))
             .over(self.table_abc.foo)
             .orderby(self.table_abc.date)
         )

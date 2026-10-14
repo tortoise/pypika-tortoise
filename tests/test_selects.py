@@ -408,10 +408,8 @@ class WhereTests(unittest.TestCase):
         self.assertIn(
             str(q),
             [
-                'SELECT * FROM "abc" JOIN "cba" ON "abc"."id"="cba"."abc_id" WHERE '
-                '"abc"."foo"="abc"."bar" FOR UPDATE OF "cba", "abc"',
-                'SELECT * FROM "abc" JOIN "cba" ON "abc"."id"="cba"."abc_id" WHERE '
-                '"abc"."foo"="abc"."bar" FOR UPDATE OF "abc", "cba"',
+                'SELECT * FROM "abc" JOIN "cba" ON "abc"."id"="cba"."abc_id" WHERE "abc"."foo"="abc"."bar" FOR UPDATE OF "cba", "abc"',
+                'SELECT * FROM "abc" JOIN "cba" ON "abc"."id"="cba"."abc_id" WHERE "abc"."foo"="abc"."bar" FOR UPDATE OF "abc", "cba"',
             ],
         )
 

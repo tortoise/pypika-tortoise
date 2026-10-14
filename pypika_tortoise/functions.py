@@ -5,12 +5,20 @@ Package for SQL functions wrappers
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .context import SqlContext
 from .enums import SqlTypes
 from .terms import AggregateFunction, Function, Star, Term
 from .utils import builder
+
+if TYPE_CHECKING:
+    import sys
+
+    if sys.version_info >= (3, 11):
+        from typing import Self
+    else:
+        from typing_extensions import Self
 
 
 class DistinctOptionFunction(AggregateFunction):
@@ -28,7 +36,7 @@ class DistinctOptionFunction(AggregateFunction):
         return s
 
     @builder
-    def distinct(self) -> None:
+    def distinct(self: Self) -> None:
         self._distinct = True
 
 
@@ -95,7 +103,7 @@ class Floor(Function):
 
 
 class ApproximatePercentile(AggregateFunction):
-    def __init__(self, term: Any, percentile: int | float | str, alias: str | None = None) -> None:
+    def __init__(self, term: Any, percentile: float | str, alias: str | None = None) -> None:
         super().__init__("APPROXIMATE_PERCENTILE", term, alias=alias)
         self.percentile = float(percentile)
 
