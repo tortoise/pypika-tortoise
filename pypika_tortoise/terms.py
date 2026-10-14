@@ -338,7 +338,6 @@ class Parameterizer:
     def should_parameterize(self, value: Any) -> bool:
         if isinstance(value, Enum):
             return False
-
         if isinstance(value, str) and value == "*":
             return False
         return True
@@ -671,7 +670,7 @@ class Star(Field):
 
     def get_sql(self, ctx: SqlContext) -> str:
         if self.table and (ctx.with_namespace or self.table.alias):
-            namespace = self.table.alias or getattr(self.table, "_table_name")
+            namespace = self.table.alias or self.table._table_name
             return "{}.*".format(format_quotes(namespace, ctx.quote_char))
 
         return "*"
@@ -1131,7 +1130,7 @@ class ComplexCriterion(BasicCriterion):
         return sql
 
     def needs_brackets(self, term: Term) -> bool:
-        return isinstance(term, ComplexCriterion) and not term.comparator == self.comparator
+        return isinstance(term, ComplexCriterion) and term.comparator != self.comparator
 
 
 class ArithmeticExpression(Term):
@@ -1714,6 +1713,7 @@ class Interval(Term):
             self.units,
             self.labels,
             [years, months, days, hours, minutes, seconds, microseconds],
+            strict=False,
         ):
             if value:
                 int_value = int(value)
@@ -1728,15 +1728,15 @@ class Interval(Term):
 
     def get_sql(self, ctx: SqlContext) -> str:
         if self.largest == "MICROSECOND":
-            expr = getattr(self, "microseconds")
+            expr = self.microseconds  # type:ignore
             unit = "MICROSECOND"
 
         elif hasattr(self, "quarters"):
-            expr = getattr(self, "quarters")
+            expr = self.quarters
             unit = "QUARTER"
 
         elif hasattr(self, "weeks"):
-            expr = getattr(self, "weeks")
+            expr = self.weeks
             unit = "WEEK"
 
         else:
