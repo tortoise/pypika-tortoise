@@ -132,13 +132,11 @@ class CreateTableTests(unittest.TestCase):
             self.existing_table.foo, self.existing_table.bar
         )
 
-        with self.subTest("for columns before as_select"):
-            with self.assertRaises(AttributeError):
-                Query.create_table(self.new_table).columns(self.foo, self.bar).as_select(select)
+        with self.subTest("for columns before as_select"), self.assertRaises(AttributeError):
+            Query.create_table(self.new_table).columns(self.foo, self.bar).as_select(select)
 
-        with self.subTest("for as_select before columns"):
-            with self.assertRaises(AttributeError):
-                Query.create_table(self.new_table).as_select(select).columns(self.foo, self.bar)
+        with self.subTest("for as_select before columns"), self.assertRaises(AttributeError):
+            Query.create_table(self.new_table).as_select(select).columns(self.foo, self.bar)
 
     def test_create_table_as_select_not_query_raises_error(self):
         with self.assertRaises(TypeError):
