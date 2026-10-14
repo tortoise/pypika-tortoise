@@ -95,7 +95,7 @@ class MySQLQueryBuilder(QueryBuilder):
         return ""
 
     @builder
-    def modifier(self, value: str) -> MySQLQueryBuilder:  # type:ignore[return]
+    def modifier(self, value: str) -> None:
         """
         Adds a modifier such as SQL_CALC_FOUND_ROWS to the query.
         https://dev.mysql.com/doc/refman/5.7/en/select.html
@@ -136,11 +136,11 @@ class MySQLLoadQueryBuilder:
         self._into_table: Table | None = None
 
     @builder
-    def load(self, fp: str) -> MySQLLoadQueryBuilder:  # type:ignore[return]
+    def load(self, fp: str) -> None:
         self._load_file = fp
 
     @builder
-    def into(self, table: str | Table) -> MySQLLoadQueryBuilder:  # type:ignore[return]
+    def into(self, table: str | Table) -> None:
         self._into_table = table if isinstance(table, Table) else Table(table)
 
     def get_sql(self, ctx: SqlContext | None = None) -> str:

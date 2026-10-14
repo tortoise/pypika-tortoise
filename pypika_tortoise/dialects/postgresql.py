@@ -48,7 +48,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         return newone
 
     @builder
-    def distinct_on(self, *fields: str | Term) -> PostgreSQLQueryBuilder:  # type:ignore[return]
+    def distinct_on(self, *fields: str | Term) -> None:
         for field in fields:
             if isinstance(field, str):
                 self._distinct_on.append(Field(field))
@@ -64,7 +64,7 @@ class PostgreSQLQueryBuilder(QueryBuilder):
         return super()._distinct_sql(distinct_ctx)
 
     @builder
-    def returning(self, *terms: Any) -> PostgreSQLQueryBuilder:  # type:ignore[return]
+    def returning(self, *terms: Any) -> None:
         for term in terms:
             if isinstance(term, Field):
                 self._return_field(term)

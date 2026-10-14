@@ -56,7 +56,7 @@ class Term(Node):
         self.alias = alias
 
     @builder
-    def as_(self, alias: str) -> Self:  # type:ignore[return]
+    def as_(self, alias: str) -> None:
         self.alias = alias
 
     @property
@@ -617,9 +617,7 @@ class Field(Criterion, JSON):
             yield from self.table.nodes_()
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -695,9 +693,7 @@ class Tuple(Criterion):
         return resolve_is_aggregate([val.is_aggregate for val in self.values])
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -767,9 +763,7 @@ class NestedCriterion(Criterion):
         )
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -836,9 +830,7 @@ class BasicCriterion(Criterion):
         return resolve_is_aggregate(aggrs)
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -930,9 +922,7 @@ class JSONAttributeCriterion(Criterion):
         return f"JSON_VALUE({self.json_column.get_sql(ctx)}, '{path_str}')"
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         self.json_column = self.json_column.replace_table(current_table, new_table)
 
 
@@ -963,9 +953,7 @@ class ContainsCriterion(Criterion):
         return self.term.is_aggregate
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -988,7 +976,7 @@ class ContainsCriterion(Criterion):
         return format_alias_sql(sql, self.alias, ctx)
 
     @builder
-    def negate(self) -> Self:  # type:ignore[return,override]
+    def negate(self) -> None:
         self._is_negated = True
 
 
@@ -1012,9 +1000,7 @@ class RangeCriterion(Criterion):
 
 class BetweenCriterion(RangeCriterion):
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1059,9 +1045,7 @@ class BitwiseAndCriterion(Criterion):
         yield from self.value.nodes_()
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1092,9 +1076,7 @@ class NullCriterion(Criterion):
         yield from self.term.nodes_()
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1175,9 +1157,7 @@ class ArithmeticExpression(Term):
         return resolve_is_aggregate([self.left.is_aggregate, self.right.is_aggregate])
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1278,13 +1258,11 @@ class Case(Term):
         )
 
     @builder
-    def when(self, criterion: Any, term: Any) -> Self:  # type:ignore[return]
+    def when(self, criterion: Any, term: Any) -> None:
         self._cases.append((criterion, self.wrap_constant(term)))
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1363,9 +1341,7 @@ class Not(Criterion):
         return inner
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1443,9 +1419,7 @@ class Function(Criterion):
         return resolve_is_aggregate([arg.is_aggregate for arg in self.args])
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1505,7 +1479,7 @@ class AggregateFunction(Function):
         self._include_filter = False
 
     @builder
-    def filter(self, *filters: Any) -> AnalyticFunction:  # type:ignore[return]
+    def filter(self, *filters: Any) -> None:
         self._include_filter = True
         self._filters += filters
 
@@ -1538,12 +1512,12 @@ class AnalyticFunction(AggregateFunction):
         self._include_over = False
 
     @builder
-    def over(self, *terms: Any) -> Self:  # type:ignore[return]
+    def over(self, *terms: Any) -> None:
         self._include_over = True
         self._partition += terms
 
     @builder
-    def orderby(self, *terms: Any, **kwargs: Any) -> Self:  # type:ignore[return]
+    def orderby(self, *terms: Any, **kwargs: Any) -> None:
         self._include_over = True
         self._orderbys += [(term, kwargs.get("order")) for term in terms]
 
@@ -1619,15 +1593,11 @@ class WindowFrameAnalyticFunction(AnalyticFunction):
         self.bound = (bound, and_bound) if and_bound else bound
 
     @builder
-    def rows(  # type:ignore[return]
-        self, bound: str | EdgeT, and_bound: EdgeT | None = None
-    ) -> Self:
+    def rows(self, bound: str | EdgeT, and_bound: EdgeT | None = None) -> None:
         self._set_frame_and_bounds("ROWS", bound, and_bound)
 
     @builder
-    def range(  # type:ignore[return]
-        self, bound: str | EdgeT, and_bound: EdgeT | None = None
-    ) -> Self:
+    def range(self, bound: str | EdgeT, and_bound: EdgeT | None = None) -> None:
         self._set_frame_and_bounds("RANGE", bound, and_bound)
 
     def get_frame_sql(self) -> str:
@@ -1656,7 +1626,7 @@ class IgnoreNullsAnalyticFunction(AnalyticFunction):
         self._ignore_nulls = False
 
     @builder
-    def ignore_nulls(self) -> Self:  # type:ignore[return]
+    def ignore_nulls(self) -> None:
         self._ignore_nulls = True
 
     def get_special_params_sql(self, ctx: SqlContext) -> str | None:

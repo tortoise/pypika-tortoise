@@ -30,7 +30,7 @@ class MSSQLQueryBuilder(QueryBuilder):
         self._top: int | None = None
 
     @builder
-    def top(self, value: str | int) -> MSSQLQueryBuilder:  # type:ignore[return]
+    def top(self, value: str | int) -> None:
         """
         Implements support for simple TOP clauses.
 
@@ -44,7 +44,7 @@ class MSSQLQueryBuilder(QueryBuilder):
             raise QueryException("TOP value must be an integer") from None
 
     @builder
-    def fetch_next(self, limit: int) -> MSSQLQueryBuilder:  # type:ignore[return]
+    def fetch_next(self, limit: int) -> None:
         # Overridden to provide a more domain-specific API for T-SQL users
         self._limit = cast(ValueWrapper, self.wrap_constant(limit))
 

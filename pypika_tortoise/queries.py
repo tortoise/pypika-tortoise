@@ -40,7 +40,7 @@ class Selectable(Node):
         self.alias = alias
 
     @builder
-    def as_(self, alias: str) -> Self:  # type:ignore[return]
+    def as_(self, alias: str) -> None:
         self.alias = alias
 
     def field(self, name: str) -> Field:
@@ -199,7 +199,7 @@ class Table(Selectable):
         return format_alias_sql(table_sql, self.alias, ctx)
 
     @builder
-    def for_(self, temporal_criterion: Criterion) -> Self:  # type:ignore[return]
+    def for_(self, temporal_criterion: Criterion) -> None:
         if self._for:
             raise AttributeError("'Query' object already has attribute for_")
         if self._for_portion:
@@ -207,7 +207,7 @@ class Table(Selectable):
         self._for = temporal_criterion
 
     @builder
-    def for_portion(self, period_criterion: PeriodCriterion) -> Self:  # type:ignore[return]
+    def for_portion(self, period_criterion: PeriodCriterion) -> None:
         if self._for_portion:
             raise AttributeError("'Query' object already has attribute for_portion")
         if self._for:
@@ -542,7 +542,7 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
         self._wrapper_cls = wrapper_cls
 
     @builder
-    def orderby(self, *fields: Field, **kwargs: Any) -> Self:  # type:ignore[return]
+    def orderby(self, *fields: Field, **kwargs: Any) -> None:
         for field in fields:
             field = (
                 Field(field, table=self.base_query._from[0])  # type:ignore[assignment]
@@ -553,31 +553,31 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
             self._orderbys.append((field, kwargs.get("order")))
 
     @builder
-    def limit(self, limit: int) -> Self:  # type:ignore[return]
+    def limit(self, limit: int) -> None:
         self._limit = cast(ValueWrapper, self.wrap_constant(limit))
 
     @builder
-    def offset(self, offset: int) -> Self:  # type:ignore[return]
+    def offset(self, offset: int) -> None:
         self._offset = cast(ValueWrapper, self.wrap_constant(offset))
 
     @builder
-    def union(self, other: Selectable) -> Self:  # type:ignore[return]
+    def union(self, other: Selectable) -> None:
         self._set_operation.append((SetOperation.union, other))  # type:ignore[arg-type]
 
     @builder
-    def union_all(self, other: Selectable) -> Self:  # type:ignore[return]
+    def union_all(self, other: Selectable) -> None:
         self._set_operation.append((SetOperation.union_all, other))  # type:ignore[arg-type]
 
     @builder
-    def intersect(self, other: Selectable) -> Self:  # type:ignore[return]
+    def intersect(self, other: Selectable) -> None:
         self._set_operation.append((SetOperation.intersect, other))  # type:ignore[arg-type]
 
     @builder
-    def except_of(self, other: Selectable) -> Self:  # type:ignore[return]
+    def except_of(self, other: Selectable) -> None:
         self._set_operation.append((SetOperation.except_of, other))  # type:ignore[arg-type]
 
     @builder
-    def minus(self, other: Selectable) -> Self:  # type:ignore[return]
+    def minus(self, other: Selectable) -> None:
         self._set_operation.append((SetOperation.minus, other))  # type:ignore[arg-type]
 
     def __add__(self, other: Selectable) -> Self:  # type:ignore[override]
@@ -766,7 +766,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         return newone
 
     @builder
-    def on_conflict(self, *target_fields: str | Term) -> Self:  # type:ignore[return]
+    def on_conflict(self, *target_fields: str | Term) -> None:
         if not self._insert_table:
             raise QueryException("On conflict only applies to insert query")
 
@@ -779,9 +779,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 self._on_conflict_fields.append(target_field)
 
     @builder
-    def do_update(  # type:ignore[return]
-        self, update_field: str | Field, update_value: Any | None = None
-    ) -> Self:
+    def do_update(self, update_field: str | Field, update_value: Any | None = None) -> None:
         if self._on_conflict_do_nothing:
             raise QueryException("Can not have two conflict handlers")
 
@@ -862,7 +860,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         return ""
 
     @builder
-    def from_(self, selectable: Selectable | Query | str) -> Self:  # type:ignore[return]
+    def from_(self, selectable: Selectable | Query | str) -> None:
         """
         Adds a table to the query. This function can only be called once and will raise an AttributeError if called a
         second time.
@@ -891,9 +889,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._subquery_count = sub_query_count + 1
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across
         queries.
@@ -948,14 +944,12 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._select_star_tables.add(cast(Table, new_table))
 
     @builder
-    def with_(  # type:ignore[return]
-        self, selectable: QueryBuilder, name: str, *terms: Term
-    ) -> Self:
+    def with_(self, selectable: QueryBuilder, name: str, *terms: Term) -> None:
         t = Cte(name, selectable, *terms)
         self._with.append(t)
 
     @builder
-    def into(self, table: str | Table) -> Self:  # type:ignore[return]
+    def into(self, table: str | Table) -> None:
         if self._insert_table is not None:
             raise AttributeError("'Query' object has no attribute '%s'" % "into")
 
@@ -965,7 +959,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self._insert_table = table if isinstance(table, Table) else Table(table)
 
     @builder
-    def select(self, *terms: Any) -> Self:  # type:ignore[return]
+    def select(self, *terms: Any) -> None:
         for term in terms:
             if isinstance(term, Field):
                 self._select_field(term)
@@ -979,21 +973,21 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 )
 
     @builder
-    def delete(self) -> Self:  # type:ignore[return]
+    def delete(self) -> None:
         if self._delete_from or self._selects or self._update_table:
             raise AttributeError("'Query' object has no attribute '%s'" % "delete")
 
         self._delete_from = True
 
     @builder
-    def update(self, table: str | Table) -> Self:  # type:ignore[return]
+    def update(self, table: str | Table) -> None:
         if self._update_table is not None or self._selects or self._delete_from:
             raise AttributeError("'Query' object has no attribute '%s'" % "update")
 
         self._update_table = table if isinstance(table, Table) else Table(table)
 
     @builder
-    def columns(self, *terms: Any) -> Self:  # type:ignore[return]
+    def columns(self, *terms: Any) -> None:
         if self._insert_table is None:
             raise AttributeError("'Query' object has no attribute '%s'" % "insert")
         if self._default_values:
@@ -1008,7 +1002,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._columns.append(term)
 
     @builder
-    def insert(self, *terms: Any) -> Self:  # type:ignore[return]
+    def insert(self, *terms: Any) -> None:
         if self._insert_table is None:
             raise AttributeError("'Query' object has no attribute '%s'" % "insert")
         if self._default_values:
@@ -1019,7 +1013,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._replace = False
 
     @builder
-    def default_values(self) -> Self:  # type:ignore[return]
+    def default_values(self) -> None:
         if self._insert_table is None:
             raise AttributeError("'Query' object has no attribute '%s'" % "insert")
         if self._columns or self._values:
@@ -1027,7 +1021,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self._default_values = True
 
     @builder
-    def replace(self, *terms: Any) -> Self:  # type:ignore[return]
+    def replace(self, *terms: Any) -> None:
         if self._insert_table is None:
             raise AttributeError("'Query' object has no attribute '%s'" % "insert")
 
@@ -1036,9 +1030,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._replace = True
 
     @builder
-    def force_index(  # type:ignore[return]
-        self, term: str | Index, *terms: str | Index
-    ) -> Self:
+    def force_index(self, term: str | Index, *terms: str | Index) -> None:
         for t in (term, *terms):
             if isinstance(t, Index):
                 self._force_indexes.append(t)
@@ -1046,9 +1038,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 self._force_indexes.append(Index(t))
 
     @builder
-    def use_index(  # type:ignore[return]
-        self, term: str | Index, *terms: str | Index
-    ) -> Self:
+    def use_index(self, term: str | Index, *terms: str | Index) -> None:
         for t in (term, *terms):
             if isinstance(t, Index):
                 self._use_indexes.append(t)
@@ -1056,17 +1046,17 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 self._use_indexes.append(Index(t))
 
     @builder
-    def distinct(self) -> Self:  # type:ignore[return]
+    def distinct(self) -> None:
         self._distinct = True
 
     @builder
-    def for_update(  # type:ignore[return]
+    def for_update(
         self,
         nowait: bool = False,
         skip_locked: bool = False,
         of: tuple[str, ...] = (),
         no_key: bool = False,
-    ) -> Self:
+    ) -> None:
         self._for_update = True
         self._for_update_skip_locked = skip_locked
         self._for_update_nowait = nowait
@@ -1074,13 +1064,13 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self._for_update_no_key = no_key
 
     @builder
-    def do_nothing(self) -> Self:  # type:ignore[return]
+    def do_nothing(self) -> None:
         if len(self._on_conflict_do_updates) > 0:
             raise QueryException("Can not have two conflict handlers")
         self._on_conflict_do_nothing = True
 
     @builder
-    def prewhere(self, criterion: Criterion) -> Self:  # type:ignore[return]
+    def prewhere(self, criterion: Criterion) -> None:
         if not self._validate_table(criterion):
             self._foreign_table = True
 
@@ -1090,9 +1080,9 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._prewheres = criterion
 
     @builder
-    def where(self, criterion: Term | EmptyCriterion) -> Self:  # type:ignore[return]
+    def where(self, criterion: Term | EmptyCriterion) -> None:
         if isinstance(criterion, EmptyCriterion):
-            return  # type:ignore[return-value]
+            return
         if not self._on_conflict:
             if not self._validate_table(criterion):
                 self._foreign_table = True
@@ -1117,14 +1107,14 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 raise QueryException("Can not have fieldless ON CONFLICT WHERE")
 
     @builder
-    def having(self, criterion: Criterion) -> Self:  # type:ignore[return]
+    def having(self, criterion: Criterion) -> None:
         if self._havings:
             self._havings &= criterion
         else:
             self._havings = criterion
 
     @builder
-    def groupby(self, *terms: str | int | Term) -> Self:  # type:ignore[return]
+    def groupby(self, *terms: str | int | Term) -> None:
         for term in terms:
             if isinstance(term, str):
                 term = Field(term, table=self._from[0])
@@ -1135,13 +1125,11 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._groupbys.append(term)  # type:ignore[arg-type]
 
     @builder
-    def with_totals(self) -> Self:  # type:ignore[return]
+    def with_totals(self) -> None:
         self._with_totals = True
 
     @builder
-    def rollup(  # type:ignore[return]
-        self, *terms: list | tuple | set | Term, **kwargs: Any
-    ) -> Self:
+    def rollup(self, *terms: list | tuple | set | Term, **kwargs: Any) -> None:
         for_mysql = kwargs.get("vendor") == "mysql"
 
         if self._mysql_rollup:
@@ -1170,7 +1158,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._groupbys.append(Rollup(*terms))  # type:ignore[arg-type]
 
     @builder
-    def orderby(self, *fields: Any, **kwargs: Any) -> Self:  # type:ignore[return]
+    def orderby(self, *fields: Any, **kwargs: Any) -> None:
         for field in fields:
             field = (
                 Field(field, table=self._from[0])
@@ -1230,11 +1218,11 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         return self.join(item, JoinType.hash)
 
     @builder
-    def limit(self, limit: int) -> Self:  # type:ignore[return]
+    def limit(self, limit: int) -> None:
         self._limit = cast(ValueWrapper, self.wrap_constant(limit))
 
     @builder
-    def offset(self, offset: int) -> Self:  # type:ignore[return]
+    def offset(self, offset: int) -> None:
         self._offset = cast(ValueWrapper, self.wrap_constant(offset))
 
     @builder
@@ -1258,7 +1246,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         return _SetOperation(self, other, SetOperation.minus, wrapper_cls=self._wrapper_cls)
 
     @builder
-    def set(self, field: Field | str, value: Any) -> Self:  # type:ignore[return]
+    def set(self, field: Field | str, value: Any) -> None:
         field = Field(field) if not isinstance(field, Field) else field
         value = self.wrap_constant(value, wrapper_cls=self._wrapper_cls)
         self._updates.append((field, value))
@@ -1273,7 +1261,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         return self.minus(other)
 
     @builder
-    def slice(self, slice: slice) -> Self:  # type:ignore[return]
+    def slice(self, slice: slice) -> None:
         if slice.start is not None:
             self._offset = cast(ValueWrapper, self.wrap_constant(slice.start))
         if slice.stop is not None:
@@ -1838,9 +1826,7 @@ class Join:
         pass
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing
         fields across queries.
@@ -1889,9 +1875,7 @@ class JoinOn(Join):
             )
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing
         fields across queries.
@@ -1924,9 +1908,7 @@ class JoinUsing(Join):
         pass
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing
         fields across queries.
@@ -1964,7 +1946,7 @@ class CreateQueryBuilder:
         self.dialect = dialect
 
     @builder
-    def create_table(self, table: Table | str) -> Self:  # type:ignore[return]
+    def create_table(self, table: Table | str) -> None:
         """
         Creates the table.
 
@@ -1983,7 +1965,7 @@ class CreateQueryBuilder:
         self._create_table = table if isinstance(table, Table) else Table(table)
 
     @builder
-    def temporary(self) -> Self:  # type:ignore[return]
+    def temporary(self) -> None:
         """
         Makes the table temporary.
 
@@ -1993,7 +1975,7 @@ class CreateQueryBuilder:
         self._temporary = True
 
     @builder
-    def unlogged(self) -> Self:  # type:ignore[return]
+    def unlogged(self) -> None:
         """
         Makes the table unlogged.
 
@@ -2003,7 +1985,7 @@ class CreateQueryBuilder:
         self._unlogged = True
 
     @builder
-    def with_system_versioning(self) -> Self:  # type:ignore[return]
+    def with_system_versioning(self) -> None:
         """
         Adds system versioning.
 
@@ -2013,9 +1995,7 @@ class CreateQueryBuilder:
         self._with_system_versioning = True
 
     @builder
-    def columns(  # type:ignore[return]
-        self, *columns: str | tuple[str, str] | Column
-    ) -> Self:
+    def columns(self, *columns: str | tuple[str, str] | Column) -> None:
         """
         Adds the columns.
 
@@ -2041,9 +2021,7 @@ class CreateQueryBuilder:
             self._columns.append(column)
 
     @builder
-    def period_for(  # type:ignore[return]
-        self, name, start_column: str | Column, end_column: str | Column
-    ) -> Self:
+    def period_for(self, name, start_column: str | Column, end_column: str | Column) -> None:
         """
         Adds a PERIOD FOR clause.
 
@@ -2062,7 +2040,7 @@ class CreateQueryBuilder:
         self._period_fors.append(PeriodFor(name, start_column, end_column))
 
     @builder
-    def unique(self, *columns: str | Column) -> Self:  # type:ignore[return]
+    def unique(self, *columns: str | Column) -> None:
         """
         Adds a UNIQUE constraint.
 
@@ -2079,7 +2057,7 @@ class CreateQueryBuilder:
         )
 
     @builder
-    def primary_key(self, *columns: str | Column) -> Self:  # type:ignore[return]
+    def primary_key(self, *columns: str | Column) -> None:
         """
         Adds a primary key constraint.
 
@@ -2101,7 +2079,7 @@ class CreateQueryBuilder:
         ]
 
     @builder
-    def as_select(self, query_builder: QueryBuilder) -> Self:  # type:ignore[return]
+    def as_select(self, query_builder: QueryBuilder) -> None:
         """
         Creates the table from a select statement.
 
@@ -2123,7 +2101,7 @@ class CreateQueryBuilder:
         self._as_select = query_builder
 
     @builder
-    def if_not_exists(self) -> Self:  # type:ignore[return]
+    def if_not_exists(self) -> None:
         self._if_not_exists = True
 
     def get_sql(self, ctx: SqlContext | None) -> str:
@@ -2245,14 +2223,14 @@ class DropQueryBuilder:
         return querystring
 
     @builder
-    def drop_table(self, table: Table | str) -> Self:  # type:ignore[return]
+    def drop_table(self, table: Table | str) -> None:
         if self._drop_table:
             raise AttributeError("'Query' object already has attribute drop_table")
 
         self._drop_table = table if isinstance(table, Table) else Table(table)
 
     @builder
-    def if_exists(self) -> Self:  # type:ignore[return]
+    def if_exists(self) -> None:
         self._if_exists = True
 
     def _drop_table_sql(self, ctx: SqlContext) -> str:

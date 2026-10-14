@@ -4,20 +4,13 @@ Package for SQL functions wrappers
 
 from __future__ import annotations
 
-import sys
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from .context import SqlContext
 from .enums import SqlTypes
 from .terms import AggregateFunction, Function, Star, Term
 from .utils import builder
-
-if TYPE_CHECKING:
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
 
 
 class DistinctOptionFunction(AggregateFunction):
@@ -35,7 +28,7 @@ class DistinctOptionFunction(AggregateFunction):
         return s
 
     @builder
-    def distinct(self) -> Self:  # type:ignore[return]
+    def distinct(self) -> None:
         self._distinct = True
 
 

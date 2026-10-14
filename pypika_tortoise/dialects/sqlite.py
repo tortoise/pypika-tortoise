@@ -45,7 +45,7 @@ class SQLLiteQueryBuilder(QueryBuilder):
         return newone
 
     @builder
-    def returning(self, *terms: Any) -> SQLLiteQueryBuilder:  # type:ignore[return]
+    def returning(self, *terms: Any) -> None:
         for term in terms:
             if isinstance(term, Field):
                 self._return_field(term)
