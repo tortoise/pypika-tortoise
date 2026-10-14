@@ -84,15 +84,6 @@ class DatePart(Enum):
     microsecond = "MICROSECOND"
 
 
-class SqlTypeLength:
-    def __init__(self, name: str, length: int) -> None:
-        self.name = name
-        self.length = length
-
-    def get_sql(self, ctx: SqlContext) -> str:
-        return "{name}({length})".format(name=self.name, length=self.length)
-
-
 class SqlType:
     def __init__(self, name: str) -> None:
         self.name = name
@@ -102,6 +93,15 @@ class SqlType:
 
     def get_sql(self, ctx: SqlContext) -> str:
         return "{name}".format(name=self.name)
+
+
+class SqlTypeLength:
+    def __init__(self, name: str, length: int) -> None:
+        self.name = name
+        self.length = length
+
+    def get_sql(self, ctx: SqlContext) -> str:
+        return "{name}({length})".format(name=self.name, length=self.length)
 
 
 class SqlTypes:
