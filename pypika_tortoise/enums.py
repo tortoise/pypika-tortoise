@@ -1,4 +1,10 @@
+from __future__ import annotations
+
 from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .context import SqlContext
 
 
 class Arithmetic(Enum):
@@ -78,24 +84,24 @@ class DatePart(Enum):
     microsecond = "MICROSECOND"
 
 
-class SqlType:
-    def __init__(self, name: str) -> None:
-        self.name = name
-
-    def __call__(self, length: int) -> "SqlTypeLength":
-        return SqlTypeLength(self.name, length)
-
-    def get_sql(self, ctx: "SqlContext") -> str:
-        return "{name}".format(name=self.name)
-
-
 class SqlTypeLength:
     def __init__(self, name: str, length: int) -> None:
         self.name = name
         self.length = length
 
-    def get_sql(self, ctx: "SqlContext") -> str:
+    def get_sql(self, ctx: SqlContext) -> str:
         return "{name}({length})".format(name=self.name, length=self.length)
+
+
+class SqlType:
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def __call__(self, length: int) -> SqlTypeLength:
+        return SqlTypeLength(self.name, length)
+
+    def get_sql(self, ctx: SqlContext) -> str:
+        return "{name}".format(name=self.name)
 
 
 class SqlTypes:
@@ -140,6 +146,3 @@ class JSONOperators(Enum):
     GET_TEXT_VALUE = "->>"
     GET_PATH_JSON_VALUE = "#>"
     GET_PATH_TEXT_VALUE = "#>>"
-
-
-from .context import SqlContext  # noqa: E402
