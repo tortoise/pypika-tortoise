@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from copy import copy
 from functools import reduce
 from typing import TYPE_CHECKING, Any, cast, overload
 
 from .context import DEFAULT_SQL_CONTEXT, SqlContext
-from .enums import Dialects, JoinType, SetOperation
+from .enums import Dialects, JoinType, Order, SetOperation
 from .exceptions import JoinException, QueryException, RollupException, SetOperationException
 from .terms import (
     ArithmeticExpression,
@@ -17,7 +17,6 @@ from .terms import (
     Function,
     Index,
     Node,
-    Order,
     Parameterizer,
     PeriodCriterion,
     Rollup,
@@ -544,15 +543,14 @@ class _SetOperation(Selectable, Term):  # type:ignore[misc]
         self._wrapper_cls = wrapper_cls
 
     @builder
-    def orderby(self: Self, *fields: Field, **kwargs: Any) -> None:
-        for field in fields:
-            field = (
-                Field(field, table=self.base_query._from[0])  # type:ignore[assignment]
-                if isinstance(field, str)
-                else self.base_query.wrap_constant(field)
-            )
-
-            self._orderbys.append((field, kwargs.get("order")))
+    def orderby(self: Self, *fields: Field | str, **kwargs: Any) -> None:
+        for field_or_name in fields:
+            if isinstance(field_or_name, str):
+                field = Field(field_or_name, table=self.base_query._from[0])
+            else:
+                field = cast(Field, self.base_query.wrap_constant(field_or_name))
+            order = cast(Order | None, kwargs.get("order"))
+            self._orderbys.append((field, order))
 
     @builder
     def limit(self: Self, limit: int) -> None:
@@ -1056,7 +1054,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self: Self,
         nowait: bool = False,
         skip_locked: bool = False,
-        of: tuple[str, ...] = (),
+        of: Iterable[str] = (),
         no_key: bool = False,
     ) -> None:
         self._for_update = True
@@ -1066,7 +1064,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self._for_update_no_key = no_key
 
     @builder
-    def do_nothing(self) -> None:
+    def do_nothing(self: Self) -> None:
         if len(self._on_conflict_do_updates) > 0:
             raise QueryException("Can not have two conflict handlers")
         self._on_conflict_do_nothing = True
@@ -1228,23 +1226,23 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
         self._offset = cast(ValueWrapper, self.wrap_constant(offset))
 
     @builder
-    def union(self, other: Self) -> _SetOperation:
+    def union(self: Self, other: Self) -> _SetOperation:
         return _SetOperation(self, other, SetOperation.union, wrapper_cls=self._wrapper_cls)
 
     @builder
-    def union_all(self, other: Self) -> _SetOperation:
+    def union_all(self: Self, other: Self) -> _SetOperation:
         return _SetOperation(self, other, SetOperation.union_all, wrapper_cls=self._wrapper_cls)
 
     @builder
-    def intersect(self, other: Self) -> _SetOperation:
+    def intersect(self: Self, other: Self) -> _SetOperation:
         return _SetOperation(self, other, SetOperation.intersect, wrapper_cls=self._wrapper_cls)
 
     @builder
-    def except_of(self, other: Self) -> _SetOperation:
+    def except_of(self: Self, other: Self) -> _SetOperation:
         return _SetOperation(self, other, SetOperation.except_of, wrapper_cls=self._wrapper_cls)
 
     @builder
-    def minus(self, other: Self) -> _SetOperation:
+    def minus(self: Self, other: Self) -> _SetOperation:
         return _SetOperation(self, other, SetOperation.minus, wrapper_cls=self._wrapper_cls)
 
     @builder
