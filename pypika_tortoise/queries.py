@@ -973,7 +973,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 )
 
     @builder
-    def delete(self) -> None:
+    def delete(self: Self) -> None:
         if self._delete_from or self._selects or self._update_table:
             raise AttributeError("'Query' object has no attribute '%s'" % "delete")
 
@@ -1013,7 +1013,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._replace = False
 
     @builder
-    def default_values(self) -> None:
+    def default_values(self: Self) -> None:
         if self._insert_table is None:
             raise AttributeError("'Query' object has no attribute '%s'" % "insert")
         if self._columns or self._values:
@@ -1046,7 +1046,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
                 self._use_indexes.append(Index(t))
 
     @builder
-    def distinct(self) -> None:
+    def distinct(self: Self) -> None:
         self._distinct = True
 
     @builder
@@ -1125,7 +1125,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             self._groupbys.append(term)  # type:ignore[arg-type]
 
     @builder
-    def with_totals(self) -> None:
+    def with_totals(self: Self) -> None:
         self._with_totals = True
 
     @builder
@@ -1170,7 +1170,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
 
     @builder
     def join(
-        self,
+        self: Self,
         item: Table | QueryBuilder | AliasedQuery | Selectable,
         how: JoinType = JoinType.inner,
     ) -> Joiner:
@@ -1971,7 +1971,7 @@ class CreateQueryBuilder:
         self._create_table = table if isinstance(table, Table) else Table(table)
 
     @builder
-    def temporary(self) -> None:
+    def temporary(self: Self) -> None:
         """
         Makes the table temporary.
 
@@ -1981,7 +1981,7 @@ class CreateQueryBuilder:
         self._temporary = True
 
     @builder
-    def unlogged(self) -> None:
+    def unlogged(self: Self) -> None:
         """
         Makes the table unlogged.
 
@@ -1991,7 +1991,7 @@ class CreateQueryBuilder:
         self._unlogged = True
 
     @builder
-    def with_system_versioning(self) -> None:
+    def with_system_versioning(self: Self) -> None:
         """
         Adds system versioning.
 
@@ -2027,7 +2027,7 @@ class CreateQueryBuilder:
             self._columns.append(column)
 
     @builder
-    def period_for(self: Self, name, start_column: str | Column, end_column: str | Column) -> None:
+    def period_for(self: Self, name: str, start_column: str | Column, end_column: str | Column) -> None:
         """
         Adds a PERIOD FOR clause.
 
@@ -2107,7 +2107,7 @@ class CreateQueryBuilder:
         self._as_select = query_builder
 
     @builder
-    def if_not_exists(self) -> None:
+    def if_not_exists(self: Self) -> None:
         self._if_not_exists = True
 
     def get_sql(self, ctx: SqlContext | None) -> str:
@@ -2236,7 +2236,7 @@ class DropQueryBuilder:
         self._drop_table = table if isinstance(table, Table) else Table(table)
 
     @builder
-    def if_exists(self) -> None:
+    def if_exists(self: Self) -> None:
         self._if_exists = True
 
     def _drop_table_sql(self, ctx: SqlContext) -> str:
