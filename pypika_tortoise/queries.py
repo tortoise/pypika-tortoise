@@ -2027,7 +2027,9 @@ class CreateQueryBuilder:
             self._columns.append(column)
 
     @builder
-    def period_for(self: Self, name: str, start_column: str | Column, end_column: str | Column) -> None:
+    def period_for(
+        self: Self, name: str, start_column: str | Column, end_column: str | Column
+    ) -> None:
         """
         Adds a PERIOD FOR clause.
 
