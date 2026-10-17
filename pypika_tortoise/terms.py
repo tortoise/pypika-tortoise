@@ -11,21 +11,12 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar, cast
 
 from .context import DEFAULT_SQL_CONTEXT, SqlContext
-from .enums import (
-    Arithmetic,
-    Boolean,
-    Comparator,
-    DatePart,
-    Dialects,
-    Equality,
-    JSONOperators,
-    Matching,
-    Order,
-)
+from .enums import Arithmetic, Boolean, DatePart, Dialects, Equality, JSONOperators, Matching
 from .exceptions import CaseException, FunctionException
 from .utils import builder, format_alias_sql, format_quotes, ignore_copy, resolve_is_aggregate
 
 if TYPE_CHECKING:
+    from .enums import Comparator, Order
     from .queries import QueryBuilder, Selectable, Table
 
     if sys.version_info >= (3, 11):
