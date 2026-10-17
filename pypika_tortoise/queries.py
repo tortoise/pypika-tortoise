@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 from collections.abc import Iterable, Sequence
 from copy import copy
 from functools import reduce
@@ -11,14 +10,12 @@ from .enums import Dialects, JoinType, Order, SetOperation
 from .exceptions import JoinException, QueryException, RollupException, SetOperationException
 from .terms import (
     ArithmeticExpression,
-    Criterion,
     EmptyCriterion,
     Field,
     Function,
     Index,
     Node,
     Parameterizer,
-    PeriodCriterion,
     Rollup,
     Star,
     Term,
@@ -28,7 +25,10 @@ from .terms import (
 from .utils import builder, format_alias_sql, format_quotes, ignore_copy
 
 if TYPE_CHECKING:
+    import sys
     from builtins import slice as Slice
+
+    from .terms import Criterion, PeriodCriterion
 
     if sys.version_info >= (3, 11):
         from typing import Self
