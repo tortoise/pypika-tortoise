@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.6
+
+- Add support for custom trim characters in `Trim` 
+- Add support for new string functions: `LTrim`, `RTrim`, `LPad`, `RPad`, `Replace`
+
 ### 0.6.5
 
 - Add `default_values()` API for default-only inserts with dialect-aware SQL rendering
