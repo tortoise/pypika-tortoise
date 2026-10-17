@@ -2,13 +2,21 @@ from __future__ import annotations
 
 import json
 from datetime import time
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from ..context import DEFAULT_SQL_CONTEXT, SqlContext
 from ..enums import Dialects
 from ..queries import Query, QueryBuilder, Table
 from ..terms import ValueWrapper
 from ..utils import builder, format_alias_sql, format_quotes
+
+if TYPE_CHECKING:
+    import sys
+
+    if sys.version_info >= (3, 11):
+        from typing import Self
+    else:
+        from typing_extensions import Self
 
 
 class MySQLQuery(Query):
@@ -37,7 +45,7 @@ class MySQLValueWrapper(ValueWrapper):
         elif isinstance(value, time):
             value = value.replace(tzinfo=None)
             return format_quotes(value.isoformat(), quote_char)
-        elif isinstance(value, (dict, list)):
+        elif isinstance(value, dict | list):
             value = format_quotes(json.dumps(value), quote_char)
             return value.replace("\\", "\\\\")
         return super().get_value_sql(ctx)
@@ -95,7 +103,7 @@ class MySQLQueryBuilder(QueryBuilder):
         return ""
 
     @builder
-    def modifier(self, value: str) -> MySQLQueryBuilder:  # type:ignore[return]
+    def modifier(self: Self, value: str) -> None:
         """
         Adds a modifier such as SQL_CALC_FOUND_ROWS to the query.
         https://dev.mysql.com/doc/refman/5.7/en/select.html
@@ -136,11 +144,11 @@ class MySQLLoadQueryBuilder:
         self._into_table: Table | None = None
 
     @builder
-    def load(self, fp: str) -> MySQLLoadQueryBuilder:  # type:ignore[return]
+    def load(self: Self, fp: str) -> None:
         self._load_file = fp
 
     @builder
-    def into(self, table: str | Table) -> MySQLLoadQueryBuilder:  # type:ignore[return]
+    def into(self: Self, table: str | Table) -> None:
         self._into_table = table if isinstance(table, Table) else Table(table)
 
     def get_sql(self, ctx: SqlContext | None = None) -> str:

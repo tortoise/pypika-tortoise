@@ -40,9 +40,9 @@ class CriterionTests(unittest.TestCase):
         self.assertEqual('"crit"."foo"=0.5', str(c2))
 
     def test__criterion_eq_bool(self):
-        c1 = Field("foo") == True  # noqa: E712
+        c1 = Field("foo") == True
         c2 = Field("foo", table=self.t).eq(True)
-        c3 = Field("foo") == False  # noqa: E712
+        c3 = Field("foo") == False
         c4 = Field("foo", table=self.t).eq(False)
 
         self.assertEqual('"foo"=true', str(c1))
@@ -72,8 +72,8 @@ class CriterionTests(unittest.TestCase):
         self.assertEqual('"crit"."foo"=\'2000-01-01T12:30:55\'', str(c2))
 
     def test__criterion_eq_right(self):
-        c1 = 1 == Field("foo")
-        c2 = -1 == Field("foo", table=self.t)
+        c1 = Field("foo") == 1
+        c2 = Field("foo", table=self.t) == -1
 
         self.assertEqual('"foo"=1', str(c1))
         self.assertEqual('"crit"."foo"=-1', str(c2))
@@ -123,8 +123,8 @@ class CriterionTests(unittest.TestCase):
         self.assertEqual('"crit"."foo"<>\'2000-01-01T12:30:55\'', str(c2))
 
     def test__criterion_ne_right(self):
-        c1 = 1 != Field("foo")
-        c2 = -1 != Field("foo", table=self.t)
+        c1 = Field("foo") != 1
+        c2 = Field("foo", table=self.t) != -1
 
         self.assertEqual('"foo"<>1', str(c1))
         self.assertEqual('"crit"."foo"<>-1', str(c2))
@@ -153,8 +153,8 @@ class CriterionTests(unittest.TestCase):
         self.assertEqual('"crit"."foo"<\'2000-01-01T12:30:55\'', str(c2))
 
     def test__criterion_lt_right(self):
-        c1 = 1 > Field("foo")
-        c2 = -1 > Field("foo", table=self.t)
+        c1 = Field("foo") < 1
+        c2 = Field("foo", table=self.t) < -1
 
         self.assertEqual('"foo"<1', str(c1))
         self.assertEqual('"crit"."foo"<-1', str(c2))
@@ -183,8 +183,8 @@ class CriterionTests(unittest.TestCase):
         self.assertEqual('"crit"."foo">\'2000-01-01T12:30:55\'', str(c2))
 
     def test__criterion_gt_right(self):
-        c1 = 1 < Field("foo")
-        c2 = -1 < Field("foo", table=self.t)
+        c1 = Field("foo") > 1
+        c2 = Field("foo", table=self.t) > -1
 
         self.assertEqual('"foo">1', str(c1))
         self.assertEqual('"crit"."foo">-1', str(c2))
@@ -213,8 +213,8 @@ class CriterionTests(unittest.TestCase):
         self.assertEqual('"crit"."foo"<=\'2000-01-01T12:30:55\'', str(c2))
 
     def test__criterion_lte_right(self):
-        c1 = 1 >= Field("foo")
-        c2 = -1 >= Field("foo", table=self.t)
+        c1 = Field("foo") <= 1
+        c2 = Field("foo", table=self.t) <= -1
 
         self.assertEqual('"foo"<=1', str(c1))
         self.assertEqual('"crit"."foo"<=-1', str(c2))
@@ -243,8 +243,8 @@ class CriterionTests(unittest.TestCase):
         self.assertEqual('"crit"."foo">=\'2000-01-01T12:30:55\'', str(c2))
 
     def test__criterion_gte_right(self):
-        c1 = 1 <= Field("foo")
-        c2 = -1 <= Field("foo", table=self.t)
+        c1 = Field("foo") >= 1
+        c2 = Field("foo", table=self.t) >= -1
 
         self.assertEqual('"foo">=1', str(c1))
         self.assertEqual('"crit"."foo">=-1', str(c2))

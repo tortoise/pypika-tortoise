@@ -1,6 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from .enums import Dialects
+
+if TYPE_CHECKING:
+    from .terms import Parameterizer
 
 
 @dataclass(frozen=True)
@@ -37,8 +43,6 @@ class SqlContext:
         )
 
 
-from .enums import Dialects  # noqa: E402
-
 DEFAULT_SQL_CONTEXT = SqlContext(
     quote_char='"',
     secondary_quote_char="'",
@@ -46,5 +50,3 @@ DEFAULT_SQL_CONTEXT = SqlContext(
     as_keyword=False,
     dialect=Dialects.SQLITE,
 )
-
-from .terms import Parameterizer  # noqa: E402
