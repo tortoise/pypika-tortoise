@@ -59,7 +59,7 @@ class JoinType(Enum):
     outer = "FULL OUTER"
     left_outer = "LEFT OUTER"
     right_outer = "RIGHT OUTER"
-    full_outer = "FULL OUTER"
+    full_outer = "FULL OUTER"  # NOQA: PIE796
     cross = "CROSS"
     hash = "HASH"
 

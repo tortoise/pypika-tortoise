@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 from copy import copy
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..context import DEFAULT_SQL_CONTEXT, SqlContext
 from ..enums import Dialects
@@ -10,6 +10,14 @@ from ..exceptions import QueryException
 from ..queries import Query, QueryBuilder
 from ..terms import ArithmeticExpression, Field, Function, Star, Term, ValueWrapper
 from ..utils import builder
+
+if TYPE_CHECKING:
+    import sys
+
+    if sys.version_info >= (3, 11):
+        from typing import Self
+    else:
+        from typing_extensions import Self
 
 
 class SQLLiteValueWrapper(ValueWrapper):
@@ -45,7 +53,7 @@ class SQLLiteQueryBuilder(QueryBuilder):
         return newone
 
     @builder
-    def returning(self, *terms: Any) -> SQLLiteQueryBuilder:  # type:ignore[return]
+    def returning(self: Self, *terms: Any) -> None:
         for term in terms:
             if isinstance(term, Field):
                 self._return_field(term)
@@ -151,7 +159,8 @@ class SQLLiteQueryBuilder(QueryBuilder):
             querystring += self._set_sql(ctx)
 
             if self._joins:
-                self._from.append(self._update_table.as_(self._update_table.get_table_name() + "_"))
+                table_name_ = self._update_table.get_table_name() + "_"
+                self._from.append(self._update_table.as_(table_name_))
 
             if self._from:
                 querystring += self._from_sql(ctx)

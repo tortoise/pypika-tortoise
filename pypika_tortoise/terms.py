@@ -8,7 +8,7 @@ import uuid
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from datetime import date, time
 from enum import Enum
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar, cast
 
 from .context import DEFAULT_SQL_CONTEXT, SqlContext
 from .enums import (
@@ -56,7 +56,7 @@ class Term(Node):
         self.alias = alias
 
     @builder
-    def as_(self, alias: str) -> Self:  # type:ignore[return]
+    def as_(self: Self, alias: str) -> None:
         self.alias = alias
 
     @property
@@ -244,10 +244,10 @@ class Term(Node):
     def __rtruediv__(self, other: Any) -> ArithmeticExpression:
         return ArithmeticExpression(Arithmetic.div, self.wrap_constant(other), self)
 
-    def __eq__(self, other: Any) -> BasicCriterion:  # type:ignore[override]
+    def __eq__(self, other: object) -> BasicCriterion:  # type:ignore[override]
         return BasicCriterion(Equality.eq, self, self.wrap_constant(other))
 
-    def __ne__(self, other: Any) -> BasicCriterion:  # type:ignore[override]
+    def __ne__(self, other: object) -> BasicCriterion:  # type:ignore[override]
         return BasicCriterion(Equality.ne, self, self.wrap_constant(other))
 
     def __gt__(self, other: Any) -> BasicCriterion:
@@ -284,7 +284,7 @@ class Parameter(Term):
     will be determined based on the dialect if not provided.
     """
 
-    IDX_PLACEHOLDERS = {
+    IDX_PLACEHOLDERS: Final[dict[Dialects, Callable[[Any], str]]] = {
         Dialects.ORACLE: lambda _: "?",
         Dialects.MSSQL: lambda _: "?",
         Dialects.MYSQL: lambda _: "%s",
@@ -338,7 +338,7 @@ class Parameterizer:
     def should_parameterize(self, value: Any) -> bool:
         if isinstance(value, Enum):
             return False
-        if isinstance(value, str) and value == "*":
+        if isinstance(value, str) and value == "*":  # NOQA:SIM103
             return False
         return True
 
@@ -585,7 +585,7 @@ class Criterion(Term):
 
 class EmptyCriterion:
     is_aggregate: bool | None = None
-    tables_: set[Table] = set()
+    tables_: ClassVar[set[Table]] = set()
 
     def fields_(self) -> set[Field]:
         return set()
@@ -617,9 +617,7 @@ class Field(Criterion, JSON):
             yield from self.table.nodes_()
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -695,9 +693,7 @@ class Tuple(Criterion):
         return resolve_is_aggregate([val.is_aggregate for val in self.values])
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -767,9 +763,7 @@ class NestedCriterion(Criterion):
         )
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -836,9 +830,7 @@ class BasicCriterion(Criterion):
         return resolve_is_aggregate(aggrs)
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -930,9 +922,7 @@ class JSONAttributeCriterion(Criterion):
         return f"JSON_VALUE({self.json_column.get_sql(ctx)}, '{path_str}')"
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         self.json_column = self.json_column.replace_table(current_table, new_table)
 
 
@@ -963,9 +953,7 @@ class ContainsCriterion(Criterion):
         return self.term.is_aggregate
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -988,7 +976,7 @@ class ContainsCriterion(Criterion):
         return format_alias_sql(sql, self.alias, ctx)
 
     @builder
-    def negate(self) -> Self:  # type:ignore[return,override]
+    def negate(self: Self) -> None:  # type:ignore[override]
         self._is_negated = True
 
 
@@ -1012,9 +1000,7 @@ class RangeCriterion(Criterion):
 
 class BetweenCriterion(RangeCriterion):
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1059,9 +1045,7 @@ class BitwiseAndCriterion(Criterion):
         yield from self.value.nodes_()
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1092,9 +1076,7 @@ class NullCriterion(Criterion):
         yield from self.term.nodes_()
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1139,7 +1121,7 @@ class ArithmeticExpression(Term):
     are also preserved.
     """
 
-    add_order = [Arithmetic.add, Arithmetic.sub]
+    add_order = (Arithmetic.add, Arithmetic.sub)
 
     def __init__(
         self, operator: Arithmetic, left: Any, right: Any, alias: str | None = None
@@ -1175,9 +1157,7 @@ class ArithmeticExpression(Term):
         return resolve_is_aggregate([self.left.is_aggregate, self.right.is_aggregate])
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1278,13 +1258,11 @@ class Case(Term):
         )
 
     @builder
-    def when(self, criterion: Any, term: Any) -> Self:  # type:ignore[return]
+    def when(self: Self, criterion: Any, term: Any) -> None:
         self._cases.append((criterion, self.wrap_constant(term)))
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1305,7 +1283,7 @@ class Case(Term):
         self._else = self._else.replace_table(current_table, new_table) if self._else else None
 
     @builder
-    def else_(self, term: Any) -> Self:
+    def else_(self: Self, term: Any) -> Self:
         self._else = self.wrap_constant(term)
         return self
 
@@ -1363,9 +1341,7 @@ class Not(Criterion):
         return inner
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1443,9 +1419,7 @@ class Function(Criterion):
         return resolve_is_aggregate([arg.is_aggregate for arg in self.args])
 
     @builder
-    def replace_table(  # type:ignore[return]
-        self, current_table: Table | None, new_table: Table | None
-    ) -> Self:
+    def replace_table(self: Self, current_table: Table | None, new_table: Table | None) -> None:
         """
         Replaces all occurrences of the specified table with the new table. Useful when reusing fields across queries.
 
@@ -1505,7 +1479,7 @@ class AggregateFunction(Function):
         self._include_filter = False
 
     @builder
-    def filter(self, *filters: Any) -> AnalyticFunction:  # type:ignore[return]
+    def filter(self: Self, *filters: Any) -> None:
         self._include_filter = True
         self._filters += filters
 
@@ -1538,12 +1512,12 @@ class AnalyticFunction(AggregateFunction):
         self._include_over = False
 
     @builder
-    def over(self, *terms: Any) -> Self:  # type:ignore[return]
+    def over(self: Self, *terms: Any) -> None:
         self._include_over = True
         self._partition += terms
 
     @builder
-    def orderby(self, *terms: Any, **kwargs: Any) -> Self:  # type:ignore[return]
+    def orderby(self: Self, *terms: Any, **kwargs: Any) -> None:
         self._include_over = True
         self._orderbys += [(term, kwargs.get("order")) for term in terms]
 
@@ -1619,15 +1593,11 @@ class WindowFrameAnalyticFunction(AnalyticFunction):
         self.bound = (bound, and_bound) if and_bound else bound
 
     @builder
-    def rows(  # type:ignore[return]
-        self, bound: str | EdgeT, and_bound: EdgeT | None = None
-    ) -> Self:
+    def rows(self: Self, bound: str | EdgeT, and_bound: EdgeT | None = None) -> None:
         self._set_frame_and_bounds("ROWS", bound, and_bound)
 
     @builder
-    def range(  # type:ignore[return]
-        self, bound: str | EdgeT, and_bound: EdgeT | None = None
-    ) -> Self:
+    def range(self: Self, bound: str | EdgeT, and_bound: EdgeT | None = None) -> None:
         self._set_frame_and_bounds("RANGE", bound, and_bound)
 
     def get_frame_sql(self) -> str:
@@ -1656,7 +1626,7 @@ class IgnoreNullsAnalyticFunction(AnalyticFunction):
         self._ignore_nulls = False
 
     @builder
-    def ignore_nulls(self) -> Self:  # type:ignore[return]
+    def ignore_nulls(self: Self) -> None:
         self._ignore_nulls = True
 
     def get_special_params_sql(self, ctx: SqlContext) -> str | None:
@@ -1668,7 +1638,7 @@ class IgnoreNullsAnalyticFunction(AnalyticFunction):
 
 
 class Interval(Term):
-    templates = {
+    templates: ClassVar[dict[Dialects, str]] = {
         # PostgreSQL, Redshift and Vertica require quotes around the expr and unit e.g. INTERVAL '1 week'
         Dialects.POSTGRESQL: "INTERVAL '{expr} {unit}'",
         Dialects.REDSHIFT: "INTERVAL '{expr} {unit}'",
@@ -1678,8 +1648,8 @@ class Interval(Term):
         Dialects.MYSQL: "INTERVAL '{expr}' {unit}",
     }
 
-    units = ["years", "months", "days", "hours", "minutes", "seconds", "microseconds"]
-    labels = ["YEAR", "MONTH", "DAY", "HOUR", "MINUTE", "SECOND", "MICROSECOND"]
+    units = ("years", "months", "days", "hours", "minutes", "seconds", "microseconds")
+    labels = ("YEAR", "MONTH", "DAY", "HOUR", "MINUTE", "SECOND", "MICROSECOND")
 
     trim_pattern = re.compile(r"(^0+\.)|(\.0+$)|(^[0\-.: ]+[\-: ])|([\-:. ][0\-.: ]+$)")
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from ..context import DEFAULT_SQL_CONTEXT, SqlContext
 from ..enums import Dialects
@@ -8,6 +8,14 @@ from ..exceptions import QueryException
 from ..queries import Query, QueryBuilder
 from ..terms import ValueWrapper
 from ..utils import builder
+
+if TYPE_CHECKING:
+    import sys
+
+    if sys.version_info >= (3, 11):
+        from typing import Self
+    else:
+        from typing_extensions import Self
 
 
 class MSSQLQuery(Query):
@@ -30,7 +38,7 @@ class MSSQLQueryBuilder(QueryBuilder):
         self._top: int | None = None
 
     @builder
-    def top(self, value: str | int) -> MSSQLQueryBuilder:  # type:ignore[return]
+    def top(self: Self, value: str | int) -> None:
         """
         Implements support for simple TOP clauses.
 
@@ -44,7 +52,7 @@ class MSSQLQueryBuilder(QueryBuilder):
             raise QueryException("TOP value must be an integer") from None
 
     @builder
-    def fetch_next(self, limit: int) -> MSSQLQueryBuilder:  # type:ignore[return]
+    def fetch_next(self: Self, limit: int) -> None:
         # Overridden to provide a more domain-specific API for T-SQL users
         self._limit = cast(ValueWrapper, self.wrap_constant(limit))
 

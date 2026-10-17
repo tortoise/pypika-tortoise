@@ -40,9 +40,9 @@ class CriterionTests(unittest.TestCase):
         self.assertEqual('"crit"."foo"=0.5', str(c2))
 
     def test__criterion_eq_bool(self):
-        c1 = Field("foo") == True  # noqa: E712
+        c1 = Field("foo") == True
         c2 = Field("foo", table=self.t).eq(True)
-        c3 = Field("foo") == False  # noqa: E712
+        c3 = Field("foo") == False
         c4 = Field("foo", table=self.t).eq(False)
 
         self.assertEqual('"foo"=true', str(c1))
