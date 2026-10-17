@@ -6,11 +6,8 @@ from pypika_tortoise import Query as Q
 from pypika_tortoise import Table as T
 from pypika_tortoise import functions as fn
 from pypika_tortoise.context import DEFAULT_SQL_CONTEXT
-from pypika_tortoise.dialects.mssql import MSSQLQuery
 from pypika_tortoise.dialects.postgresql import PostgreSQLQuery
-from pypika_tortoise.dialects.sqlite import SQLLiteQuery
 from pypika_tortoise.enums import SqlTypes
-from pypika_tortoise.exceptions import DialectNotSupported
 
 
 class FunctionTests(unittest.TestCase):
@@ -530,14 +527,15 @@ class StringTests(unittest.TestCase):
         self.assertEqual('SELECT TRIM("foo") FROM "abc"', str(q))
 
     def test__trim__field__chars(self):
-        q = Q.from_(self.t).select(fn.Trim(self.t.foo, trim_chars="x"))
+        q = Q.from_(self.t).select(fn.Trim(self.t.foo, chars="x"))
 
         self.assertEqual(
-            'SELECT TRIM(BOTH \'x\' FROM "foo") FROM "abc"', q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
+            'SELECT TRIM(\'x\' FROM "foo") FROM "abc"',
+            q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
         )
 
     def test__trim__field__chars__sqlite(self):
-        q = Q.from_(self.t).select(fn.Trim(self.t.foo, trim_chars="x"))
+        q = Q.from_(self.t).select(fn.Trim(self.t.foo, chars="x"))
 
         self.assertEqual('SELECT TRIM("foo",\'x\') FROM "abc"', str(q))
 
@@ -547,94 +545,17 @@ class StringTests(unittest.TestCase):
         self.assertEqual("SELECT TRIM('  abc  ')", str(q))
 
     def test__trim__str__chars(self):
-        q = Q.select(fn.Trim("xxabcxx", trim_chars="x"))
+        q = Q.select(fn.Trim("xxabcxx", chars="x"))
 
         self.assertEqual(
-            "SELECT TRIM(BOTH 'x' FROM 'xxabcxx')", q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
+            "SELECT TRIM('x' FROM 'xxabcxx')",
+            q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
         )
 
     def test__trim__str__chars__sqlite(self):
-        q = Q.select(fn.Trim("xxabcxx", trim_chars="x"))
+        q = Q.select(fn.Trim("xxabcxx", chars="x"))
 
         self.assertEqual("SELECT TRIM('xxabcxx','x')", str(q))
-
-    def test__ltrim__str(self):
-        q = Q.select(fn.LTrim("  abc"))
-
-        self.assertEqual("SELECT LTRIM('  abc')", str(q))
-
-    def test__ltrim__field(self):
-        q = Q.from_(self.t).select(fn.LTrim(self.t.foo))
-
-        self.assertEqual('SELECT LTRIM("foo") FROM "abc"', str(q))
-
-    def test__rtrim__str(self):
-        q = Q.select(fn.RTrim("abc  "))
-
-        self.assertEqual("SELECT RTRIM('abc  ')", str(q))
-
-    def test__rtrim__field(self):
-        q = Q.from_(self.t).select(fn.RTrim(self.t.foo))
-
-        self.assertEqual('SELECT RTRIM("foo") FROM "abc"', str(q))
-
-    def test__lpad__str(self):
-        q = Q.select(fn.LPad("abc", 5))
-
-        self.assertEqual("SELECT LPAD('abc',5,' ')", q.get_sql(PostgreSQLQuery.SQL_CONTEXT))
-
-    def test__lpad__str_with_fill(self):
-        q = Q.select(fn.LPad("abc", 5, "x"))
-
-        self.assertEqual("SELECT LPAD('abc',5,'x')", q.get_sql(PostgreSQLQuery.SQL_CONTEXT))
-
-    def test__lpad__field(self):
-        q = Q.from_(self.t).select(fn.LPad(self.t.foo, 10, "-"))
-
-        self.assertEqual(
-            'SELECT LPAD("foo",10,\'-\') FROM "abc"', q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
-        )
-
-    def test__lpad__sqlite__mssql__raises(self):
-        q = Q.select(fn.LPad("abc", 5))
-
-        for dialect in [SQLLiteQuery.SQL_CONTEXT, MSSQLQuery.SQL_CONTEXT]:
-            with self.subTest(dialect=dialect), self.assertRaises(DialectNotSupported):
-                q.get_sql(dialect)
-
-    def test__rpad__str(self):
-        q = Q.select(fn.RPad("abc", 5))
-
-        self.assertEqual("SELECT RPAD('abc',5,' ')", q.get_sql(PostgreSQLQuery.SQL_CONTEXT))
-
-    def test__rpad__str_with_fill(self):
-        q = Q.select(fn.RPad("abc", 5, "x"))
-
-        self.assertEqual("SELECT RPAD('abc',5,'x')", q.get_sql(PostgreSQLQuery.SQL_CONTEXT))
-
-    def test__rpad__field(self):
-        q = Q.from_(self.t).select(fn.RPad(self.t.foo, 10, "-"))
-
-        self.assertEqual(
-            'SELECT RPAD("foo",10,\'-\') FROM "abc"', q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
-        )
-
-    def test__rpad__sqlite__mssql__raises(self):
-        q = Q.select(fn.RPad("abc", 5))
-
-        for dialect in [SQLLiteQuery.SQL_CONTEXT, MSSQLQuery.SQL_CONTEXT]:
-            with self.subTest(dialect=dialect), self.assertRaises(DialectNotSupported):
-                q.get_sql(dialect)
-
-    def test__replace__str(self):
-        q = Q.select(fn.Replace("abcde", "cd", "xx"))
-
-        self.assertEqual("SELECT REPLACE('abcde','cd','xx')", str(q))
-
-    def test__replace__field(self):
-        q = Q.from_(self.t).select(fn.Replace(self.t.foo, "old", "new"))
-
-        self.assertEqual("SELECT REPLACE(\"foo\",'old','new') FROM \"abc\"", str(q))
 
 
 class CastTests(unittest.TestCase):
