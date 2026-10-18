@@ -8,8 +8,8 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from .context import SqlContext
-from .enums import SqlTypes
-from .terms import AggregateFunction, Function, Star, Term
+from .enums import Dialects, SqlTypes
+from .terms import AggregateFunction, Function, Star, Term, ValueWrapper
 from .utils import builder
 
 if TYPE_CHECKING:
@@ -243,8 +243,23 @@ class Reverse(Function):
 
 
 class Trim(Function):
-    def __init__(self, term: Any, alias: str | None = None) -> None:
-        super().__init__("TRIM", term, alias=alias)
+    def __init__(self, term: Any, alias: str | None = None, *, chars: str | None = None) -> None:
+        args = [term]
+        if chars and chars != " ":
+            args.append(ValueWrapper(chars))
+        super().__init__("TRIM", *args, alias=alias)
+
+    def get_function_sql(self, ctx: SqlContext) -> str:
+        if len(self.args) == 1:
+            return super().get_function_sql(ctx)
+        name = self.get_dialect_special_name(ctx.dialect) or self.name
+        args_sql = [self.get_arg_sql(arg, ctx) for arg in self.args]
+        if ctx.dialect == Dialects.SQLITE:
+            args = ",".join(args_sql)
+        else:
+            term_sql, chars_sql = args_sql
+            args = f"{chars_sql} FROM {term_sql}"
+        return f"{name}({args})"
 
 
 class SplitPart(Function):

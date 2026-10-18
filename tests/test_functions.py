@@ -521,6 +521,38 @@ class StringTests(unittest.TestCase):
 
         self.assertEqual('SELECT SUBSTRING("foo",2,6) FROM "abc"', str(q))
 
+    def test__trim__field(self):
+        q = Q.from_(self.t).select(fn.Trim(self.t.foo))
+
+        self.assertEqual('SELECT TRIM("foo") FROM "abc"', str(q))
+
+    def test__trim__field__chars(self):
+        q = Q.from_(self.t).select(fn.Trim(self.t.foo, chars="x"))
+
+        self.assertEqual(
+            'SELECT TRIM(\'x\' FROM "foo") FROM "abc"', q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
+        )
+
+    def test__trim__field__chars__sqlite(self):
+        q = Q.from_(self.t).select(fn.Trim(self.t.foo, chars="x"))
+
+        self.assertEqual('SELECT TRIM("foo",\'x\') FROM "abc"', str(q))
+
+    def test__trim__str(self):
+        q = Q.select(fn.Trim("  abc  "))
+
+        self.assertEqual("SELECT TRIM('  abc  ')", str(q))
+
+    def test__trim__str__chars(self):
+        q = Q.select(fn.Trim("xxabcxx", chars="x"))
+
+        self.assertEqual("SELECT TRIM('x' FROM 'xxabcxx')", q.get_sql(PostgreSQLQuery.SQL_CONTEXT))
+
+    def test__trim__str__chars__sqlite(self):
+        q = Q.select(fn.Trim("xxabcxx", chars="x"))
+
+        self.assertEqual("SELECT TRIM('xxabcxx','x')", str(q))
+
 
 class CastTests(unittest.TestCase):
     t = T("abc")
