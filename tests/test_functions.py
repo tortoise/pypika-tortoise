@@ -530,8 +530,7 @@ class StringTests(unittest.TestCase):
         q = Q.from_(self.t).select(fn.Trim(self.t.foo, chars="x"))
 
         self.assertEqual(
-            'SELECT TRIM(\'x\' FROM "foo") FROM "abc"',
-            q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
+            'SELECT TRIM(\'x\' FROM "foo") FROM "abc"', q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
         )
 
     def test__trim__field__chars__sqlite(self):
@@ -547,10 +546,7 @@ class StringTests(unittest.TestCase):
     def test__trim__str__chars(self):
         q = Q.select(fn.Trim("xxabcxx", chars="x"))
 
-        self.assertEqual(
-            "SELECT TRIM('x' FROM 'xxabcxx')",
-            q.get_sql(PostgreSQLQuery.SQL_CONTEXT)
-        )
+        self.assertEqual("SELECT TRIM('x' FROM 'xxabcxx')", q.get_sql(PostgreSQLQuery.SQL_CONTEXT))
 
     def test__trim__str__chars__sqlite(self):
         q = Q.select(fn.Trim("xxabcxx", chars="x"))
