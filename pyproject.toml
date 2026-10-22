@@ -68,6 +68,9 @@ ignore = ["UP031", "UP032"] # https://docs.astral.sh/ruff/rules/printf-string-fo
 [tool.bandit]
 exclude_dirs = ["tests", "conftest.py"]
 
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+
 [tool.coverage.report]
 show_missing = true
 exclude_also = [
