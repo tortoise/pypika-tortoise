@@ -1274,7 +1274,7 @@ class Case(Term):
         self._else = self._else.replace_table(current_table, new_table) if self._else else None
 
     @builder
-    def else_(self: Self, term: Any) -> Self:
+    def else_(self: Self, term: Any) -> Case:
         self._else = self.wrap_constant(term)
         return self
 
