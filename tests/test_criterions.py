@@ -751,6 +751,10 @@ class EmptyCriterionTests(unittest.TestCase):
 
         self.assertEqual(len(empty_criterion.fields_()), 0)
 
+    def test_invert(self):
+        empty_cri = EmptyCriterion()
+        self.assertIs(~empty_cri, empty_cri)
+
 
 class AllTests(unittest.TestCase):
     def test_zero_args_returns_empty_criterion(self):

@@ -14,14 +14,12 @@ homepage = "https://github.com/tortoise/pypika-tortoise"
 repository = "https://github.com/tortoise/pypika-tortoise.git"
 documentation = "https://github.com/tortoise/pypika-tortoise"
 
-[tool.poetry]
-packages = [
-    { include = "pypika_tortoise" }
-]
-version = "0.0.0"
+[tool.pdm.version]
+path = "pypika_tortoise/__init__.py"
 
-[tool.pdm]
-version = {source="file", path="pypika_tortoise/__init__.py"}
+[tool.poetry]
+packages = [{ include = "pypika_tortoise" }]
+version = "0.0.0"
 
 [dependency-groups]
 dev = [
@@ -67,9 +65,6 @@ ignore = ["UP031", "UP032"] # https://docs.astral.sh/ruff/rules/printf-string-fo
 
 [tool.bandit]
 exclude_dirs = ["tests", "conftest.py"]
-
-[tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.report]
 show_missing = true
