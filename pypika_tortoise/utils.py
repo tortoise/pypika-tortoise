@@ -113,4 +113,6 @@ def validate(*args: Any, exc: Exception | None = None, type: type | None = None)
     if type is not None:
         for arg in args:
             if not isinstance(arg, type):
-                raise exc  # type:ignore[misc]
+                if exc is None:
+                    raise ValueError(f"Expected {arg!r} to be {type}")
+                raise exc
