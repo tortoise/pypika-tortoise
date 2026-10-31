@@ -590,6 +590,9 @@ class EmptyCriterion:
     def __xor__(self, other: T) -> T:
         return other
 
+    def __invert__(self) -> Self:
+        return self
+
 
 class Field(Criterion, JSON):
     def __init__(
