@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Concatenate, ParamSpec, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar, overload
 
-from .context import SqlContext
+if TYPE_CHECKING:
+    from .context import SqlContext
 
 T_Retval = TypeVar("T_Retval")
 T_Self = TypeVar("T_Self")
@@ -34,7 +35,7 @@ def builder(
     """
     import copy
 
-    @wraps(func)
+    @wraps(func)  # ty:ignore[invalid-argument-type]
     def _copy(self: T_Self, *args: P.args, **kwargs: P.kwargs) -> T_Retval | T_Self:
         self_copy = copy.copy(self) if getattr(self, "immutable", True) else self
         result = func(self_copy, *args, **kwargs)
@@ -113,4 +114,6 @@ def validate(*args: Any, exc: Exception | None = None, type: type | None = None)
     if type is not None:
         for arg in args:
             if not isinstance(arg, type):
-                raise exc  # type:ignore[misc]
+                if exc is None:
+                    raise ValueError(f"Expected {arg!r} to be {type}")
+                raise exc
