@@ -14,11 +14,13 @@ homepage = "https://github.com/tortoise/pypika-tortoise"
 repository = "https://github.com/tortoise/pypika-tortoise.git"
 documentation = "https://github.com/tortoise/pypika-tortoise"
 
-[tool.pdm.version]
-path = "pypika_tortoise/__init__.py"
+[tool.pdm]
+version = {source="file", path="pypika_tortoise/__init__.py"}
 
+# Required by Poetry v1 to resolve this repo via `poetry add git+https://...`
+# Poetry v2+ doesn't need it. Build/version come from pdm-backend and [tool.pdm]
 [tool.poetry]
-packages = [{ include = "pypika_tortoise" }]
+packages = [{include="pypika_tortoise"}]
 version = "0.0.0"
 
 [dependency-groups]
