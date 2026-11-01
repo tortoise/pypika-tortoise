@@ -4,9 +4,11 @@
 
 ### 0.7.0
 
+- feat: support `~EmptyCriterion()` (#52)
+- refactor(utils): defer SqlContext import and handle validate exception fallback (#51)
 - refactor: improve type hints of `@builder` wrapped functions (#47)
 - refactor: apply ruff SIM style (#46)
-- refactor: add ``TYPE_CHECKING`` guard to avoid circular imports (#45)
+- refactor: add `TYPE_CHECKING` guard to avoid circular imports (#45)
 - Drop support for Python3.9 (#44)
 - Add support for custom trim characters in `Trim` (#41)
 
