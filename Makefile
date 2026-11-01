@@ -7,17 +7,17 @@ up:
 	@uv lock --upgrade
 
 deps:
-	uv sync --active --inexact --all-groups --all-extras
+	uv sync --reinstall-package pypika-tortoise --frozen --all-groups --all-extras
 
 codeqc:
-	mypy $(checkfiles)
-	bandit -c pyproject.toml -r $(checkfiles)
-	twine check dist/*
+	uv run --frozen mypy $(checkfiles)
+	uv run --frozen bandit -c pyproject.toml -r $(checkfiles)
+	uv run --frozen twine check dist/*
 
 check: build _check
 _check:
-	ruff format --check $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
-	ruff check $(checkfiles)
+	uv run --frozen ruff format --check $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
+	uv run --frozen ruff check $(checkfiles)
 	$(MAKE) codeqc
 
 test: deps _test
@@ -28,14 +28,11 @@ ci: build _check _test
 
 style: deps _style
 _style:
-	ruff format $(checkfiles)
-	ruff check --fix $(checkfiles)
+	uv run --frozen ruff format $(checkfiles)
+	uv run --frozen ruff check --fix $(checkfiles)
 
 lint: build _style codeqc
 
 build: deps
 	rm -fR dist/
 	uv build
-
-publish: build
-	twine upload dist/*
