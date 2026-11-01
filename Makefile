@@ -22,7 +22,7 @@ _check:
 
 test: deps _test
 _test:
-	$(py_warn) pytest $(pytest_opts)
+	$(py_warn) uv run --frozen pytest $(pytest_opts)
 
 ci: build _check _test
 
