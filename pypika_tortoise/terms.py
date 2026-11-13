@@ -34,9 +34,9 @@ class Node:
     def nodes_(self) -> Iterator[NodeT]:
         yield self  # type:ignore[misc]
 
-    def find_(self, type: type[NodeT]) -> list[NodeT]:
+    def find_(self, node_type: type[NodeT]) -> list[NodeT]:
         return [  # type:ignore[var-annotated]
-            node for node in self.nodes_() if isinstance(node, type)
+            node for node in self.nodes_() if isinstance(node, node_type)
         ]
 
 
