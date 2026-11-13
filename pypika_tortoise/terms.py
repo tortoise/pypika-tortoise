@@ -59,9 +59,34 @@ class Term(Node):
     def fields_(self) -> set[Field]:
         return set(self.find_(Field))
 
+    @overload
+    @staticmethod
+    def wrap_constant(val: Node, wrapper_cls: type[Term] | None = None) -> Node: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: None, wrapper_cls: type[Term] | None = None) -> NullValue: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: list, wrapper_cls: type[Term] | None = None) -> Array: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: tuple, wrapper_cls: type[Term] | None = None) -> Tuple: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: Any, wrapper_cls: None = None) -> ValueWrapper: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: Any, wrapper_cls: type[Term]) -> Term: ...
+
     @staticmethod
     def wrap_constant(
-        val: Any, wrapper_cls: type[Term] | None = None
+        val: Node | list | tuple | Any | None,
+        wrapper_cls: type[Term] | None = None,
     ) -> NodeT | LiteralValue | Array | Tuple | ValueWrapper:
         """
         Used for wrapping raw inputs such as numbers in Criterions and Operator.
