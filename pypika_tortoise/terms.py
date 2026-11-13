@@ -8,7 +8,7 @@ import uuid
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from datetime import date, time
 from enum import Enum
-from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar, cast, overload
 
 from .context import DEFAULT_SQL_CONTEXT, SqlContext
 from .enums import Arithmetic, Boolean, DatePart, Dialects, Equality, JSONOperators, Matching
@@ -91,9 +91,31 @@ class Term(Node):
         wrapper_cls = wrapper_cls or ValueWrapper
         return wrapper_cls(val)  # type:ignore[return-value]
 
+    @overload
+    @staticmethod
+    def wrap_json(val: QueryBuilder, wrapper_cls: Any = None) -> QueryBuilder: ...
+
+    @overload
+    @staticmethod
+    def wrap_json(val: Term, wrapper_cls: Any = None) -> Term: ...
+
+    @overload
+    @staticmethod
+    def wrap_json(val: None, wrapper_cls: Any = None) -> NullValue: ...
+
+    @overload
     @staticmethod
     def wrap_json(
-        val: Term | QueryBuilder | str | int | bool | None,
+        val: str | int | bool, wrapper_cls: type[ValueWrapper] | None = None
+    ) -> ValueWrapper: ...
+
+    @overload
+    @staticmethod
+    def wrap_json(val: Any, wrapper_cls: Any = None) -> JSON: ...
+
+    @staticmethod
+    def wrap_json(
+        val: Term | QueryBuilder | str | int | bool | Any | None,
         wrapper_cls: type[ValueWrapper] | None = None,
     ) -> Term | QueryBuilder | NullValue | ValueWrapper | JSON:
         from .queries import QueryBuilder
