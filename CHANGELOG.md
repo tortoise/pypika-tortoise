@@ -4,11 +4,21 @@
 
 ### 0.7.0
 
-- refactor: improve type hints of `@builder` wrapped functions (#47)
-- refactor: apply ruff SIM style (#46)
-- refactor: add ``TYPE_CHECKING`` guard to avoid circular imports (#45)
-- Drop support for Python3.9 (#44)
+#### Changed
+- **Breaking**: Drop support for Python3.9 (#44)
+- Improve type hints of `@builder` wrapped functions; may surface new type-checker errors (#47)
+- Use `@overload` to improve type hints for `wrap_json` (#55)
+- Use `@overload` to improve type hints for `wrap_constant` (#56)
+- Add `TYPE_CHECKING` guard to avoid circular imports, including `SqlContext` (#45, #51)
+- Rename `type` to `node_type` for `Node._find` to avoid shadowing the builtin (#54)
+- Apply ruff SIM style (#46)
+
+#### Added
+- Support `~EmptyCriterion()` (#52)
 - Add support for custom trim characters in `Trim` (#41)
+
+#### Fixed
+- Fix `validate` to raise a descriptive `ValueError` when `exc` is `None` and an argument has the wrong type (#51)
 
 ## 0.6
 
