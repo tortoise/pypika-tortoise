@@ -8,7 +8,7 @@ import uuid
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from datetime import date, time
 from enum import Enum
-from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar, cast, overload
 
 from .context import DEFAULT_SQL_CONTEXT, SqlContext
 from .enums import Arithmetic, Boolean, DatePart, Dialects, Equality, JSONOperators, Matching
@@ -34,9 +34,9 @@ class Node:
     def nodes_(self) -> Iterator[NodeT]:
         yield self  # type:ignore[misc]
 
-    def find_(self, type: type[NodeT]) -> list[NodeT]:
+    def find_(self, node_type: type[NodeT]) -> list[NodeT]:
         return [  # type:ignore[var-annotated]
-            node for node in self.nodes_() if isinstance(node, type)
+            node for node in self.nodes_() if isinstance(node, node_type)
         ]
 
 
@@ -59,9 +59,34 @@ class Term(Node):
     def fields_(self) -> set[Field]:
         return set(self.find_(Field))
 
+    @overload
+    @staticmethod
+    def wrap_constant(val: Node, wrapper_cls: type[Term] | None = None) -> Node: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: None, wrapper_cls: type[Term] | None = None) -> NullValue: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: list, wrapper_cls: type[Term] | None = None) -> Array: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: tuple, wrapper_cls: type[Term] | None = None) -> Tuple: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: Any, wrapper_cls: None = None) -> ValueWrapper: ...
+
+    @overload
+    @staticmethod
+    def wrap_constant(val: Any, wrapper_cls: type[Term]) -> Term: ...
+
     @staticmethod
     def wrap_constant(
-        val: Any, wrapper_cls: type[Term] | None = None
+        val: Node | list | tuple | Any | None,
+        wrapper_cls: type[Term] | None = None,
     ) -> NodeT | LiteralValue | Array | Tuple | ValueWrapper:
         """
         Used for wrapping raw inputs such as numbers in Criterions and Operator.
@@ -91,9 +116,31 @@ class Term(Node):
         wrapper_cls = wrapper_cls or ValueWrapper
         return wrapper_cls(val)  # type:ignore[return-value]
 
+    @overload
+    @staticmethod
+    def wrap_json(val: QueryBuilder, wrapper_cls: Any = None) -> QueryBuilder: ...
+
+    @overload
+    @staticmethod
+    def wrap_json(val: Term, wrapper_cls: Any = None) -> Term: ...
+
+    @overload
+    @staticmethod
+    def wrap_json(val: None, wrapper_cls: Any = None) -> NullValue: ...
+
+    @overload
     @staticmethod
     def wrap_json(
-        val: Term | QueryBuilder | str | int | bool | None,
+        val: str | int | bool, wrapper_cls: type[ValueWrapper] | None = None
+    ) -> ValueWrapper: ...
+
+    @overload
+    @staticmethod
+    def wrap_json(val: Any, wrapper_cls: Any = None) -> JSON: ...
+
+    @staticmethod
+    def wrap_json(
+        val: Term | QueryBuilder | str | int | bool | Any | None,
         wrapper_cls: type[ValueWrapper] | None = None,
     ) -> Term | QueryBuilder | NullValue | ValueWrapper | JSON:
         from .queries import QueryBuilder
