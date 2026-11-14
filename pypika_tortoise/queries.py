@@ -968,9 +968,7 @@ class QueryBuilder(Selectable, Term):  # type:ignore[misc]
             elif isinstance(term, Function | ArithmeticExpression):
                 self._select_other(term)  # type:ignore[arg-type]
             else:
-                self._select_other(
-                    self.wrap_constant(term, wrapper_cls=self._wrapper_cls)  # type:ignore[arg-type]
-                )
+                self._select_other(self.wrap_constant(term, wrapper_cls=self._wrapper_cls))
 
     @builder
     def delete(self: Self) -> None:
